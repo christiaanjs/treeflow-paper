@@ -2,7 +2,7 @@ import Bio
 import Bio.Phylo
 import Bio.Phylo.TreeConstruction
 import pathlib
-import util
+import treeflow_pipeline.util as util
 import subprocess
 import re
 import os
@@ -76,14 +76,22 @@ def infer_topology_raxml(input_file, input_format, out_dir, subst_model=None, se
 LSD_DATE_PATH = 'distance-tree.dates'
 LSD_OUT_PATH = 'lsd-tree'
 
-def build_lsd_inputs(out_dir, tree_path, date_trait_dict):
-    out_path = pathlib.Path(out_dir)
+def build_lsd_date_file(input_file, input_format, output_file):
+    with open(input_file) as f:
+        sequences = next(Bio.AlignIO.parse(f, format=input_format))
+    
+    date_trait_dict = { record.name: float(record.name.split("_")[-1]) for record in sequences }
 
-    date_path = out_path / LSD_DATE_PATH
-    with open(date_path, 'w') as f:
+    with open(output_file, 'w') as f:
         f.write('{0}\n'.format(len(date_trait_dict)))
         for taxon_name, date in date_trait_dict.items():
             f.write('{0} {1}\n'.format(taxon_name, date))
+
+def build_lsd_inputs(input_file, input_format, out_dir, tree_path):
+    out_path = pathlib.Path(out_dir)
+
+    date_path = out_path / LSD_DATE_PATH
+    build_lsd_date_file(input_file, input_format, date_path)
 
     lsd_args = ['-c'] + util.cmd_kwargs(
         r='a',
@@ -94,12 +102,8 @@ def build_lsd_inputs(out_dir, tree_path, date_trait_dict):
 
     return lsd_args
 
-def root_topology(input_file, input_format, out_dir, date_regex, tree_file):
-    with open(input_file) as f:
-        sequences = next(Bio.AlignIO.parse(f, format=input_format))
-    
-    date_trait_dict = { record.name: float(re.search(date_regex, record.name).group(0)) for record in sequences }
-    lsd_args = build_lsd_inputs(out_dir, tree_file, date_trait_dict)
+def root_topology(input_file, input_format, out_dir, date_regex, tree_file): # TODO: Remove date_regex argument
+    lsd_args = build_lsd_inputs(input_file, input_format, out_dir, tree_file)
     subprocess.run(['lsd'] + lsd_args)
 
     out_path = pathlib.Path(out_dir)
