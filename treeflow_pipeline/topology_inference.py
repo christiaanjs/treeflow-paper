@@ -29,7 +29,6 @@ def infer_topology_neighbor_joining(input_file, input_format, out_dir):
     
     return tree_path     
 
-RAXML_ID = 'raxml'
 RAXML_ALPHA_REGEX = r'alpha\[0\]: ([0-9.]+)'
 RAXML_RATES_REGEX = r'rates\[0\] ([acgt ]+): ([0-9. ]+) '
 RAXML_FREQS_REGEX = r'freqs\[0\]: ([0-9. ]+) '

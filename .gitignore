@@ -277,3 +277,6 @@ TSWLatexianTemp*
 
 .ipynb_checkpoints/
 __pycache__/
+out/
+.snakemake/
+*.egg-info/
