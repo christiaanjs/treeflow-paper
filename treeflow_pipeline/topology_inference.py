@@ -33,7 +33,10 @@ RAXML_ALPHA_REGEX = r'alpha\[0\]: ([0-9.]+)'
 RAXML_RATES_REGEX = r'rates\[0\] ([acgt ]+): ([0-9. ]+) '
 RAXML_FREQS_REGEX = r'freqs\[0\]: ([0-9. ]+) '
 
-def parse_raxml_info(raxml_info, estimate_frequencies=True):
+def parse_raxml_info(filename, estimate_frequencies=True):
+    with open(filename) as f:
+        raxml_info = f.read()
+        
     alpha = float(re.search(RAXML_ALPHA_REGEX, raxml_info).group(1))
 
     rates_res = re.search(RAXML_RATES_REGEX, raxml_info)
@@ -68,30 +71,29 @@ def infer_topology_raxml(input_file, input_format, out_dir, subst_model=None, se
             os.remove(raxml_working_file)
         subprocess.run(['raxmlHPC'] + raxml_args)
 
-    with open(out_path / ('RAxML_info.' + RAXML_ID)) as f:
-        raxml_info = f.read()
+    raxml_info = parse_raxml_info(out_path / ('RAxML_info.' + RAXML_ID))
 
     return (out_path / ('RAxML_bestTree.' + RAXML_ID)), parse_raxml_info(raxml_info, estimate_frequencies=estimate_frequencies)
     
 LSD_DATE_PATH = 'distance-tree.dates'
 LSD_OUT_PATH = 'lsd-tree'
 
-def build_lsd_date_file(input_file, input_format, output_file):
-    with open(input_file) as f:
-        sequences = next(Bio.AlignIO.parse(f, format=input_format))
-    
-    date_trait_dict = { record.name: float(record.name.split("_")[-1]) for record in sequences }
+def parse_dates(sequence_dict):
+    return { name: name.split("_")[-1] for name in sequence_dict }
+
+def build_lsd_date_file(sequence_dict, output_file):
+    date_trait_dict = parse_dates(sequence_dict)
 
     with open(output_file, 'w') as f:
         f.write('{0}\n'.format(len(date_trait_dict)))
         for taxon_name, date in date_trait_dict.items():
             f.write('{0} {1}\n'.format(taxon_name, date))
 
-def build_lsd_inputs(input_file, input_format, out_dir, tree_path):
+def build_lsd_inputs(input_file, input_format, out_dir, tree_path): # TODO: Remove input format
     out_path = pathlib.Path(out_dir)
 
     date_path = out_path / LSD_DATE_PATH
-    build_lsd_date_file(input_file, input_format, date_path)
+    build_lsd_date_file(util.sequence_input(input_file, input_format), date_path)
 
     lsd_args = ['-c'] + util.cmd_kwargs(
         r='a',
@@ -101,6 +103,16 @@ def build_lsd_inputs(input_file, input_format, out_dir, tree_path):
     )
 
     return lsd_args
+
+def estimate_rate(date_tree_file, distance_tree_file):
+    with open(date_tree_file) as f:
+        date_tree = next(Bio.Phylo.parse(f, format='nexus'))
+
+    with open(distance_tree_file) as f:
+        distance_tree = next(Bio.Phylo.parse(f, format='nexus'))
+
+    return distance_tree.total_branch_length() / date_tree.total_branch_length()
+
 
 def root_topology(input_file, input_format, out_dir, date_regex, tree_file): # TODO: Remove date_regex argument
     lsd_args = build_lsd_inputs(input_file, input_format, out_dir, tree_file)
@@ -112,14 +124,8 @@ def root_topology(input_file, input_format, out_dir, date_regex, tree_file): # T
     lsd_date_tree_file = str(lsd_out_path) + '.date.nexus'
     lsd_distance_tree_file = str(lsd_out_path) + '.nexus'
 
-    with open(lsd_date_tree_file) as f:
-        date_tree = next(Bio.Phylo.parse(f, format='nexus'))
-
-    with open(lsd_distance_tree_file) as f:
-        distance_tree = next(Bio.Phylo.parse(f, format='nexus'))
-
-    estimated_rate = distance_tree.total_branch_length() / date_tree.total_branch_length()
-
+    estimated_rate = estimated_rate(lsd_date_tree_file, lsd_distance_tree_file)
+    
     return lsd_date_tree_file, estimated_rate 
 
 def estimate_pop_size(tree_file, tree_format):
@@ -135,6 +141,15 @@ def get_taxon_count(tree_file, tree_format):
         tree = next(Bio.Phylo.parse(f, tree_format))
 
     return tree.count_terminals()
+
+def get_starting_values(date_tree_file, distance_tree_file, raxml_info_file):
+    raxml_info = parse_raxml_info(raxml_info_file)
+    return dict(
+        clock_rate=estimate_rate(date_tree_file, distance_tree_file),
+        pop_size=estimate_pop_size(date_tree_file, 'nexus'),
+        kappa=raxml_info['rates']['ag'],
+        frequencies=raxml_info['frequencies']
+    )
 
 EPSILON = 1e-4
 def adjust_zero_branches(clade, epsilon=EPSILON):

@@ -1,0 +1,2 @@
+pop_size: { m: 2 , s: 2 }
+clock_rate: { m: 0.0, s: 3.0 }

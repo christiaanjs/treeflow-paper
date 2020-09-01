@@ -1,0 +1,2 @@
+log_every: 1000
+chain_length: 1000000

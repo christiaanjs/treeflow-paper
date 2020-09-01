@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><beast beautitemplate='Standard' beautistatus='' namespace="beast.core:beast.evolution.alignment:beast.evolution.tree.coalescent:beast.core.util:beast.evolution.nuc:beast.evolution.operators:beast.evolution.sitemodel:beast.evolution.substitutionmodel:beast.evolution.likelihood" required="BEAST v2.5.2" version="2.5">
+
+    <data id="Treeflow" name="alignment">
+        {% for taxon_name, sequence in sequence_dict.items() %}<sequence id="Sequence{{ taxon_name }}" taxon="{{ taxon_name }}" totalcount="4" value="{{ sequence }}"/>
+        {% endfor %}
+        <userDataType id="Nucleotide" spec="beast.evolution.datatype.Nucleotide"/>
+    </data>
+<map name="Exponential" >beast.math.distributions.Exponential</map>
+<map name="LogNormal" >beast.math.distributions.LogNormalDistributionModel</map>
+<map name="Normal" >beast.math.distributions.Normal</map>
+<map name="Beta" >beast.math.distributions.Beta</map>
+<map name="Gamma" >beast.math.distributions.Gamma</map>
+<map name="LaplaceDistribution" >beast.math.distributions.LaplaceDistribution</map>
+<map name="prior" >beast.math.distributions.Prior</map>
+<map name="InverseGamma" >beast.math.distributions.InverseGamma</map>
+<map name="OneOnX" >beast.math.distributions.OneOnX</map>
+
+
+<run id="mcmc" spec="MCMC" chainLength="{{ chain_length }}">
+    <state id="state" storeEvery="5000">
+        <tree id="Tree.t:Treeflow" name="stateNode">
+            <trait id="dateTrait.t:Treeflow" spec="beast.evolution.tree.TraitSet" traitname="date">
+                    {{ date_trait_string }}
+                <taxa id="TaxonSet.Treeflow" spec="TaxonSet" alignment="@Treeflow"/>
+            </trait>
+            <taxonset idref="TaxonSet.Treeflow"/>
+        </tree>
+        <parameter id="popSize.t:Treeflow" name="stateNode">{{ init_values['pop_size'] }}</parameter>
+        <parameter id="clockRate.c:Treeflow" name="stateNode">{{ init_values['clock_rate'] }}</parameter>
+    </state>
+    <init spec="beast.util.TreeParser" initial="@Tree.t:Treeflow" taxa="@Treeflow" IsLabelledNewick="true" newick="{{ newick_string  }}"/>   
+
+    <distribution id="posterior" spec="util.CompoundDistribution">
+        <distribution id="prior" spec="util.CompoundDistribution">
+            <distribution id="CoalescentConstant.t:Treeflow" spec="Coalescent">
+                <populationModel id="ConstantPopulation.t:Treeflow" spec="ConstantPopulation" popSize="@popSize.t:Treeflow"/>
+                <treeIntervals id="TreeIntervals.t:Treeflow" spec="TreeIntervals" tree="@Tree.t:Treeflow"/>
+            </distribution>
+            <prior id="ClockPrior.c:Treeflow" name="distribution" x="@clockRate.c:Treeflow">
+                <LogNormal id="LogNormalDistributionModel.0" name="distr">
+                    <parameter id="RealParameter.0" estimate="false" name="M">{{ prior_params['clock_rate']['m'] }}</parameter>
+                    <parameter id="RealParameter.1" estimate="false" name="S">{{ prior_params['clock_rate']['s'] }}</parameter>
+                </LogNormal>
+            </prior>
+            <prior id="PopSizePrior.t:Treeflow" name="distribution" x="@popSize.t:Treeflow">
+                <LogNormal id="LogNormalDistributionModel.2" name="distr">
+                    <parameter id="RealParameter.4" estimate="false" name="M">{{ prior_params['pop_size']['m'] }}</parameter>
+                    <parameter id="RealParameter.5" estimate="false" name="S">{{ prior_params['pop_size']['s'] }}</parameter>
+                </LogNormal>
+            </prior>
+        </distribution>
+        <distribution id="likelihood" spec="util.CompoundDistribution" useThreads="true">
+            <distribution id="treeLikelihood.Treeflow" spec="ThreadedTreeLikelihood" data="@Treeflow" tree="@Tree.t:Treeflow">
+                <siteModel id="SiteModel.s:Treeflow" spec="SiteModel">
+                    <parameter id="mutationRate.s:Treeflow" estimate="false" name="mutationRate">1.0</parameter>
+                    <parameter id="gammaShape.s:Treeflow" estimate="false" name="shape">1.0</parameter>
+                    <parameter id="proportionInvariant.s:Treeflow" estimate="false" lower="0.0" name="proportionInvariant" upper="1.0">0.0</parameter>
+                    <substModel id="hky.s:Treeflow" spec="HKY" kappa="{{ init_values['kappa'] }}">
+                        <frequencies id="estimatedFreqs.s:Treeflow" spec="Frequencies" frequencies="{% for freq in init_values['frequencies'] %}freq {% endfor %}"/>
+                    </substModel>
+                </siteModel>
+                <branchRateModel id="StrictClock.c:Treeflow" spec="beast.evolution.branchratemodel.StrictClockModel" clock.rate="@clockRate.c:Treeflow"/>
+            </distribution>
+        </distribution>
+    </distribution>
+
+    <operator id="CoalescentConstantTreeScaler.t:Treeflow" spec="ScaleOperator" scaleFactor="0.5" tree="@Tree.t:Treeflow" weight="3.0"/>
+
+    <operator id="CoalescentConstantTreeRootScaler.t:Treeflow" spec="ScaleOperator" rootOnly="true" scaleFactor="0.5" tree="@Tree.t:Treeflow" weight="3.0"/>
+
+    <operator id="CoalescentConstantUniformOperator.t:Treeflow" spec="Uniform" tree="@Tree.t:Treeflow" weight="30.0"/>
+    
+    {% if estimate_topology %}
+    <operator id="CoalescentConstantSubtreeSlide.t:Treeflow" spec="SubtreeSlide" tree="@Tree.t:Treeflow" weight="15.0"/>
+
+    <operator id="CoalescentConstantNarrow.t:Treeflow" spec="Exchange" tree="@Tree.t:Treeflow" weight="15.0"/>
+
+    <operator id="CoalescentConstantWide.t:Treeflow" spec="Exchange" isNarrow="false" tree="@Tree.t:Treeflow" weight="3.0"/>
+
+    <operator id="CoalescentConstantWilsonBalding.t:Treeflow" spec="WilsonBalding" tree="@Tree.t:Treeflow" weight="3.0"/>
+    {% endif %}
+    <operator id="PopSizeScaler.t:Treeflow" spec="ScaleOperator" parameter="@popSize.t:Treeflow" scaleFactor="0.75" weight="3.0"/>
+
+    <operator id="StrictClockRateScaler.c:Treeflow" spec="ScaleOperator" parameter="@clockRate.c:Treeflow" scaleFactor="0.75" weight="3.0"/>
+
+    <operator id="strictClockUpDownOperator.c:Treeflow" spec="UpDownOperator" scaleFactor="0.75" weight="3.0">
+        <up idref="clockRate.c:Treeflow"/>
+        <down idref="Tree.t:Treeflow"/>
+    </operator>
+
+    <logger id="tracelog" fileName="{{ trace_out_path }}" logEvery="{{ log_every }}" model="@posterior" sanitiseHeaders="true" sort="smart">
+        <log idref="posterior"/>
+        <log idref="likelihood"/>
+        <log idref="prior"/>
+        <log idref="treeLikelihood.Treeflow"/>
+        <log id="TreeHeight.t:Treeflow" spec="beast.evolution.tree.TreeHeightLogger" tree="@Tree.t:Treeflow"/>
+        <log idref="popSize.t:Treeflow"/>
+        <log idref="CoalescentConstant.t:Treeflow"/>
+        <log idref="clockRate.c:Treeflow"/>
+
+        <log spec='ESS' arg="@TreeHeight.t:Treeflow"/>
+        <log spec='ESS' arg="@popSize.t:Treeflow"/>
+    </logger>
+
+    <logger id="screenlog" logEvery="{{ log_every }}">
+        <log idref="posterior"/>
+        <log idref="likelihood"/>
+        <log idref="prior"/>
+    </logger>
+
+    <logger id="treelog.t:Treeflow" fileName="{{ tree_out_path }}" logEvery="{{ log_every }}" mode="tree">
+        <log id="TreeWithMetaDataLogger.t:Treeflow" spec="beast.evolution.tree.TreeWithMetaDataLogger" tree="@Tree.t:Treeflow"/>
+    </logger>
+
+</run>
+
+</beast>
