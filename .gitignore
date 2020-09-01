@@ -280,3 +280,4 @@ __pycache__/
 out/
 .snakemake/
 *.egg-info/
+*xml.state

@@ -56,7 +56,7 @@
                     <parameter id="gammaShape.s:Treeflow" estimate="false" name="shape">1.0</parameter>
                     <parameter id="proportionInvariant.s:Treeflow" estimate="false" lower="0.0" name="proportionInvariant" upper="1.0">0.0</parameter>
                     <substModel id="hky.s:Treeflow" spec="HKY" kappa="{{ init_values['kappa'] }}">
-                        <frequencies id="estimatedFreqs.s:Treeflow" spec="Frequencies" frequencies="{% for freq in init_values['frequencies'] %}freq {% endfor %}"/>
+                        <frequencies id="estimatedFreqs.s:Treeflow" spec="Frequencies" frequencies="{% for freq in init_values['frequencies'] %}{{ freq }} {% endfor %}"/>
                     </substModel>
                 </siteModel>
                 <branchRateModel id="StrictClock.c:Treeflow" spec="beast.evolution.branchratemodel.StrictClockModel" clock.rate="@clockRate.c:Treeflow"/>
