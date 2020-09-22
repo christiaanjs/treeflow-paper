@@ -27,6 +27,10 @@
         </tree>
         <parameter id="popSize.t:Treeflow" name="stateNode">{{ init_values['pop_size'] }}</parameter>
         <parameter id="clockRate.c:Treeflow" name="stateNode">{{ init_values['clock_rate'] }}</parameter>
+        {% if clock_model == 'relaxed' %}
+        <parameter id="ucldStdev.c:Treeflow" spec="parameter.RealParameter" lower="0.0" name="stateNode">0.1</parameter>
+        <stateNode id="rates.c:Treeflow" spec="parameter.RealParameter" lower="0.0">1</stateNode>
+        {% endif %}
     </state>
     <init spec="beast.util.TreeParser" initial="@Tree.t:Treeflow" taxa="@Treeflow" IsLabelledNewick="true" newick="{{ newick_string  }}"/>   
 
@@ -48,6 +52,17 @@
                     <parameter id="RealParameter.5" estimate="false" name="S">{{ prior_params['pop_size']['s'] }}</parameter>
                 </LogNormal>
             </prior>
+            {% if clock_model == 'relaxed' %}
+            <prior id="ucldStdevPrior.c:Treeflow" name="distribution" x="@ucldStdev.c:Treeflow">
+                <Gamma id="Gamma.2" name="distr">
+                    <parameter id="RealParameter.10" spec="parameter.RealParameter" estimate="false" name="alpha">0.5396</parameter>
+                    <parameter id="RealParameter.11" spec="parameter.RealParameter" estimate="false" name="beta">0.3819</parameter>
+                </Gamma>
+            </prior>
+            <prior id="ratePrior.c:Treeflow" name="distribution" x="@rates.c:Treeflow">
+                <LogNormal id="LogNormalDistributionModel.rates" S="@ucldStdev.c:Treeflow" M="1" meanInRealSpace="true" name="distr"/>
+            </prior>
+            {% endif %}
         </distribution>
         <distribution id="likelihood" spec="util.CompoundDistribution" useThreads="true">
             <distribution id="treeLikelihood.Treeflow" spec="ThreadedTreeLikelihood" data="@Treeflow" tree="@Tree.t:Treeflow">
@@ -59,7 +74,11 @@
                         <frequencies id="estimatedFreqs.s:Treeflow" spec="Frequencies" frequencies="{% for freq in init_values['frequencies'] %}{{ freq }} {% endfor %}"/>
                     </substModel>
                 </siteModel>
+                {% if clock_model == 'strict' %}
                 <branchRateModel id="StrictClock.c:Treeflow" spec="beast.evolution.branchratemodel.StrictClockModel" clock.rate="@clockRate.c:Treeflow"/>
+                {% elif clock_model == 'relaxed' %}
+                <branchRateModel id="RelaxedClock.c:Treeflow" spec="beast.evolution.branchratemodel.UCRelaxedClockModel" clock.rate="@clockRate.c:Treeflow" rates="@rates.c:Treeflow" tree="@Tree.t:Treeflow" distr="@LogNormalDistributionModel.rates" />
+				{% endif %}
             </distribution>
         </distribution>
     </distribution>
@@ -88,15 +107,27 @@
         <down idref="Tree.t:Treeflow"/>
     </operator>
 
+    {% if clock_model == 'relaxed' %}
+    <operator id="ucldStdevScaler.c:Treeflow" spec="ScaleOperator" parameter="@ucldStdev.c:Treeflow" scaleFactor="0.5" weight="10.0"/>
+    <operator id="RatesRandomWalk.c:Treeflow" spec="RealRandomWalkOperator" parameter="@rates.c:Treeflow" weight="10" windowSize="1"/>
+    <operator id="RatesSwapOperator.c:Treeflow" spec="SwapOperator" parameter="@rates.c:Treeflow" weight="10"/>
+    <operator id="RatesScale.c:Treeflow" spec="ScaleOperator" scaleFactor="0.5" parameter="@rates.c:Treeflow" weight="10"/>
+    {% endif %}
+
     <logger id="tracelog" fileName="{{ trace_out_path }}" logEvery="{{ log_every }}" model="@posterior" sanitiseHeaders="true" sort="smart">
         <log idref="posterior"/>
         <log idref="likelihood"/>
         <log idref="prior"/>
         <log idref="treeLikelihood.Treeflow"/>
         <log id="TreeHeight.t:Treeflow" spec="beast.evolution.tree.TreeHeightLogger" tree="@Tree.t:Treeflow"/>
+        <log id="TreeLength.t:Treeflow" spec="beast.evolution.tree.TreeStatLogger" tree="@Tree.t:Treeflow" logHeight="false" logLength="true"/>
         <log idref="popSize.t:Treeflow"/>
         <log idref="CoalescentConstant.t:Treeflow"/>
         <log idref="clockRate.c:Treeflow"/>
+
+        {% if clock_model == 'relaxed' %}
+        <log id="RateStatLogger" spec="beast.evolution.branchratemodel.RateStatistic" branchratemodel="@RelaxedClock.c:Treeflow" tree="@Tree.t:Treeflow"/>
+        {% endif %}
 
         <log spec='ESS' arg="@TreeHeight.t:Treeflow"/>
         <log spec='ESS' arg="@popSize.t:Treeflow"/>
@@ -109,7 +140,7 @@
     </logger>
 
     <logger id="treelog.t:Treeflow" fileName="{{ tree_out_path }}" logEvery="{{ log_every }}" mode="tree">
-        <log id="TreeWithMetaDataLogger.t:Treeflow" spec="beast.evolution.tree.TreeWithMetaDataLogger" tree="@Tree.t:Treeflow"/>
+        <log id="TreeWithMetaDataLogger.t:Treeflow" spec="beast.evolution.tree.TreeWithMetaDataLogger" tree="@Tree.t:Treeflow" {% if clock_model == 'relaxed' %}branchratemodel="@RelaxedClock.c:Treeflow"{% endif %}/>
     </logger>
 
 </run>

@@ -7,13 +7,14 @@ OUT_PATH = pathlib.Path("out")
 
 rule dengue:
     input:
-        "out/dengue/beast-strict-estimate.log"
+        #"out/dengue/beast-strict-estimate.log",
+        "out/dengue/beast-relaxed-fixed.log"
 
 rule ml_topology:
     input:
         "data/{dataset}.fasta"
     output:
-        "out/{dataset}/RAxML_info.raxml"
+        "out/{dataset}/RAxML_info.raxml",
         "out/{dataset}/RAxML_bestTree.raxml"
     shell:
         build_shell_command(
@@ -45,17 +46,7 @@ rule root_topology:
         "out/{dataset}/lsd-tree.nexus",
         log="out/{dataset}/lsd-tree"
     shell:
-        build_shell_command(
-            "lsd",
-            ["c"],
-            dict(
-                r="a",
-                i="{input.tree}",
-                d="{input.dates}",
-                o="{output.log}"
-            ),
-            arg_prefix="-"
-        )
+        "lsd -c -r a -i {input.tree} -d {input.dates} -o {output.log}"
 
 rule starting_values:
     input:
@@ -79,7 +70,7 @@ rule prepare_tree:
     run:
         top.convert_tree(input[0], 'nexus', 'newick', strip_data=True, allow_zero_branches=False)
 
-rule beast_xml:
+rule beast_xml: # TODO: Should template be input?
     input:
         fasta = "data/{dataset}.fasta",
         tree = "out/{dataset}/lsd-tree.date.newick",
@@ -107,4 +98,4 @@ rule beast_run:
         "out/{dataset}/beast-{model}.trees",
         "out/{dataset}/beast-{model}.log"
     shell:
-        "beast {input}" 
+        "beast {input}"

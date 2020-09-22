@@ -15,10 +15,11 @@ def build_beast_analysis(clock_model, tree_type, sequence_dict, newick_string, i
         estimate_topology = False
     else:
         estimate_topology = True
-    if clock_model != 'strict':
+    if clock_model not in ['strict', 'relaxed']:
         raise ValueError('Clock model not known: ' + clock_model)
     return template.render(
             estimate_topology=estimate_topology,
+            clock_model=clock_model,
             newick_string=newick_string,
             sequence_dict=sequence_dict,
             date_trait_string=date_trait_string,
