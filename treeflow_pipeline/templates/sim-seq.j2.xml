@@ -1,0 +1,45 @@
+<beast version='2.0' namespace='beast.core
+    :beast.core.parameter
+    :beast.evolution.sitemodel
+    :beast.evolution.substitutionmodel
+    :beast.evolution.branchratemodel
+    :beast.math.distributions
+    :beast.evolution.alignment
+    :beast.app.seqgen'>
+
+    <run spec="SequenceSimulator"
+        sequencelength="{{ sequence_length }}"
+        outputFileName="{{ out_file }}">
+
+        <data spec="Alignment" id="input_alignment" dataType="nucleotide">
+            {% for taxon_name in taxon_names %}<sequence spec="Sequence" taxon="{{ taxon_name }}" value="?"/>
+        {% endfor %}
+        </data>
+
+        <tree spec="beast.util.TreeParser"
+            id="tree"
+            newick="{{ newick_string }}"
+            IsLabelledNewick="true"
+            adjustTipHeights="false"/>
+
+        <siteModel spec="SiteModel">
+            <mutationRate spec="RealParameter" value ="{{ mutation_rate }}"/>
+            <proportionInvariant spec="RealParameter" value="0.0"/>
+            <substModel spec="HKY">
+                <kappa spec="RealParameter" value="{{ kappa }}"/>
+                <frequencies spec="Frequencies">
+                    <frequencies spec="RealParameter" value="{{ frequencies|join(' ') }}"/>
+                </frequencies>
+            </substModel>
+        </siteModel>
+        {% if relaxed_clock %}
+        <branchRateModel spec="UCRelaxedClockModel" tree="@tree">
+            <distr spec="LogNormalDistributionModel" meanInRealSpace="true">
+                <parameter name="M" value="1"/>
+                <parameter name="S" value="{{ rate_sd }}"/>
+            </distr>
+            <parameter spec="RealParameter" name="rates" value="0"/>
+        </branchRateModel>
+        {% endif %}
+    </run>
+</beast>

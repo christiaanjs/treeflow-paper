@@ -1,0 +1,30 @@
+<beast version="2.0"
+       namespace="beast.core
+                 :beast.core.parameter
+                 :beast.evolution.alignment
+                 :beast.evolution.tree
+                 :beast.evolution.tree.coalescent
+                 :beast.math.distributions
+                 :beast.evolution.branchratemodel">
+    <tree spec="beast.util.TreeParser"
+            id="tree"
+            newick="{{ newick_string }}"
+            IsLabelledNewick="true"
+            adjustTipHeights="false"/>
+    <branchRateModel spec="UCRelaxedClockModel" tree="@tree" id="relaxedClock">
+        <distr spec="LogNormalDistributionModel" meanInRealSpace="true" id="ratePrior">
+            <parameter name="M" value="1"/>
+            <parameter name="S" value="{{ rate_sd }}"/>
+        </distr>
+        <parameter spec="RealParameter" id="rates" name="rates" value="0"/>
+    </branchRateModel>
+    <run spec="DirectSimulator" nSamples="1">
+        <distribution spec="Prior" distr="@ratePrior" x="@rates" />
+        <logger logEvery="1" fileName="{{ trace_out_path }}">
+            <log idref="rates"/>
+        </logger>
+        <logger fileName="{{ tree_out_path }}" logEvery="1" mode="tree">
+            <log spec="beast.evolution.tree.TreeWithMetaDataLogger" tree="@tree" branchratemodel="@relaxedClock"/>
+    </logger>
+    </run>
+</beast>

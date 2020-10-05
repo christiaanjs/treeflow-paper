@@ -6,11 +6,37 @@ template_env = jinja2.Environment(
     loader=jinja2.PackageLoader('treeflow_pipeline', 'templates')
 )
 
+def build_date_string(date_dict):
+    return ','.join(['{0}={1}'.format(name, date) for name, date in date_dict.items()])
+
+def build_tree_sim(sim_config, sampling_times, pop_size, out_file):
+    out_path = pathlib.Path(out_file)
+    template = template_env.get_template('tree-sim.j2.xml')
+    date_trait_string = build_date_string(sampling_times)
+    taxon_names = list(sampling_times.keys())
+    return template.render(
+        pop_size=pop_size,
+        date_trait_string=date_trait_string,
+        taxon_names=taxon_names,
+        out_file=out_path.parents[0] / "tree-sim.trees"
+    )
+
+def build_branch_rate_sim(newick_string, rate_sd, out_file):
+    out_path = pathlib.Path(out_file)
+    template = template_env.get_template('rate-sim.j2.xml')
+    return template.render(
+        newick_string=newick_string,
+        trace_out_path=out_path.with_suffix('.log'),
+        tree_out_path=out_path.with_suffix('.trees'),
+        rate_sd=rate_sd
+    )
+
+
 def build_beast_analysis(clock_model, tree_type, sequence_dict, newick_string, init_values, prior_params, beast_config, out_file):
     out_path = pathlib.Path(out_file)
     template = template_env.get_template('beast-analysis.j2.xml')
     date_dict = treeflow_pipeline.topology_inference.parse_dates(sequence_dict)
-    date_trait_string = ','.join(['{0}={1}'.format(name, date) for name, date in date_dict.items()])
+    date_trait_string = build_date_string(date_dict)
     if tree_type == 'fixed':
         estimate_topology = False
     else:

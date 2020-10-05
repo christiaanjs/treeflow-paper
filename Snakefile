@@ -1,3 +1,5 @@
+include: "workflow/SimSnakefile"
+
 import pathlib
 import treeflow_pipeline.topology_inference as top
 import treeflow_pipeline.templating as tem
@@ -5,10 +7,14 @@ from treeflow_pipeline.util import build_shell_command, yaml_input, yaml_output,
  
 OUT_PATH = pathlib.Path("out")
 
-rule dengue:
+rule sim:
     input:
-        #"out/dengue/beast-strict-estimate.log",
-        "out/dengue/beast-relaxed-fixed.log"
+        "out/sim/0/branch-rate-sim.trees"
+
+# rule dengue:
+#     input:
+#         #"out/dengue/beast-strict-estimate.log",
+#         "out/dengue/beast-relaxed-fixed.log"
 
 rule ml_topology:
     input:

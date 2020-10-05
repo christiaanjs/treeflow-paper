@@ -1,0 +1,24 @@
+<beast version="2.0"
+       namespace="beast.core.parameter
+                 :beast.evolution.alignment
+                 :beast.evolution.tree
+                 :beast.evolution.tree.coalescent">
+
+    <run spec="feast.simulation.GPSimulator" nSims="1">
+        <simulationObject spec="RandomTree" id="tree">
+            <taxonset spec="TaxonSet" id="taxonSet" >
+            {% for taxon_name in taxon_names %}<taxon spec="Taxon" id="{{ taxon_name }}"/>
+            {% endfor %}
+            </taxonset>
+            <populationModel spec="ConstantPopulation">
+                <popSize spec="RealParameter" value="{{ pop_size }}"/>
+            </populationModel>
+            <trait spec="TraitSet" traitname="date" value="{{ date_trait_string }}" taxa="@taxonSet"/> 
+        </simulationObject>
+
+        <logger logEvery="1" fileName="{{ out_file }}">
+            <log idref="tree"/>
+        </logger>
+        
+    </run>
+</beast>
