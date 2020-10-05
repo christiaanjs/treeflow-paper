@@ -1,3 +1,6 @@
 seed: 1
 sampling_window: 10
 n_taxa: 9
+sequence_length: 10000
+kappa: 2.0
+frequencies: [0.24, 0.27, 0.26, 0.23]

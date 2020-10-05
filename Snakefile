@@ -9,7 +9,7 @@ OUT_PATH = pathlib.Path("out")
 
 rule sim:
     input:
-        "out/sim/0/branch-rate-sim.trees"
+        "out/sim/0/sequences.fasta"
 
 # rule dengue:
 #     input:

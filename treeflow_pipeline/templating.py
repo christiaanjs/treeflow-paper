@@ -31,6 +31,21 @@ def build_branch_rate_sim(newick_string, rate_sd, out_file):
         rate_sd=rate_sd
     )
 
+def build_sequence_sim(sim_config, newick_string, clock_rate, branch_rates, sampling_times, out_file):
+    out_path = pathlib.Path(out_file)
+    template = template_env.get_template('sim-seq.j2.xml')
+    return template.render(
+        out_file=out_path.parents[0] / "sequences.xml",
+        sequence_length=sim_config["sequence_length"],
+        newick_string=newick_string,
+        taxon_names=list(sampling_times.keys()),
+        clock_rate=clock_rate,
+        kappa=sim_config["kappa"],
+        frequencies=sim_config["frequencies"],
+        relaxed_clock=True,
+        branch_rates=branch_rates
+    )
+    
 
 def build_beast_analysis(clock_model, tree_type, sequence_dict, newick_string, init_values, prior_params, beast_config, out_file):
     out_path = pathlib.Path(out_file)

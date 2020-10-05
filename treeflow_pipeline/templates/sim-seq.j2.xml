@@ -23,7 +23,7 @@
             adjustTipHeights="false"/>
 
         <siteModel spec="SiteModel">
-            <mutationRate spec="RealParameter" value ="{{ mutation_rate }}"/>
+            <mutationRate spec="RealParameter" value ="{{ clock_rate }}"/>
             <proportionInvariant spec="RealParameter" value="0.0"/>
             <substModel spec="HKY">
                 <kappa spec="RealParameter" value="{{ kappa }}"/>
@@ -34,11 +34,8 @@
         </siteModel>
         {% if relaxed_clock %}
         <branchRateModel spec="UCRelaxedClockModel" tree="@tree">
-            <distr spec="LogNormalDistributionModel" meanInRealSpace="true">
-                <parameter name="M" value="1"/>
-                <parameter name="S" value="{{ rate_sd }}"/>
-            </distr>
-            <parameter spec="RealParameter" name="rates" value="0"/>
+            <distr spec="LogNormalDistributionModel" meanInRealSpace="true" M="1" S="1"/> <!-- Dummy distribution -->
+            <parameter spec="RealParameter" name="rates" value="{{ branch_rates|join(' ') }}"/>
         </branchRateModel>
         {% endif %}
     </run>

@@ -1,6 +1,7 @@
 import Bio.AlignIO
 import re
 import yaml
+import pandas as pd
 
 def update_dict(dict, **kwargs):
     res = dict.copy()
@@ -46,3 +47,6 @@ def yaml_input(input_file):
 def yaml_output(dict, output_file):
     with open(output_file, 'w') as f:
         yaml.dump(dict, f)
+
+def beast_log_input(input_file):
+    return pd.read_table(input_file, comment="#")
