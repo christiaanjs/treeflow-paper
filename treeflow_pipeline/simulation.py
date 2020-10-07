@@ -4,6 +4,14 @@ import xml
 import Bio.Seq
 import Bio.SeqIO
 
+WILDCARD_CONVERSIONS = {
+    'sequence_length': int
+}
+def prepare_config(config, wildcards):
+    for wildcard, (index, _) in wildcards._get_names():
+        config[wildcard] = WILDCARD_CONVERSIONS[wildcard](wildcards[index])
+    return config
+
 def rng(sim_config):
     return  np.random.default_rng(sim_config['seed'])
 
@@ -14,9 +22,14 @@ def get_sampling_times(sim_config):
 def sample_lognormal(sim_config, prior_params, param):
     return rng(sim_config).lognormal(prior_params[param]['m'], prior_params[param]['s'])
 
-get_pop_size, get_rate_sd, get_clock_rate = [
-    lambda x, y: sample_lognormal(x, y, p) for p in ['pop_size', 'rate_sd', 'clock_rate']
-]
+def get_pop_size(x, y):
+    return sample_lognormal(x, y, 'pop_size')
+
+def get_clock_rate(x, y):
+    return sample_lognormal(x, y, 'clock_rate')
+
+def get_rate_sd(x, y):
+    return sample_lognormal(x, y, 'rate_sd')
 
 def parse_branch_rates(df):
     return df.iloc[0, 1:].tolist()

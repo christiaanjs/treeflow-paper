@@ -9,12 +9,7 @@ OUT_PATH = pathlib.Path("out")
 
 rule sim:
     input:
-        "out/sim/0/sequences.fasta"
-
-# rule dengue:
-#     input:
-#         #"out/dengue/beast-strict-estimate.log",
-#         "out/dengue/beast-relaxed-fixed.log"
+        ["out/sim/sequence_length{0}/beast-relaxed-fixed.log".format(x) for x in [100, 1000, 5000]]
 
 rule ml_topology:
     input:
@@ -25,13 +20,13 @@ rule ml_topology:
     shell:
         build_shell_command(
             "raxmlHPC",
-            ["HKY"],
+            ["--HKY85", "-V"],
             dict(
                 p=123, # seed
                 n="raxml", # ID
                 s="{input}", # input file
                 w=(OUT_PATH / "{wildcards.dataset}").resolve(), # output file
-                m="GTRGAMMAX",  # GTR Gamma substitution, estimate frequencies
+                m="GTRCATX",  # GTR substitution, estimate frequencies
             )
         )
 

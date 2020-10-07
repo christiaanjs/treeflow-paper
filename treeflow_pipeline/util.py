@@ -12,7 +12,7 @@ def cmd_kwargs(kwarg_prefix="-", **kwargs):
     pairs = [(kwarg_prefix + key, str(value)) for key, value in kwargs.items()]
     return [x for pair in pairs for x in pair]
 
-def build_shell_command(path, args, kwargs, arg_prefix="--", kwarg_prefix="-"):
+def build_shell_command(path, args, kwargs, arg_prefix="", kwarg_prefix="-"):
     return " ".join(
         [path] +
         [arg_prefix + str(arg) for arg in args] +

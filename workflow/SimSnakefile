@@ -2,9 +2,18 @@ from treeflow_pipeline.util import yaml_input, yaml_output, text_input, text_out
 import treeflow_pipeline.simulation as sim
 import treeflow_pipeline.templating as tem
 
-rule sampling_times:
+rule sim_config:
     input:
         "config/sim-config.yaml"
+    output:
+        "out/sim/sequence_length{sequence_length}/sim-config.yaml"
+    run:
+        yaml_output(sim.prepare_config(yaml_input(input[0]), wildcards), output[0])
+
+
+rule sampling_times:
+    input:
+        "out/sim/{dataset}/sim-config.yaml"
     output:
         "out/sim/{dataset}/sampling-times.yaml"
     run:
@@ -13,7 +22,7 @@ rule sampling_times:
 rule pop_size:
     input:
         prior_config = "config/prior-params.yaml",
-        sim_config = "config/sim-config.yaml"
+        sim_config = "out/sim/{dataset}/sim-config.yaml"
     output:
         "out/sim/{dataset}/pop-size.yaml"
     run:
@@ -21,7 +30,7 @@ rule pop_size:
     
 rule tree_sim_xml:
     input:
-        config = "config/sim-config.yaml",
+        config = "out/sim/{dataset}/sim-config.yaml",
         sampling_times = "out/sim/{dataset}/sampling-times.yaml",
         pop_size = "out/sim/{dataset}/pop-size.yaml"
     output:
@@ -57,7 +66,7 @@ rule tree_sim_newick:
 rule rate_sd:
     input:
         prior_config = "config/prior-params.yaml",
-        sim_config = "config/sim-config.yaml"
+        sim_config = "out/sim/{dataset}/sim-config.yaml"
     output:
         "out/sim/{dataset}/rate-sd.yaml"
     run:
@@ -102,7 +111,7 @@ rule convert_branch_rates:
 rule clock_rate:
     input:
         prior_config = "config/prior-params.yaml",
-        sim_config = "config/sim-config.yaml"
+        sim_config = "out/sim/{dataset}/sim-config.yaml"
     output:
         "out/sim/{dataset}/clock-rate.yaml"
     run:
@@ -112,7 +121,7 @@ rule clock_rate:
 rule sequence_sim_xml:
     input:
         tree = "out/sim/{dataset}/tree-sim.newick",
-        sim_config = "config/sim-config.yaml",
+        sim_config = "out/sim/{dataset}/sim-config.yaml",
         clock_rate = "out/sim/{dataset}/clock-rate.yaml",
         branch_rates = "out/sim/{dataset}/branch-rates.yaml",
         sampling_times = "out/sim/{dataset}/sampling-times.yaml",
@@ -147,4 +156,16 @@ rule fasta_sim:
     run:
         sim.convert_simulated_sequences(input[0], output[0], 'fasta')
         
+# rule sim_data_dir:
+#     output:
+#         directory("data/sim/{dataset}")
+#     shell:
+#         "mkdir -p {output}"
 
+rule fasta_copy:
+    input:
+        "out/sim/{dataset}/sequences.fasta"
+    output:
+        "data/sim/{dataset}.fasta"
+    shell:
+        "cp {input} {output}"
