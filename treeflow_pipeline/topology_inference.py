@@ -52,7 +52,8 @@ def parse_raxml_info(filename, estimate_frequencies=True):
 
     if estimate_frequencies:
         freqs = [float(x) for x in re.search(RAXML_FREQS_REGEX, raxml_info).group(1).split(' ')]
-        param_dict['frequencies'] = freqs
+        sum_freqs = sum(freqs)
+        param_dict['frequencies'] = [freq/sum_freqs for freq in freqs] # Normalise for rounding error
 
     return param_dict
 

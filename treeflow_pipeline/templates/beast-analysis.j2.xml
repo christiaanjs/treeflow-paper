@@ -54,10 +54,10 @@
             </prior>
             {% if clock_model == 'relaxed' %}
             <prior id="ucldStdevPrior.c:Treeflow" name="distribution" x="@ucldStdev.c:Treeflow">
-                <Gamma id="Gamma.2" name="distr">
-                    <parameter id="RealParameter.10" spec="parameter.RealParameter" estimate="false" name="alpha">0.5396</parameter>
-                    <parameter id="RealParameter.11" spec="parameter.RealParameter" estimate="false" name="beta">0.3819</parameter>
-                </Gamma>
+                <LogNormal id="LogNormalDistributionModel.3" name="distr">
+                    <parameter id="RealParameter.10" spec="parameter.RealParameter" estimate="false" name="M">{{ prior_params['rate_sd']['m'] }}</parameter>
+                    <parameter id="RealParameter.11" spec="parameter.RealParameter" estimate="false" name="S">{{ prior_params['rate_sd']['s'] }}</parameter>
+                </LogNormal>
             </prior>
             <prior id="ratePrior.c:Treeflow" name="distribution" x="@rates.c:Treeflow">
                 <LogNormal id="LogNormalDistributionModel.rates" S="@ucldStdev.c:Treeflow" M="1" meanInRealSpace="true" name="distr"/>
