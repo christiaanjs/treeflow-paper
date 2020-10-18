@@ -9,7 +9,7 @@ OUT_PATH = pathlib.Path("out")
 
 rule sim:
     input:
-        ["out/sim/sequence_length{0}/beast-relaxed-fixed.log".format(x) for x in [100, 1000, 5000]]
+        ["out/sim/sequence_length{0}/rate-correlations.png".format(x) for x in [100, 1000, 5000, 20000]]
 
 rule ml_topology:
     input:
@@ -100,3 +100,22 @@ rule beast_run:
         "out/{dataset}/beast-{model}.log"
     shell:
         "beast {input}"
+
+rule relaxed_plot:
+    input:
+        trees = "out/{dataset}/beast-relaxed-fixed.trees",
+        trace = "out/{dataset}/beast-relaxed-fixed.log",
+        beast_config = "config/beast-config.yaml",
+        notebook = "notebook/plot-posterior-relaxed.ipynb"
+    output:
+        notebook = "out/{dataset}/plot-posterior-relaxed.ipynb",
+        plot = "out/{dataset}/rate-correlations.png"
+    shell:
+        """
+        papermill {input.notebook} {output.notebook} \
+            -p trace_file {input.trace} \
+            -p tree_file {input.trees} \
+            -p beast_config_file {input.beast_config} \
+            -p plot_out_file {output.plot}
+        """
+
