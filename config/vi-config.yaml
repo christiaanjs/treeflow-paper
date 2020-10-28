@@ -1,0 +1,5 @@
+optimizer: adam
+optimizer_kwargs:
+  learning_rate: 0.01
+num_steps: 10000
+rescaling: false

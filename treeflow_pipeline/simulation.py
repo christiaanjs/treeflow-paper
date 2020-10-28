@@ -36,6 +36,6 @@ def parse_branch_rates(df):
 
 def convert_simulated_sequences(input_file, output_file, output_format):
     seq_xml_root = xml.etree.ElementTree.parse(input_file)
-    records = [Bio.SeqIO.SeqRecord(Bio.Seq.Seq(tag.attrib['value'], Bio.Alphabet.generic_dna), tag.attrib['taxon']) for tag in seq_xml_root.findall('./sequence')]
+    records = [Bio.SeqIO.SeqRecord(Bio.Seq.Seq(tag.attrib['value'], Bio.Alphabet.generic_dna), tag.attrib['taxon'], description="") for tag in seq_xml_root.findall('./sequence')]
     with open(output_file, 'w') as f:
         Bio.SeqIO.write(records, f, 'fasta')

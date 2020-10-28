@@ -3,13 +3,14 @@ include: "workflow/SimSnakefile"
 import pathlib
 import treeflow_pipeline.topology_inference as top
 import treeflow_pipeline.templating as tem
-from treeflow_pipeline.util import build_shell_command, yaml_input, yaml_output, sequence_input, text_input, text_output
+import treeflow_pipeline.model as mod
+from treeflow_pipeline.util import build_shell_command, yaml_input, yaml_output, sequence_input, text_input, text_output, pickle_output
  
 OUT_PATH = pathlib.Path("out")
 
 rule sim:
     input:
-        ["out/sim/sequence_length{0}/rate-correlations.png".format(x) for x in [100, 1000, 5000, 20000]]
+        "out/sim/sequence_length1000/variational-relaxed-mean_field.pickle"#.format(x) for x in [100, 1000, 5000, 20000]]
 
 rule ml_topology:
     input:
@@ -101,6 +102,30 @@ rule beast_run:
     shell:
         "beast {input}"
 
+rule variational_fit:
+    input:
+        fasta = "data/{dataset}.fasta",
+        tree = "out/{dataset}/lsd-tree.date.newick",
+        starting_values = "out/{dataset}/starting-values.yaml",
+        prior_params = "config/prior-params.yaml",
+        vi_config = "config/vi-config.yaml"
+    output:
+        "out/{dataset}/variational-{clock}-{approx}.pickle"
+    run:
+        pickle_output(mod.get_variational_fit(
+            input.tree,
+            input.fasta,
+            yaml_input(input.starting_values),
+            yaml_input(input.prior_params),
+            yaml_input(input.vi_config),
+            wildcards.clock,
+            wildcards.approx
+        ), output[0])
+        
+
+# TODO: Split out tree parsing
+# TODO: Same trees for different sequence length
+
 rule relaxed_plot:
     input:
         trees = "out/{dataset}/beast-relaxed-fixed.trees",
@@ -118,4 +143,3 @@ rule relaxed_plot:
             -p beast_config_file {input.beast_config} \
             -p plot_out_file {output.plot}
         """
-

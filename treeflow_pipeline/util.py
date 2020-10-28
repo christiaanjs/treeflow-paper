@@ -2,6 +2,7 @@ import Bio.AlignIO
 import re
 import yaml
 import pandas as pd
+import pickle
 
 def update_dict(dict, **kwargs):
     res = dict.copy()
@@ -50,3 +51,11 @@ def yaml_output(dict, output_file):
 
 def beast_log_input(input_file):
     return pd.read_table(input_file, comment="#")
+
+def pickle_input(input_file):
+    with open(input_file, "rb") as f:
+        return pickle.load(f)
+
+def pickle_output(x, output_file):
+    with open(output_file, "wb") as f:
+        pickle.dump(f)
