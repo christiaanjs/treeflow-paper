@@ -20,4 +20,3 @@ def test_get_phylo_prior(clock_model):
         assert key in dist_sample
     if clock_model == "relaxed":
         assert "rates" in dist_sample
-

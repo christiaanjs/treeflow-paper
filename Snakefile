@@ -10,7 +10,7 @@ OUT_PATH = pathlib.Path("out")
 
 rule sim:
     input:
-        "out/sim/sequence_length1000/variational-relaxed-mean_field.pickle"#.format(x) for x in [100, 1000, 5000, 20000]]
+        ["out/sim/sequence_length{sequence_length}/plot-posterior-relaxed-{approx}.html".format(sequence_length=sequence_length, approx=approx) for sequence_length in [100, 1000, 5000, 20000] for approx in ["mean_field", "scaled"]]
 
 rule ml_topology:
     input:
@@ -128,18 +128,33 @@ rule variational_fit:
 
 rule relaxed_plot:
     input:
+        topology = "out/{dataset}/lsd-tree.date.newick",
         trees = "out/{dataset}/beast-relaxed-fixed.trees",
         trace = "out/{dataset}/beast-relaxed-fixed.log",
         beast_config = "config/beast-config.yaml",
+        prior_params = "config/prior-params.yaml",
+        variational_fit = "out/{dataset}/variational-relaxed-{approx}.pickle",
         notebook = "notebook/plot-posterior-relaxed.ipynb"
     output:
-        notebook = "out/{dataset}/plot-posterior-relaxed.ipynb",
-        plot = "out/{dataset}/rate-correlations.png"
+        notebook = "out/{dataset}/plot-posterior-relaxed-{approx}.ipynb",
+        plot = "out/{dataset}/rate-correlations-{approx}.png"
     shell:
         """
         papermill {input.notebook} {output.notebook} \
             -p trace_file {input.trace} \
             -p tree_file {input.trees} \
+            -p topology_file {input.topology} \
             -p beast_config_file {input.beast_config} \
+            -p prior_params_file {input.prior_params} \
+            -p variational_fit_file {input.variational_fit} \
+            -p clock_approx {wildcards.approx} \
             -p plot_out_file {output.plot}
         """
+
+rule relaxed_report:
+    input:
+        "out/{dataset}/plot-posterior-relaxed-{approx}.ipynb"
+    output:
+        "out/{dataset}/plot-posterior-relaxed-{approx}.html"
+    shell:
+        "jupyter nbconvert --to html {input}"

@@ -33,12 +33,14 @@ def get_phylo_prior(sampling_times, prior_params, clock_model):
 optimizers = dict(adam=tf.optimizers.Adam)
 
 def fit_surrogate_posterior(log_p, q, vi_config):
+    trace_fn = lambda x: (x.loss, x.parameters)
     return tfp.vi.fit_surrogate_posterior(
         log_p,
         q,
         optimizers[vi_config['optimizer']](**vi_config['optimizer_kwargs']),
-        vi_config['num_steps']
-    ) # TODO: Convergence criterion, trace params
+        vi_config['num_steps'],
+        trace_fn=trace_fn
+    ) # TODO: Convergence criterion
 
 def get_variational_fit(newick_file, fasta_file, starting_values, prior_params, vi_config, clock_model, clock_approx):
     subst_model = treeflow.substitution_model.HKY()
@@ -73,9 +75,22 @@ def get_variational_fit(newick_file, fasta_file, starting_values, prior_params, 
         vars['rates'] = rate_vars
 
     q = tfp.distributions.JointDistributionNamed(q_dict)
-    loss = fit_surrogate_posterior(log_p, q, vi_config)
-    return dict(loss=loss, vars=vars)
+    loss, params = fit_surrogate_posterior(log_p, q, vi_config)
+    return dict(loss=loss, vars=vars, params=params)
 
-    
+def reconstruct_approx(newick_file, variational_fit, prior_params, clock_model, clock_approx):
+    vars = variational_fit['vars']
+    tree, taxon_names = treeflow.tree_processing.parse_newick(newick_file)
+    init_heights = tree['heights']
+    prior = get_phylo_prior(init_heights[:(init_heights.shape[0] + 1)//2], prior_params, clock_model)
+    q_dict, _ = treeflow.model.construct_prior_approximation(prior, vars=vars)
+    q_tree, _ = treeflow.model.construct_tree_approximation(newick_file, vars=vars['tree'])
+    q_dict['tree'] = q_tree
+
+    if clock_model == 'relaxed':
+        q_rates, _ = treeflow.model.construct_rate_approximation(prior.model['rates'](cast(1.0)), approx_model=clock_approx, vars=vars['rates'])
+        q_dict['rates'] = q_rates
+
+    return tfp.distributions.JointDistributionNamed(q_dict)
 
     

@@ -58,4 +58,4 @@ def pickle_input(input_file):
 
 def pickle_output(x, output_file):
     with open(output_file, "wb") as f:
-        pickle.dump(f)
+        pickle.dump(x, f)
