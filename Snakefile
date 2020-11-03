@@ -10,7 +10,7 @@ OUT_PATH = pathlib.Path("out")
 
 rule sim:
     input:
-        ["out/sim/sequence_length{sequence_length}/plot-posterior-relaxed-{approx}.html".format(sequence_length=sequence_length, approx=approx) for sequence_length in [100, 1000, 5000, 20000] for approx in ["mean_field", "scaled"]]
+        ["out/sim/sequence_length{sequence_length}/plot-posterior-relaxed-{approx}.html".format(sequence_length=sequence_length, approx=approx) for sequence_length in [1000] for approx in ["mean_field", "scaled"]]
 
 rule ml_topology:
     input:
