@@ -8,6 +8,8 @@ setuptools.setup(
         'treeflow',
         'pyyaml',
         'biopython',
-        'jinja2'
+        'jinja2',
+        'dendropy',
+        'pandas'
     ]
 )

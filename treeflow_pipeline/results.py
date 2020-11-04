@@ -1,5 +1,7 @@
 import dendropy
 import numpy as np
+import treeflow.tree_processing
+import pandas as pd
 
 def construct_precedes_map(taxon_order): # [x, y] = True if x precedes y TODO: Do something that isn't quadratic
     precedes = {}
@@ -67,3 +69,49 @@ def parse_beast_trees(tree_file, format="nexus", metadata_keys=[], taxon_order=N
                 node_index += 1
 
     return dict(branch_lengths=branch_lengths, taxon_names=taxon_names, metadata=metadata)
+
+
+def remove_burn_in(x, burn_in):
+    return x[np.arange(len(x)) > int(len(x) * burn_in)]
+
+
+def process_beast_results(tree_file, trace_file, topology_file, beast_config, clock_model):
+    renaming = {
+        "popSize": "pop_size", 
+        "clockRate": "clock_rate"
+    }
+    
+    if clock_model == "relaxed":
+        renaming["ucldStdev"] = "rate_sd"
+
+    burn_in = beast_config['burn_in']
+
+    trace = (pd.read_table(trace_file, comment="#")
+         .pipe(lambda x: x[list(renaming.keys())])
+         .pipe(lambda x: x.rename(columns=renaming))
+        )
+
+    trees = dendropy.TreeList.get(path=tree_file, schema="nexus", rooting="default-rooted", preserve_underscores=True)
+    _, taxon_names = treeflow.tree_processing.parse_newick(topology_file)
+    trees_parsed = parse_beast_trees(
+        tree_file,
+        metadata_keys=(["rate"] if clock_model == 'relaxed' else []),
+        taxon_order=taxon_names
+    )
+
+    branch_lengths = trees_parsed['branch_lengths']
+
+    result = dict(
+        pop_size=remove_burn_in(trace.pop_size, burn_in),
+        clock_rate=remove_burn_in(trace.clock_rate, burn_in),
+        branch_lengths=remove_burn_in(branch_lengths, burn_in)
+    )
+
+    if clock_model == "relaxed":
+        absolute_rates = trees_parsed['metadata']['rate']
+        rates = absolute_rates / trace.clock_rate[:, np.newaxis]
+        result["absolute_rates"] = remove_burn_in(absolute_rates, burn_in)
+        result["rates"] = remove_burn_in(rates, burn_in)
+        result["rate_sd"] = remove_burn_in(trace.rate_sd, burn_in)
+
+    return result

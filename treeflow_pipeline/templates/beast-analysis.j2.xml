@@ -124,9 +124,9 @@
         <log idref="popSize.t:Treeflow"/>
         <log idref="CoalescentConstant.t:Treeflow"/>
         <log idref="clockRate.c:Treeflow"/>
-
         {% if clock_model == 'relaxed' %}
         <log id="RateStatLogger" spec="beast.evolution.branchratemodel.RateStatistic" branchratemodel="@RelaxedClock.c:Treeflow" tree="@Tree.t:Treeflow"/>
+        <log idref="ucldStdev.c:Treeflow"/>
         {% endif %}
 
         <log spec='ESS' arg="@TreeHeight.t:Treeflow"/>
