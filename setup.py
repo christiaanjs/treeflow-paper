@@ -10,6 +10,15 @@ setuptools.setup(
         'biopython',
         'jinja2',
         'dendropy',
-        'pandas'
-    ]
+        'pandas',
+        'click',
+        'importlib'
+    ],
+    entry_points='''
+        [console_scripts]
+        treeflow_pipeline=treeflow_pipeline.cli:cli
+    ''',
+    package_data={
+        "": ["*.smk"]
+    }
 )

@@ -143,11 +143,15 @@ def get_taxon_count(tree_file, tree_format):
 
     return tree.count_terminals()
 
-def get_starting_values(date_tree_file, distance_tree_file, raxml_info_file):
-    raxml_info = parse_raxml_info(raxml_info_file)
+def get_starting_values_lsd(date_tree_file, distance_tree_file):
     return dict(
         clock_rate=estimate_rate(date_tree_file, distance_tree_file),
-        pop_size=estimate_pop_size(date_tree_file, 'nexus'),
+        pop_size=estimate_pop_size(date_tree_file, 'nexus')
+    )
+
+def get_starting_values_raxml(raxml_info_file):
+    raxml_info = parse_raxml_info(raxml_info_file)
+    return dict(
         kappa=raxml_info['rates']['ag'],
         frequencies=raxml_info['frequencies']
     )
@@ -164,7 +168,7 @@ def adjust_zero_branches(clade, epsilon=EPSILON):
                 for subclade_2 in clade.clades:
                     subclade_2.branch_length += diff
 
-def convert_tree(input_file, input_format, output_format, strip_data=False, allow_zero_branches=True, epsilon=EPSILON):
+def convert_tree(input_file, input_format, output_file, output_format, strip_data=False, allow_zero_branches=True, epsilon=EPSILON):
     with open(input_file) as f:
         trees = list(Bio.Phylo.parse(input_file, input_format))
 
@@ -176,7 +180,5 @@ def convert_tree(input_file, input_format, output_format, strip_data=False, allo
     if not allow_zero_branches:
         adjust_zero_branches(tree.clade, epsilon=epsilon)
 
-    output_path = pathlib.Path(input_file).with_suffix('.' + output_format)
-    with open(output_path, 'w') as f:
+    with open(output_file, 'w') as f:
         Bio.Phylo.write(trees, f, output_format)
-    return str(output_path)

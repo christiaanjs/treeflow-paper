@@ -1,7 +1,6 @@
-include: "workflow/SimSnakefile"
+include: "workflow/sim.smk"
 
 import pathlib
-import treeflow_pipeline.topology_inference as top
 import treeflow_pipeline.templating as tem
 import treeflow_pipeline.model as mod
 import treeflow_pipeline.results as res
@@ -11,68 +10,9 @@ OUT_PATH = pathlib.Path("out")
 sequence_lengths =  [100, 1000, 5000, 20000] 
 rule sim:
     input:
-        ["out/sim/sequence_length{sequence_length}/beast-relaxed-fixed.pickle".format(sequence_length=sequence_length) for sequence_length in sequence_lengths],
-        ["out/sim/sequence_length{sequence_length}/variational-relaxed-{approx}.pickle".format(sequence_length=sequence_length, approx=approx) for sequence_length in sequence_lengths for approx in ["mean_field", "scaled", "tuneable"]]
-
-rule ml_topology:
-    input:
-        "data/{dataset}.fasta"
-    output:
-        "out/{dataset}/RAxML_info.raxml",
-        "out/{dataset}/RAxML_bestTree.raxml"
-    shell:
-        build_shell_command(
-            "raxmlHPC",
-            ["--HKY85", "-V"],
-            dict(
-                p=123, # seed
-                n="raxml", # ID
-                s="{input}", # input file
-                w=(OUT_PATH / "{wildcards.dataset}").resolve(), # output file
-                m="GTRCATX",  # GTR substitution, estimate frequencies
-            )
-        )
-
-rule lsd_dates:
-    input:
-        "data/{dataset}.fasta"
-    output:
-        "out/{dataset}/lsd.dates"
-    run:
-        top.build_lsd_date_file(sequence_input(input[0]), output[0])
-
-rule root_topology:
-    input:
-        dates = "out/{dataset}/lsd.dates",
-        tree = "out/{dataset}/RAxML_bestTree.raxml"
-    output:
-        "out/{dataset}/lsd-tree.date.nexus",
-        "out/{dataset}/lsd-tree.nexus",
-        log="out/{dataset}/lsd-tree"
-    shell:
-        "lsd -c -r a -i {input.tree} -d {input.dates} -o {output.log}"
-
-rule starting_values:
-    input:
-        date_tree = "out/{dataset}/lsd-tree.date.nexus",
-        distance_tree = "out/{dataset}/lsd-tree.nexus",
-        ml_info = "out/{dataset}/RAxML_info.raxml"
-    output:
-        "out/{dataset}/starting-values.yaml"
-    run:
-        yaml_output(top.get_starting_values(
-            input.date_tree,
-            input.distance_tree,
-            input.ml_info
-        ), output[0])
-
-rule prepare_tree:
-    input:
-        "out/{dataset}/lsd-tree.date.nexus"
-    output:
-        "out/{dataset}/lsd-tree.date.newick"
-    run:
-        top.convert_tree(input[0], 'nexus', 'newick', strip_data=True, allow_zero_branches=False)
+        ["out/sim/sequence_length{sequence_length}/plot-posterior-relaxed-{approx}.html".format(sequence_length=sequence_length, approx=approx) for sequence_length in sequence_lengths for approx in ["mean_field", "scaled", "tuneable"]]
+        #["out/sim/sequence_length{sequence_length}/beast-relaxed-fixed.pickle".format(sequence_length=sequence_length) for sequence_length in sequence_lengths],
+        #["out/sim/sequence_length{sequence_length}/variational-relaxed-{approx}.pickle".format(sequence_length=sequence_length, approx=approx) for sequence_length in sequence_lengths for approx in ["mean_field", "scaled", "tuneable"]]
 
 rule beast_xml: # TODO: Should template be input?
     input:
@@ -149,26 +89,28 @@ rule beast_results:
 rule relaxed_plot:
     input:
         topology = "out/{dataset}/lsd-tree.date.newick",
-        trees = "out/{dataset}/beast-relaxed-fixed.trees",
-        trace = "out/{dataset}/beast-relaxed-fixed.log",
+        beast_result = "out/{dataset}/beast-relaxed-fixed.pickle",
         beast_config = "config/beast-config.yaml",
         prior_params = "config/prior-params.yaml",
         variational_fit = "out/{dataset}/variational-relaxed-{approx}.pickle",
         notebook = "notebook/plot-posterior-relaxed.ipynb"
     output:
         notebook = "out/{dataset}/plot-posterior-relaxed-{approx}.ipynb",
-        plot = "out/{dataset}/rate-correlations-{approx}.png"
+        correlation_plot = "out/{dataset}/rate-correlations-{approx}.png",
+        marginal_plot = "out/{dataset}/marginals-{approx}.png",
+        rate_marginal_plot = "out/{dataset}/rate-marginals-{approx}.png"
     shell:
         """
         papermill {input.notebook} {output.notebook} \
-            -p trace_file {input.trace} \
-            -p tree_file {input.trees} \
+            -p beast_result_file {input.beast_result} \
             -p topology_file {input.topology} \
             -p beast_config_file {input.beast_config} \
             -p prior_params_file {input.prior_params} \
             -p variational_fit_file {input.variational_fit} \
             -p clock_approx {wildcards.approx} \
-            -p plot_out_file {output.plot}
+            -p correlation_plot_out_file {output.correlation_plot} \
+            -p marginal_plot_out_file {output.marginal_plot} \
+            -p rate_marginal_plot_out_file {output.rate_marginal_plot}
         """
 
 rule relaxed_report:
