@@ -51,6 +51,8 @@ def get_phylo_prior(sampling_times, model):
         model_dict["clock_rate"] = get_dist(model.clock_params["clock_rate"])
         model_dict["rate_sd"] = get_dist(model.clock_params["rate_sd"])
         model_dict["rates"] = lambda rate_sd: tfd.Sample(tfd.LogNormal(loc=-rate_sd ** 2.0 / 2, scale=rate_sd), sample_shape=2*taxon_count - 2)
+    elif model.clock_model == "strict":
+        model_dict["clock_rate"] = get_dist(model.clock_params["clock_rate"])
     else:
         raise ValueError("Clock model not known: {0}".format(clock_model))
 
@@ -71,19 +73,27 @@ def fit_surrogate_posterior(log_p, q, vi_config):
         trace_fn=trace_fn
     ) # TODO: Convergence criterion
 
+def get_likelihood(newick_file, fasta_file, starting_values, model, vi_config):
+    if model.subst_model == "hky":
+        subst_model = treeflow.substitution_model.HKY()
+        if model.subst_params["kappa"] == "fixed" and model.subst_params["frequencies"] == "fixed":
+            likelihood, instance = treeflow.beagle.log_prob_conditioned_branch_only(
+                fasta_file,
+                subst_model,
+                cast(starting_values["frequencies"]),
+                kappa=cast(starting_values["kappa"]),
+                rescaling=vi_config["rescaling"],
+                newick_file=newick_file)
+        else:
+            raise ValueError("Only fixed substitution model parameters supported with Beagle likelihood")
+    else:
+        raise ValueError("Unknown substitution model: {0}".format(model.subst_model))
+
 RELAXED_CLOCK_MODELS = ["relaxed_lognormal"]
 
 def get_variational_fit(newick_file, fasta_file, starting_values, model, vi_config, clock_approx):
-    subst_model = treeflow.substitution_model.HKY()
-    likelihood, instance = treeflow.beagle.log_prob_conditioned_branch_only(
-        fasta_file,
-        subst_model,
-        cast(starting_values["frequencies"]),
-        kappa=cast(starting_values["kappa"]),
-        rescaling=vi_config["rescaling"],
-        newick_file=newick_file)
+    likelihood, instance = get_likelihood(newick_file, fasta_file, starting_values, model, vi_config)
     tree_info = treeflow.libsbn.get_tree_info(instance)
-
     init_heights = tree_info.tree["heights"]
     prior = get_phylo_prior(init_heights[:(init_heights.shape[0] + 1)//2], model)
     log_p = treeflow.model.get_log_posterior(prior, likelihood, relaxed_clock=model.clock_model in RELAXED_CLOCK_MODELS)
@@ -113,12 +123,12 @@ def reconstruct_approx(newick_file, variational_fit, model, clock_approx):
     vars = variational_fit["vars"]
     tree, taxon_names = treeflow.tree_processing.parse_newick(newick_file)
     init_heights = tree["heights"]
-    prior = get_phylo_prior(init_heights[:(init_heights.shape[0] + 1)//2], prior_params, clock_model)
+    prior = get_phylo_prior(init_heights[:(init_heights.shape[0] + 1)//2], model)
     q_dict, _ = treeflow.model.construct_prior_approximation(prior, vars=vars)
     q_tree, _ = treeflow.model.construct_tree_approximation(newick_file, vars=vars["tree"])
     q_dict["tree"] = q_tree
 
-    if clock_model == "relaxed":
+    if model.clock_model in RELAXED_CLOCK_MODELS:
         q_rates, _ = treeflow.model.construct_rate_approximation(prior.model["rates"](cast(1.0)), approx_model=clock_approx, vars=vars["rates"])
         q_dict["rates"] = q_rates
 
