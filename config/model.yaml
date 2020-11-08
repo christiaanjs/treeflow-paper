@@ -1,0 +1,26 @@
+tree:
+  coalescent_constant:
+    pop_size:
+      lognormal:
+        loc: 2.0
+        scale: 0.2
+clock:
+  relaxed_lognormal:
+    clock_rate:
+      lognormal:
+        loc: -4.5
+        scale: 0.3
+    rate_sd:
+      lognormal:
+        loc: -0.7
+        scale: 0.1
+substitution:
+  hky:
+    kappa:
+      fixed
+    frequencies:
+      fixed
+site:
+  none
+  
+

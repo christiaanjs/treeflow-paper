@@ -15,7 +15,7 @@ def get_neighbor_joining_tree(msa):
 
 LSD_TREE_PATH = 'distance-tree.newick'
 
-def infer_topology_neighbor_joining(input_file, input_format, out_dir):
+def infer_topology_neighbor_joining(input_file, input_format, out_dir): # TODO: Refactor
     with open(input_file) as f:
         sequences = next(Bio.AlignIO.parse(f, format=input_format))
     tree = get_neighbor_joining_tree(sequences)
@@ -28,6 +28,19 @@ def infer_topology_neighbor_joining(input_file, input_format, out_dir):
         Bio.Phylo.write([tree], f, 'newick')
     
     return tree_path     
+
+def build_raxml_command(alignment_file, working_directory, seed, site_model, subst_model):
+    args = []
+    if subst_model == "hky":
+        args.append("--HKY85")
+    else:
+        raise ValueError("Unsupported substitution model for RAxML: {0}".format(subst_model))
+    if site_model == "none":
+        args.append("-V")
+    else:
+        raise ValueError("Unsupported site model for RAxML: {0}".format(site_model))
+    kwargs = dict(p=seed, n="raxml", s=alignment_file, w=working_directory, m="GTRCATX")
+    return util.build_shell_command("raxmlHPC", args, kwargs)
 
 RAXML_ALPHA_REGEX = r'alpha\[0\]: ([0-9.]+)'
 RAXML_RATES_REGEX = r'rates\[0\] ([acgt ]+): ([0-9. ]+) '
@@ -75,7 +88,16 @@ def infer_topology_raxml(input_file, input_format, out_dir, subst_model=None, se
     raxml_info = parse_raxml_info(out_path / ('RAxML_info.' + RAXML_ID))
 
     return (out_path / ('RAxML_bestTree.' + RAXML_ID)), parse_raxml_info(raxml_info, estimate_frequencies=estimate_frequencies)
-    
+
+def get_starting_values_raxml(raxml_info_file, subst_model):
+    raxml_info = parse_raxml_info(raxml_info_file)
+    res = dict(frequencies=raxml_info['frequencies'])
+    if subst_model == "hky":
+        res["kappa"] = raxml_info['rates']['ag']
+    else:
+        raise ValueError("Unsupported substitution model for RAxML: {0}".format(subst_model))
+    return res
+
 LSD_DATE_PATH = 'distance-tree.dates'
 LSD_OUT_PATH = 'lsd-tree'
 
@@ -147,13 +169,6 @@ def get_starting_values_lsd(date_tree_file, distance_tree_file):
     return dict(
         clock_rate=estimate_rate(date_tree_file, distance_tree_file),
         pop_size=estimate_pop_size(date_tree_file, 'nexus')
-    )
-
-def get_starting_values_raxml(raxml_info_file):
-    raxml_info = parse_raxml_info(raxml_info_file)
-    return dict(
-        kappa=raxml_info['rates']['ag'],
-        frequencies=raxml_info['frequencies']
     )
 
 EPSILON = 1e-4

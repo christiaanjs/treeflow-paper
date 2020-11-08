@@ -1,6 +1,6 @@
 import pathlib
 import treeflow_pipeline.topology_inference as top
-from treeflow_pipeline.util import build_shell_command, yaml_input, yaml_output, sequence_input, text_input, text_output, pickle_output
+from treeflow_pipeline.util import yaml_input, yaml_output, sequence_input, text_input, text_output, pickle_output
 
 wd = pathlib.Path(config["working_directory"])
 
@@ -12,7 +12,6 @@ rooted_tree_filename, rooted_tree_format = dict(
     lsd=("lsd-tree.date.nexus", "nexus")
 )[config["rooting_method"]]
 
-
 rule raxml_topology:
     input:
         config["alignment"]
@@ -20,17 +19,7 @@ rule raxml_topology:
         wd / "RAxML_info.raxml",
         wd / "RAxML_bestTree.raxml"
     shell:
-        build_shell_command(
-            "raxmlHPC",
-            ["--HKY85", "-V"],
-            dict(
-                p=123, # seed TODO: Provide
-                n="raxml", # ID
-                s="{input}", # input file
-                w=wd.resolve(), # output file
-                m="GTRCATX",  # GTR substitution, estimate frequencies
-            )
-        )
+        top.build_raxml_command("{input}", wd.resolve(), config["seed"], config["site_model"], config["subst_model"])
 
 rule lsd_dates:
     input:
@@ -57,7 +46,7 @@ rule starting_values_raxml:
     output:
         wd / "starting-values-raxml.yaml"
     run:
-        yaml_output(top.get_starting_values_raxml(input[0]), output[0])
+        yaml_output(top.get_starting_values_raxml(input[0], config["subst_model"]), output[0])
 
 rule starting_values_lsd:
     input:

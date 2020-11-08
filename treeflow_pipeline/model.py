@@ -9,6 +9,19 @@ import treeflow.sequences
 import treeflow.beagle
 import treeflow.libsbn
 
+def parse_model(model):
+    if isinstance(model, dict):
+        return next(iter(model.items())) # TODO: Parsing checks
+    else:
+        return model, None
+
+class Model:
+    def __init__(self, dict):
+        self.tree_model, self.tree_params = parse_model(dict["tree"])
+        self.clock_model, self.clock_params = parse_model(dict["clock"])
+        self.subst_model, self.subst_params = parse_model(dict["substitution"])
+        self.site_model, self.site_params = parse_model(dict["site"])
+
 def cast(x):
     return tf.convert_to_tensor(x, treeflow.DEFAULT_FLOAT_DTYPE_TF)
 
