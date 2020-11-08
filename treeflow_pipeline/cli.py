@@ -4,58 +4,100 @@ import importlib.resources
 import snakemake
 import yaml
 import treeflow_pipeline.model
+import pickle
 
 DEFAULT_SEED = 123
 
 class Context:
     def __init__(self, alignment_path, model_file, output_path, seed):
         self.alignment_path = alignment_path
-        self.model = treeflow_pipeline.model.Model(yaml.load(model_file))
+        self.model = treeflow_pipeline.model.Model(yaml.safe_load(model_file))
         self.output_path = pathlib.Path(output_path)
         if seed is None:
             self.seed = DEFAULT_SEED # TODO: What's the best approach when we don't have a seed?
 
 @click.group()
-@click.argument("alignment", type=click.Path(exists=True), required=True)
-@click.argument("model", type=click.File(), required=True)
-@click.argument("output", type=click.Path(), required=True)
+@click.argument("alignment", type=click.Path(exists=True), required=False)
+@click.argument("model", type=click.File(), required=False)
+@click.argument("output", type=click.Path(), required=False)
 @click.option("-s", "--seed", type=int)
 @click.pass_context
 def cli(ctx, alignment, model, output, seed):
     ctx.obj = Context(alignment, model, output, seed)
 
+DEFAULT_TREE_METHOD = "raxml"
+DEFAULT_ROOTING_METHOD = "lsd"
+
 @cli.command()
-@click.option("--tree-method", type=click.Choice(["raxml"], case_sensitive=False), default="raxml")
-@click.option("--rooting-method", type=click.Choice(["lsd"], case_sensitive=False), default="lsd")
+@click.option("--tree-method", type=click.Choice(["raxml"], case_sensitive=False), default=DEFAULT_TREE_METHOD)
+@click.option("--rooting-method", type=click.Choice(["lsd"], case_sensitive=False), default=DEFAULT_ROOTING_METHOD)
 @click.option("-w", "--working-directory", type=click.Path())
 @click.pass_obj
-def infer_topology(ctx, working_directory, tree_method, rooting_method):
+def infer_topology(obj, working_directory, tree_method, rooting_method):
     if working_directory is None:
-        working_directory = ctx.output_path.parents[0]
+        working_directory = obj.output_path.parents[0]
     
     with importlib.resources.path("treeflow_pipeline", "topology.smk") as snakefile:
         snakemake.snakemake(
             snakefile,
             config=dict(
-                alignment=ctx.alignment_path,
-                output=ctx.output_path,
+                alignment=obj.alignment_path,
+                output=obj.output_path,
                 working_directory=working_directory,
                 tree_method=tree_method,
                 rooting_method=rooting_method,
-                subst_model=ctx.model.subst_model,
-                site_model=ctx.model.site_model,
-                seed=ctx.seed
+                subst_model=obj.model.subst_model,
+                site_model=obj.model.site_model,
+                seed=obj.seed
             ),
             targets=["tree", "starting_values"]
         )
 
-@cli.command() # TODO: How can we automatically infer topology if needed?
+def infer_topology_not_provided(ctx):
+    fit_output = ctx.obj.output_path
+    topology = fit_output.parents[0] / "topology.nwk"
+    ctx.obj.output_path = topology
+    click.echo("No topology supplied. Inferring with {0} and rooting with {1}".format(DEFAULT_TREE_METHOD, DEFAULT_ROOTING_METHOD))
+    ctx.invoke(infer_topology)
+    ctx.obj.output_path = fit_output
+
+    with open(fit_output.parents[0] / "starting-values.yaml") as f:
+        ml_start_values = yaml.safe_load(f)
+
+    return topology, ml_start_values
+
+def get_vi_config(optimizer, learning_rate, num_steps, rescaling):
+    return dict(optimizer=optimizer, num_steps=num_steps, rescaling=rescaling, optimizer_kwargs=dict(learning_rate=learning_rate))
+
+# TODO: What's the best way to specify inference configuration?
+# TODO: Options for likelihood computation
+@cli.command() 
 @click.option("-t", "--topology", type=click.Path(exists=True))
 @click.option("-s", "--starting-values", type=click.File())
-@click.pass_obj
-def variational_fit(ctx, topology, alignment, output):
-    if topology is None:
-        print("There is no topology")
+@click.option("-o", "--optimizer", type=click.Choice(["adam"]), default="adam")
+@click.option("-l", "--learning-rate", type=float, default=1e-2)
+@click.option("-n", "--num-steps", type=int, default=40000)
+@click.option("-c", "--clock-approx", type=click.Choice(["mean_field", "scaled", "tuneable"]), default="scaled")
+@click.option("-r", "--rescaling", type=bool, default=True)
+@click.pass_context
+def variational_fit(ctx, topology, starting_values, optimizer, learning_rate, num_steps, clock_approx, rescaling):
+    if starting_values is None: # TODO: Infer start values
+        start_values_dict = {}
     else:
-        print("The topology is " + topology)
-    print("The alignment is " + alignment)
+        start_values_dict = yaml.safe_load(starting_values)
+    if topology is None:
+        topology, ml_start_values = infer_topology_not_provided(ctx)
+        ml_start_values.update(start_values_dict)
+        start_values_dict = ml_start_values
+    
+    res = treeflow_pipeline.model.get_variational_fit(
+        str(topology),
+        str(ctx.obj.alignment_path),
+        start_values_dict,
+        ctx.obj.model,
+        get_vi_config(optimizer, learning_rate, num_steps, rescaling),
+        clock_approx
+    )
+
+    with open(ctx.obj.output_path, "wb") as f:
+        pickle.dump(res, f)
