@@ -66,8 +66,8 @@ def infer_topology_not_provided(ctx):
 
     return topology, ml_start_values
 
-def get_vi_config(optimizer, learning_rate, num_steps, rescaling):
-    return dict(optimizer=optimizer, num_steps=num_steps, rescaling=rescaling, optimizer_kwargs=dict(learning_rate=learning_rate))
+def get_vi_config(ctx, optimizer, learning_rate, num_steps, rescaling):
+    return dict(seed=ctx.obj.seed, optimizer=optimizer, num_steps=num_steps, rescaling=rescaling, optimizer_kwargs=dict(learning_rate=learning_rate))
 
 # TODO: What's the best way to specify inference configuration?
 # TODO: Options for likelihood computation
@@ -95,7 +95,7 @@ def variational_fit(ctx, topology, starting_values, optimizer, learning_rate, nu
         str(ctx.obj.alignment_path),
         start_values_dict,
         ctx.obj.model,
-        get_vi_config(optimizer, learning_rate, num_steps, rescaling),
+        get_vi_config(ctx, optimizer, learning_rate, num_steps, rescaling),
         clock_approx
     )
 

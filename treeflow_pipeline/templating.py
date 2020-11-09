@@ -9,37 +9,37 @@ template_env = jinja2.Environment(
 def build_date_string(date_dict):
     return ','.join(['{0}={1}'.format(name, date) for name, date in date_dict.items()])
 
-def build_tree_sim(sim_config, sampling_times, pop_size, out_file):
+def build_tree_sim(sim_config, sampling_times, prior_sample, out_file):
     out_path = pathlib.Path(out_file)
     template = template_env.get_template('tree-sim.j2.xml')
     date_trait_string = build_date_string(sampling_times)
     taxon_names = list(sampling_times.keys())
     return template.render(
-        pop_size=pop_size,
+        pop_size=prior_sample["pop_size"],
         date_trait_string=date_trait_string,
         taxon_names=taxon_names,
         out_file=out_path.parents[0] / "tree-sim.trees"
     )
 
-def build_branch_rate_sim(newick_string, rate_sd, out_file):
+def build_branch_rate_sim(newick_string, prior_sample, out_file):
     out_path = pathlib.Path(out_file)
     template = template_env.get_template('rate-sim.j2.xml')
     return template.render(
         newick_string=newick_string,
         trace_out_path=out_path.with_suffix('.log'),
         tree_out_path=out_path.with_suffix('.trees'),
-        rate_sd=rate_sd
+        rate_sd=prior_sample["rate_sd"]
     )
 
-def build_sequence_sim(sim_config, newick_string, clock_rate, branch_rates, sampling_times, out_file):
+def build_sequence_sim(sim_config, newick_string, prior_sample, branch_rates, sampling_times, sequence_length, out_file):
     out_path = pathlib.Path(out_file)
     template = template_env.get_template('sim-seq.j2.xml')
     return template.render(
         out_file=out_path.parents[0] / "sequences.xml",
-        sequence_length=sim_config["sequence_length"],
+        sequence_length=sequence_length,
         newick_string=newick_string,
         taxon_names=list(sampling_times.keys()),
-        clock_rate=clock_rate,
+        clock_rate=prior_sample["clock_rate"],
         kappa=sim_config["kappa"],
         frequencies=sim_config["frequencies"],
         relaxed_clock=True,

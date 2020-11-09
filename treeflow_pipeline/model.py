@@ -22,6 +22,12 @@ class Model:
         self.subst_model, self.subst_params = parse_model(dict["substitution"])
         self.site_model, self.site_params = parse_model(dict["site"])
 
+    def all_params(self):
+        return { key: value for comp_params in [self.tree_params, self.clock_params, self.subst_params, self.site_params] if comp_params is not None for key, value in comp_params.items() }
+
+    def free_params(self):
+        return { key: value for key, value in self.all_params().items() if value != 'fixed' }
+
 def cast(x):
     return tf.convert_to_tensor(x, treeflow.DEFAULT_FLOAT_DTYPE_TF)
 
@@ -70,7 +76,8 @@ def fit_surrogate_posterior(log_p, q, vi_config):
         q,
         optimizers[vi_config["optimizer"]](**vi_config["optimizer_kwargs"]),
         vi_config["num_steps"],
-        trace_fn=trace_fn
+        trace_fn=trace_fn,
+        seed=vi_config["seed"]
     ) # TODO: Convergence criterion
 
 def get_likelihood(newick_file, fasta_file, starting_values, model, vi_config):
