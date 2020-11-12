@@ -10,30 +10,10 @@ OUT_PATH = pathlib.Path("out")
 sequence_lengths =  [100, 1000, 5000, 20000] 
 rule sim:
     input:
-        ["out/sim/sequence_length{sequence_length}/plot-posterior-relaxed-{approx}.html".format(sequence_length=sequence_length, approx=approx) for sequence_length in sequence_lengths for approx in ["mean_field", "scaled", "tuneable"]]
+        
+        #["out/sim/sequence_length{sequence_length}/plot-posterior-relaxed-{approx}.html".format(sequence_length=sequence_length, approx=approx) for sequence_length in sequence_lengths for approx in ["mean_field", "scaled", "tuneable"]]
         #["out/sim/sequence_length{sequence_length}/beast-relaxed-fixed.pickle".format(sequence_length=sequence_length) for sequence_length in sequence_lengths],
         #["out/sim/sequence_length{sequence_length}/variational-relaxed-{approx}.pickle".format(sequence_length=sequence_length, approx=approx) for sequence_length in sequence_lengths for approx in ["mean_field", "scaled", "tuneable"]]
-
-rule beast_xml: # TODO: Should template be input?
-    input:
-        fasta = "data/{dataset}.fasta",
-        tree = "out/{dataset}/lsd-tree.date.newick",
-        starting_values = "out/{dataset}/starting-values.yaml",
-        prior_params = "config/prior-params.yaml",
-        beast_config = "config/beast-config.yaml"
-    output:
-        "out/{dataset}/beast-{clock}-{tree_type}.xml"
-    run:
-        text_output(tem.build_beast_analysis(
-            wildcards.clock,
-            wildcards.tree_type,
-            sequence_input(input.fasta),
-            text_input(input.tree),
-            yaml_input(input.starting_values),
-            yaml_input(input.prior_params),
-            yaml_input(input.beast_config),
-            output[0]
-        ), output[0])
 
 rule beast_run:
     input:

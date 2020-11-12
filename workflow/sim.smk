@@ -1,4 +1,4 @@
-from treeflow_pipeline.util import yaml_input, yaml_output, text_input, text_output, beast_log_input
+from treeflow_pipeline.util import yaml_input, yaml_output, text_input, text_output, beast_log_input, sequence_input
 import treeflow_pipeline.simulation as sim
 import treeflow_pipeline.templating as tem
 import treeflow_pipeline.model as mod
@@ -14,7 +14,7 @@ taxon_dir = "{taxon_count}taxa"
 
 rule test_sim:
     input:
-        "out/sim/10taxa/2seed/1000sites/sequences.fasta"
+        "out/sim/10taxa/2seed/1000sites/beast.trees"
 
 rule sampling_times:
     output:
@@ -140,3 +140,44 @@ rule fasta_sim:
         "{wd}/sequences.fasta"
     run:
         sim.convert_simulated_sequences(input[0], output[0], 'fasta')
+
+rule sim_starting_values:
+    input:
+        prior_sample = wd / taxon_dir / seed_dir / "prior-sample.yaml"
+    output:
+        wd / taxon_dir / seed_dir / "starting-values.yaml"
+    run:
+        yaml_output(dict(
+            frequencies=config["frequencies"],
+            kappa=config["kappa"],
+            **yaml_input(input.prior_sample)
+        ), output[0])
+
+rule beast_xml:
+    input:
+        fasta = wd / taxon_dir / seed_dir / sequence_dir / "sequences.fasta",
+        tree = wd / taxon_dir / seed_dir / "tree-sim.newick",
+        starting_values = wd / taxon_dir / seed_dir / "starting-values.yaml",
+        beast_config = "config/beast-config.yaml"
+    output:
+        wd / taxon_dir / seed_dir / sequence_dir / "beast.xml"
+    run:
+        text_output(tem.build_beast_analysis(
+            sequence_input(input.fasta),
+            text_input(input.tree),
+            yaml_input(input.starting_values),
+            model,
+            yaml_input(input.beast_config),
+            output[0]
+        ), output[0])
+
+
+rule beast_run:
+    input:
+        wd / taxon_dir / seed_dir / sequence_dir / "beast.xml"
+    output:
+        wd / taxon_dir / seed_dir / sequence_dir / "beast.log",
+        wd / taxon_dir / seed_dir / sequence_dir / "beast.trees"
+    shell:
+        "beast -seed {config[seed]} {input}"
+
