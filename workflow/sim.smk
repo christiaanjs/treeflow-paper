@@ -14,7 +14,8 @@ taxon_dir = "{taxon_count}taxa"
 
 rule test_sim:
     input:
-        "out/sim/10taxa/2seed/1000sites/beast.trees"
+        "out/sim/10taxa/2seed/1000sites/beast.trees",
+        "out/sim/10taxa/2seed/1000sites/variational-fit-mean_field.pickle"
 
 rule sampling_times:
     output:
@@ -181,3 +182,20 @@ rule beast_run:
     shell:
         "beast -seed {config[seed]} {input}"
 
+rule variational_fit:
+    input:
+        fasta = wd / taxon_dir / seed_dir / sequence_dir / "sequences.fasta",
+        tree = wd / taxon_dir / seed_dir / "tree-sim.newick",
+        starting_values = wd / taxon_dir / seed_dir / "starting-values.yaml"
+    output:
+        wd / taxon_dir / seed_dir / sequence_dir / "variational-fit-{clock_approx}.pickle"
+    shell:
+        """
+        treeflow_pipeline -s {config[seed]} \
+            {input.fasta} {config[model_file]} {output} \
+            variational-fit \
+            -t {input.tree} \
+            -s {input.starting_values} \
+            -c {wildcards.clock_approx} \
+            --config {config[vi_config]}
+        """

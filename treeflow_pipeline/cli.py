@@ -1,4 +1,5 @@
 import click
+import click_config_file
 import pathlib
 import importlib.resources
 import snakemake
@@ -15,7 +16,8 @@ class Context:
         self.output_path = pathlib.Path(output_path)
         if seed is None:
             self.seed = DEFAULT_SEED # TODO: What's the best approach when we don't have a seed?
-
+        else:
+            self.seed = seed
 @click.group()
 @click.argument("alignment", type=click.Path(exists=True), required=False)
 @click.argument("model", type=click.File(), required=False)
@@ -69,6 +71,10 @@ def infer_topology_not_provided(ctx):
 def get_vi_config(ctx, optimizer, learning_rate, num_steps, rescaling):
     return dict(seed=ctx.obj.seed, optimizer=optimizer, num_steps=num_steps, rescaling=rescaling, optimizer_kwargs=dict(learning_rate=learning_rate))
 
+def yaml_config_provider(file_path, cmd_name):
+    with open(file_path) as f:
+        return yaml.safe_load(f)[cmd_name]
+
 # TODO: What's the best way to specify inference configuration?
 # TODO: Options for likelihood computation
 @cli.command() 
@@ -79,6 +85,7 @@ def get_vi_config(ctx, optimizer, learning_rate, num_steps, rescaling):
 @click.option("-n", "--num-steps", type=int, default=40000)
 @click.option("-c", "--clock-approx", type=click.Choice(["mean_field", "scaled", "tuneable"]), default="scaled")
 @click.option("-r", "--rescaling", type=bool, default=True)
+@click_config_file.configuration_option(provider=yaml_config_provider)
 @click.pass_context
 def variational_fit(ctx, topology, starting_values, optimizer, learning_rate, num_steps, clock_approx, rescaling):
     if starting_values is None: # TODO: Infer start values

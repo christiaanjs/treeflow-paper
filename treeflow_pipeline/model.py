@@ -84,7 +84,7 @@ def get_likelihood(newick_file, fasta_file, starting_values, model, vi_config):
     if model.subst_model == "hky":
         subst_model = treeflow.substitution_model.HKY()
         if model.subst_params["kappa"] == "fixed" and model.subst_params["frequencies"] == "fixed":
-            likelihood, instance = treeflow.beagle.log_prob_conditioned_branch_only(
+            return treeflow.beagle.log_prob_conditioned_branch_only(
                 fasta_file,
                 subst_model,
                 cast(starting_values["frequencies"]),
