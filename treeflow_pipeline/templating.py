@@ -227,5 +227,7 @@ def build_beast_analysis(sequence_dict, newick_string, init_values, model, beast
             rate_prior_tag=rate_prior_tag,
             site_model_tag=site_model_tag,
             branch_rate_model_tag=branch_rate_model_tag,
+            operator_tags=operator_tags,
+            log_tags=log_tags,
             **beast_config
         )

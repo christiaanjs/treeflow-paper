@@ -1,8 +1,9 @@
-from treeflow_pipeline.util import yaml_input, yaml_output, text_input, text_output, beast_log_input, sequence_input
+from treeflow_pipeline.util import yaml_input, yaml_output, text_input, text_output, beast_log_input, sequence_input, pickle_output
 import treeflow_pipeline.simulation as sim
 import treeflow_pipeline.templating as tem
 import treeflow_pipeline.model as mod
 import treeflow_pipeline.topology_inference as top
+import treeflow_pipeline.results as res
 import pathlib
 
 configfile: "config/sim-config.yaml"
@@ -10,12 +11,14 @@ configfile: "config/sim-config.yaml"
 wd = pathlib.Path(config["working_directory"])
 model = mod.Model(yaml_input(config["model_file"]))
 
-taxon_dir = "{taxon_count}taxa"
+SEQUENCE_LENGTHS = [1000]#[100, 1000, 10000]
+APPROXES = ["scaled"]#["mean_field", "scaled"]
 
 rule test_sim:
     input:
-        "out/sim/10taxa/2seed/1000sites/beast.trees",
-        "out/sim/10taxa/2seed/1000sites/variational-fit-mean_field.pickle"
+        expand("out/sim/10taxa/2seed/{sequence_length}sites/plot-posterior-relaxed-{clock_approx}.html", sequence_length=SEQUENCE_LENGTHS, clock_approx=APPROXES)
+
+taxon_dir = "{taxon_count}taxa"
 
 rule sampling_times:
     output:
@@ -172,7 +175,6 @@ rule beast_xml:
             output[0]
         ), output[0])
 
-
 rule beast_run:
     input:
         wd / taxon_dir / seed_dir / sequence_dir / "beast.xml"
@@ -181,6 +183,26 @@ rule beast_run:
         wd / taxon_dir / seed_dir / sequence_dir / "beast.trees"
     shell:
         "beast -seed {config[seed]} {input}"
+
+rule beast_results:
+    input:
+        topology = wd / taxon_dir / seed_dir / "tree-sim.newick",
+        trees = wd / taxon_dir / seed_dir / sequence_dir / "beast.trees",
+        trace = wd / taxon_dir / seed_dir / sequence_dir / "beast.log",
+        beast_config = "config/beast-config.yaml"
+    output:
+        wd / taxon_dir / seed_dir / sequence_dir / "beast.pickle"
+    run:
+        pickle_output(
+            res.process_beast_results(
+                input.trees,
+                input.trace,
+                input.topology,
+                yaml_input(input.beast_config),
+                model
+            ),
+            output[0]
+        )
 
 rule variational_fit:
     input:
@@ -199,3 +221,35 @@ rule variational_fit:
             -c {wildcards.clock_approx} \
             --config {config[vi_config]}
         """
+
+rule relaxed_plot:
+    input:
+        topology = wd / taxon_dir / seed_dir / "tree-sim.newick",
+        beast_result = wd / taxon_dir / seed_dir / sequence_dir / "beast.pickle",
+        variational_fit = wd / taxon_dir / seed_dir / sequence_dir / "variational-fit-{clock_approx}.pickle",
+        notebook = "notebook/plot-posterior-relaxed.ipynb"
+    output:
+        notebook = wd / taxon_dir / seed_dir / sequence_dir / "plot-posterior-relaxed-{clock_approx}.ipynb",
+        correlation_plot = wd / taxon_dir / seed_dir / sequence_dir / "rate-correlations-{clock_approx}.png",
+        marginal_plot = wd / taxon_dir / seed_dir / sequence_dir / "marginals-{clock_approx}.png",
+        rate_marginal_plot = wd / taxon_dir / seed_dir / sequence_dir / "rate-marginals-{clock_approx}.png"
+    shell:
+        """
+        papermill {input.notebook} {output.notebook} \
+            -p beast_result_file {input.beast_result} \
+            -p topology_file {input.topology} \
+            -p model_file {config[model_file]} \
+            -p variational_fit_file {input.variational_fit} \
+            -p clock_approx {wildcards.clock_approx} \
+            -p correlation_plot_out_file {output.correlation_plot} \
+            -p marginal_plot_out_file {output.marginal_plot} \
+            -p rate_marginal_plot_out_file {output.rate_marginal_plot}
+        """
+
+rule relaxed_report:
+    input:
+        wd / taxon_dir / seed_dir / sequence_dir / "plot-posterior-relaxed-{clock_approx}.ipynb"
+    output:
+        wd / taxon_dir / seed_dir / sequence_dir / "plot-posterior-relaxed-{clock_approx}.html"
+    shell:
+        "jupyter nbconvert --to html {input}"

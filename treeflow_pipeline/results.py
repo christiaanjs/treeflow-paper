@@ -1,6 +1,7 @@
 import dendropy
 import numpy as np
 import treeflow.tree_processing
+import treeflow_pipeline.model
 import pandas as pd
 
 def construct_precedes_map(taxon_order): # [x, y] = True if x precedes y TODO: Do something that isn't quadratic
@@ -70,48 +71,43 @@ def parse_beast_trees(tree_file, format="nexus", metadata_keys=[], taxon_order=N
 
     return dict(branch_lengths=branch_lengths, taxon_names=taxon_names, metadata=metadata)
 
+def get_heights(branch_lengths, parent_indices, preorder_indices):
+    root_distances = np.zeros(branch_lengths.shape[:-1] + (len(preorder_indices),))
+    for i in preorder_indices[1:]:
+        root_distances[..., i] = root_distances[..., parent_indices[i]] + branch_lengths[..., i]
+    return np.max(root_distances, axis=-1, keepdims=True) - root_distances
 
 def remove_burn_in(x, burn_in):
     return x[np.arange(len(x)) > int(len(x) * burn_in)]
 
-
-def process_beast_results(tree_file, trace_file, topology_file, beast_config, clock_model):
-    renaming = {
-        "popSize": "pop_size", 
-        "clockRate": "clock_rate"
-    }
-    
-    if clock_model == "relaxed":
-        renaming["ucldStdev"] = "rate_sd"
-
+def process_beast_results(tree_file, trace_file, topology_file, beast_config, model):
     burn_in = beast_config['burn_in']
-
-    trace = (pd.read_table(trace_file, comment="#")
-         .pipe(lambda x: x[list(renaming.keys())])
-         .pipe(lambda x: x.rename(columns=renaming))
-        )
+    trace = pd.read_table(trace_file, comment="#")
 
     trees = dendropy.TreeList.get(path=tree_file, schema="nexus", rooting="default-rooted", preserve_underscores=True)
-    _, taxon_names = treeflow.tree_processing.parse_newick(topology_file)
+    tree, taxon_names = treeflow.tree_processing.parse_newick(topology_file)
+    topology = treeflow.tree_processing.update_topology_dict(tree['topology'])
+    
+    relaxed = model.clock_model in treeflow_pipeline.model.RELAXED_CLOCK_MODELS
     trees_parsed = parse_beast_trees(
         tree_file,
-        metadata_keys=(["rate"] if clock_model == 'relaxed' else []),
+        metadata_keys=(["rate"] if relaxed else []),
         taxon_order=taxon_names
     )
 
     branch_lengths = trees_parsed['branch_lengths']
+    heights = get_heights(branch_lengths, topology['parent_indices'], topology['preorder_indices'])
 
     result = dict(
-        pop_size=remove_burn_in(trace.pop_size, burn_in),
-        clock_rate=remove_burn_in(trace.clock_rate, burn_in),
-        branch_lengths=remove_burn_in(branch_lengths, burn_in)
+        { param: remove_burn_in(trace[param].values, burn_in) for param in model.free_params() },
+        branch_lengths=remove_burn_in(branch_lengths, burn_in),
+        heights=remove_burn_in(heights, burn_in)
     )
 
-    if clock_model == "relaxed":
+    if relaxed:
         absolute_rates = trees_parsed['metadata']['rate']
         rates = absolute_rates / trace.clock_rate[:, np.newaxis]
         result["absolute_rates"] = remove_burn_in(absolute_rates, burn_in)
         result["rates"] = remove_burn_in(rates, burn_in)
-        result["rate_sd"] = remove_burn_in(trace.rate_sd, burn_in)
 
     return result

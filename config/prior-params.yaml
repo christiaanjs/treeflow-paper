@@ -1,3 +1,0 @@
-pop_size: { m: 2.0 , s: 0.2 }
-clock_rate: { m: -4.5, s: 0.3 }
-rate_sd: { m: -0.7, s: 0.1 }
