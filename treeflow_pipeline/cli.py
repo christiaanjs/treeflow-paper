@@ -52,7 +52,8 @@ def infer_topology(obj, working_directory, tree_method, rooting_method):
                 site_model=obj.model.site_model,
                 seed=obj.seed
             ),
-            targets=["tree", "starting_values"]
+            targets=["tree", "starting_values"],
+            lock=False
         )
 
 def infer_topology_not_provided(ctx):

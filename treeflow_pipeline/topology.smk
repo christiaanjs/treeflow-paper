@@ -78,4 +78,4 @@ rule tree:
     output:
         config["output"]
     run:
-        top.convert_tree(input[0], rooted_tree_format, output[0], 'newick', strip_data=True, allow_zero_branches=False)
+        top.convert_tree(input[0], rooted_tree_format, output[0], 'newick', strip_data=True, allow_zero_branches=True, fix_dates=True)

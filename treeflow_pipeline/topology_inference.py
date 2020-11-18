@@ -101,8 +101,13 @@ def get_starting_values_raxml(raxml_info_file, subst_model):
 LSD_DATE_PATH = 'distance-tree.dates'
 LSD_OUT_PATH = 'lsd-tree'
 
-def parse_dates(sequence_dict):
-    return { name: name.split("_")[-1] for name in sequence_dict }
+def parse_dates(names):
+    return { name: float(name.split("_")[-1]) for name in names }
+
+def parse_leaf_heights(names):
+    dates = parse_dates(names)
+    max_date = max(dates.values())
+    return { name: (max_date - date) for name, date in dates.items() }
 
 def build_lsd_date_file(sequence_dict, output_file):
     date_trait_dict = parse_dates(sequence_dict)
@@ -171,7 +176,7 @@ def get_starting_values_lsd(date_tree_file, distance_tree_file):
         pop_size=estimate_pop_size(date_tree_file, 'nexus')
     )
 
-EPSILON = 1e-4
+EPSILON = 1e-6
 def adjust_zero_branches(clade, epsilon=EPSILON):
     if not clade.is_terminal():
         for subclade in clade.clades:
@@ -183,7 +188,51 @@ def adjust_zero_branches(clade, epsilon=EPSILON):
                 for subclade_2 in clade.clades:
                     subclade_2.branch_length += diff
 
-def convert_tree(input_file, input_format, output_file, output_format, strip_data=False, allow_zero_branches=True, epsilon=EPSILON):
+def preorder_traversal(tree):
+    stack = [tree.clade]
+    while len(stack):
+        clade = stack.pop()
+        yield clade
+        for child in clade:
+            stack.append(child)
+
+def postorder_traversal(tree):
+    stack = [tree.clade]
+    output = []
+    while len(stack):
+        clade = stack.pop()
+        output.append(clade)
+        for child in clade:
+            stack.append(child)
+    while len(output):
+        yield output.pop()
+
+def get_node_heights(tree):
+    distances = {}
+    for node in preorder_traversal(tree):
+        if not node.is_terminal():
+            if node is tree.clade:
+                distances[node] = 0.0
+            for child in node:
+                distances[child] = distances[node] + child.branch_length
+    max_distance = max(distances.values())
+    return { node: max_distance - distance for node, distance in distances.items() }
+
+def fix_leaf_dates(tree):
+    leaf_heights = parse_leaf_heights([node.name for node in tree.get_terminals()])
+    heights = get_node_heights(tree)
+    for node in postorder_traversal(tree):
+        if node.is_terminal():
+            heights[node] = leaf_heights[node.name]
+        else:
+            min_height = max([heights[child] for child in node])
+            if heights[node] < min_height:
+                heights[node] = min_height
+            for child in node:
+                child.branch_length =  heights[node] - heights[child]
+
+def convert_tree(input_file, input_format, output_file, output_format,
+        strip_data=False, allow_zero_branches=True, fix_dates=False, epsilon=EPSILON):
     with open(input_file) as f:
         trees = list(Bio.Phylo.parse(input_file, input_format))
 
@@ -192,8 +241,13 @@ def convert_tree(input_file, input_format, output_file, output_format, strip_dat
             for clade in tree.find_clades():
                 clade.comment = None
 
+    if fix_dates:
+        for tree in trees:
+            fix_leaf_dates(tree)
+
     if not allow_zero_branches:
-        adjust_zero_branches(tree.clade, epsilon=epsilon)
+        for tree in trees:
+            adjust_zero_branches(tree.clade, epsilon=epsilon)
 
     with open(output_file, 'w') as f:
         Bio.Phylo.write(trees, f, output_format)
