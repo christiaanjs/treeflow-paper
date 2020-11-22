@@ -1,6 +1,9 @@
 import numpy as np
 import treeflow_pipeline.model
+import treeflow.tree_processing
+import treeflow.sequences
 import xml
+import pandas as pd
 import Bio.Seq
 import Bio.SeqIO
 
@@ -15,6 +18,32 @@ def sample_prior(sampling_times, model, seed):
     prior = treeflow_pipeline.model.get_phylo_prior(list(sampling_times.values()), model)
     sample = prior.sample(seed=seed)
     return { key: sample[key].numpy().item() for key in model.free_params() }
+
+
+def build_sim_trace(tree_file, prior_sample, out_file, rate_trace=None):
+    tree, _ = treeflow.tree_processing.parse_newick(tree_file)
+    branch_lengths = treeflow.sequences.get_branch_lengths(tree)
+
+    values = {
+        "tree.height": tree["heights"][-1],
+        "tree.treeLength": np.sum(branch_lengths),
+        **prior_sample
+    }
+
+    if rate_trace is not None: # TODO: Safe to assume clock_rate?
+        rates = pd.read_table(rate_trace, comment="#")
+        rate_values = rates[rates.columns[1:]].values[0] * prior_sample["clock_rate"]
+        values["rate_stats.mean"] = np.mean(rate_values)
+        values["rate_stats.variance"] = np.var(rate_values)
+        values["rate_stats.coefficientOfVariation"] = np.sqrt(values["rate_stats.variance"]) / values["rate_stats.mean"]
+
+    pd.DataFrame([values]).to_csv(out_file, index=False, sep="\t")
+
+def aggregate_sim_traces(sim_trace_files, out_file):
+    traces = [pd.read_table(x) for x in sim_trace_files]
+    aggregate = pd.concat(traces, axis=0, ignore_index=True)
+    aggregate.index.name = "Sample"
+    aggregate.to_csv(out_file, sep="\t")
 
 def parse_branch_rates(df):
     return df.iloc[0, 1:].tolist()

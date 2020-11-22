@@ -73,15 +73,12 @@
         <log idref="likelihood"/>
         <log idref="prior"/>
         <log idref="tree_likelihood"/>
-        <log id="TreeHeight.t:Treeflow" spec="beast.evolution.tree.TreeHeightLogger" tree="@tree"/>
-        <log id="TreeLength.t:Treeflow" spec="beast.evolution.tree.TreeStatLogger" tree="@tree" logHeight="false" logLength="true"/>
+        <log spec="beast.evolution.tree.TreeStatLogger" tree="@tree" logHeight="true" logLength="true"/>
         {% for log_tag in log_tags %}{{ log_tag }}
         {% endfor %}
         {% if relaxed %}
-        <log id="RateStatLogger" spec="beast.evolution.branchratemodel.RateStatistic" branchratemodel="@branch_rate_model" tree="@tree"/>
+        <log id="rate_stats" spec="beast.evolution.branchratemodel.RateStatistic" branchratemodel="@branch_rate_model" tree="@tree"/>
         {% endif %}
-
-        <log spec='ESS' arg="@TreeHeight.t:Treeflow"/>
     </logger>
 
     <logger id="screenlog" logEvery="{{ log_every }}">

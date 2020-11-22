@@ -1,6 +1,7 @@
 import dendropy
 import numpy as np
 import treeflow.tree_processing
+import treeflow.sequences
 import treeflow_pipeline.model
 import pandas as pd
 
@@ -111,3 +112,55 @@ def process_beast_results(tree_file, trace_file, topology_file, beast_config, mo
         result["rates"] = remove_burn_in(rates, burn_in)
 
     return result
+
+def tensor_to_dendro(topology, taxon_namespace, taxon_names, branch_lengths, branch_metadata={}):
+    taxon_count = len(taxon_names)
+    leaves = [dendropy.Node(taxon=taxon_namespace.get_taxon(name)) for name in taxon_names]
+    nodes = leaves + [dendropy.Node() for _ in range(taxon_count - 1)]
+    for i, node in enumerate(nodes[:-1]):
+        node.edge_length = branch_lengths[i]
+        for key, value in branch_metadata.items():
+            node.annotations[key] = value
+        parent = nodes[topology["parent_indices"][i]]
+        parent.add_child(node)
+    return dendropy.Tree(taxon_namespace=taxon_namespace, seed_node=nodes[-1], is_rooted=True)
+
+def get_variational_samples(variational_fit, topology_file, model, clock_approx, trace_out, tree_out, n=1000):
+    tree, taxon_names = treeflow.tree_processing.parse_newick(topology_file)
+    taxon_namespace = dendropy.Tree.get(path=topology_file, schema="newick", preserve_underscores=True).taxon_namespace
+    approx = treeflow_pipeline.model.reconstruct_approx(topology_file, variational_fit, model, clock_approx)
+    samples = approx.sample(n)
+    branch_lengths = treeflow.sequences.get_branch_lengths(samples['tree']).numpy()
+    trees = dendropy.TreeList([tensor_to_dendro(
+        tree["topology"],
+        taxon_namespace,
+        taxon_names,
+        branch_lengths[i],
+        branch_metadata=(dict(rate=samples["rates"][i].numpy()) if model.relaxed_clock() else {})
+    ) for i in range(n)], taxon_namespace=taxon_namespace)
+    trees.write(path=tree_out, schema="nexus")
+    result_dict = { key: samples[key].numpy() for key in model.free_params() }
+
+    heights =  samples["tree"]["heights"].numpy()
+    trace_dict = {
+        "tree.height": heights[:, -1],
+        "tree.treeLength": np.sum(branch_lengths, axis=1),
+        **result_dict
+    }
+
+    result_dict["branch_lengths"] = branch_lengths
+    result_dict["heights"] = heights
+    if model.relaxed_clock():
+        result_dict["rates"] = samples["rates"].numpy()
+        absolute_rates = result_dict["clock_rate"][:, np.newaxis] * result_dict["rates"] # TODO: Safe to assume clock_rate?
+        result_dict["absolute_rates"] = absolute_rates
+
+        trace_dict["rate_stats.mean"] = np.mean(absolute_rates, axis=1)
+        trace_dict["rate_stats.variance"] = np.var(absolute_rates, axis=1)
+        trace_dict["rate_stats.coefficientOfVariation"] = np.sqrt(trace_dict["rate_stats.variance"]) / trace_dict["rate_stats.mean"]
+
+
+    trace = pd.DataFrame(trace_dict)
+    trace.index.name = "Sample"
+    trace.to_csv(trace_out, sep="\t")
+    return result_dict

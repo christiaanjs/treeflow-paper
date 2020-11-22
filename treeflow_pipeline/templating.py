@@ -32,7 +32,8 @@ def build_branch_rate_sim(newick_string, prior_sample, out_file):
         newick_string=newick_string,
         trace_out_path=out_path.with_suffix('.log'),
         tree_out_path=out_path.with_suffix('.trees'),
-        rate_sd=prior_sample["rate_sd"]
+        rate_sd=prior_sample["rate_sd"],
+        clock_rate=prior_sample["clock_rate"]
     )
 
 def build_sequence_sim(sim_config, newick_string, prior_sample, branch_rates, sampling_times, sequence_length, out_file):

@@ -1,4 +1,4 @@
-from treeflow_pipeline.util import yaml_input, yaml_output, text_input, text_output, beast_log_input, sequence_input, pickle_output
+from treeflow_pipeline.util import yaml_input, yaml_output, text_input, text_output, beast_log_input, sequence_input, pickle_input, pickle_output
 import treeflow_pipeline.simulation as sim
 import treeflow_pipeline.templating as tem
 import treeflow_pipeline.model as mod
@@ -11,12 +11,14 @@ configfile: "config/sim-config.yaml"
 wd = pathlib.Path(config["working_directory"])
 model = mod.Model(yaml_input(config["model_file"]))
 
-SEQUENCE_LENGTHS = [1000]#[100, 1000, 10000]
-APPROXES = ["scaled"]#["mean_field", "scaled"]
+SEQUENCE_LENGTHS = [1000]
+APPROXES = ["mean_field", "scaled"]
+SEEDS = list(range(config["replicates"]))
 
 rule test_sim:
     input:
-        expand("out/sim/10taxa/2seed/{sequence_length}sites/plot-posterior-relaxed-{clock_approx}.html", sequence_length=SEQUENCE_LENGTHS, clock_approx=APPROXES)
+        expand("out/sim/aggregate/10taxa/{sequence_length}sites/variational-samples-{clock_approx}/coverage.html", sequence_length=SEQUENCE_LENGTHS, clock_approx=APPROXES),
+        expand("out/sim/aggregate/10taxa/{sequence_length}sites/beast/coverage.html", sequence_length=SEQUENCE_LENGTHS)
 
 taxon_dir = "{taxon_count}taxa"
 
@@ -104,6 +106,16 @@ rule convert_branch_rates:
             sim.parse_branch_rates(beast_log_input(input[0])),
             output[0]
         )
+
+rule sim_trace:
+    input:
+        prior_sample = wd / taxon_dir / seed_dir / "prior-sample.yaml",
+        tree = wd / taxon_dir / seed_dir / "tree-sim.newick",
+        rates = wd / taxon_dir / seed_dir / "branch-rate-sim.log"
+    output:
+        wd / taxon_dir / seed_dir / "sim.log"
+    run:
+        sim.build_sim_trace(input.tree, yaml_input(input.prior_sample), output[0], rate_trace=input.rates)
 
 sequence_dir = "{sequence_length}sites"
 
@@ -204,6 +216,8 @@ rule beast_results:
             output[0]
         )
 
+
+
 rule variational_fit:
     input:
         fasta = wd / taxon_dir / seed_dir / sequence_dir / "sequences.fasta",
@@ -221,6 +235,27 @@ rule variational_fit:
             -c {wildcards.clock_approx} \
             --config {config[vi_config]}
         """
+
+rule variational_samples: # TODO: Include this in CLI
+    input:
+        fit = wd / taxon_dir / seed_dir / sequence_dir / "variational-fit-{clock_approx}.pickle",
+        topology = wd / taxon_dir / seed_dir / "tree-sim.newick"
+    output:
+        trace = wd / taxon_dir / seed_dir / sequence_dir / "variational-samples-{clock_approx}.log",
+        trees = wd / taxon_dir / seed_dir / sequence_dir / "variational-samples-{clock_approx}.trees",
+        samples = wd / taxon_dir / seed_dir / sequence_dir / "variational-samples-{clock_approx}.pickle"
+    run:
+        pickle_output(
+            res.get_variational_samples(
+                pickle_input(input.fit),
+                input.topology,
+                model,
+                wildcards.clock_approx,
+                output.trace,
+                output.trees
+            ),
+            output.samples
+        )
 
 rule relaxed_plot:
     input:
@@ -245,6 +280,44 @@ rule relaxed_plot:
             -p marginal_plot_out_file {output.marginal_plot} \
             -p rate_marginal_plot_out_file {output.rate_marginal_plot}
         """
+
+aggregate_dir = "aggregate"
+
+rule log_analyser:
+    input:
+        expand(wd / taxon_dir / seed_dir / sequence_dir / "{result}.log", seed=SEEDS, allow_missing=True)
+    output:
+        wd / aggregate_dir / taxon_dir / sequence_dir / "{result}.log"
+    shell:
+        "loganalyser -oneline {input} > {output}"
+
+rule aggregate_sim_trace:
+    input:
+        expand(wd / taxon_dir / seed_dir / "sim.log", seed=SEEDS, allow_missing=True)
+    output:
+        wd / aggregate_dir / taxon_dir / "sim.log"
+    run:
+        sim.aggregate_sim_traces(input, output[0])
+
+rule coverage:
+    input:
+        sim_trace = wd / aggregate_dir / taxon_dir / "sim.log",
+        analyser_trace = wd / aggregate_dir / taxon_dir / sequence_dir / "{result}.log"
+    output:
+        wd / aggregate_dir / taxon_dir / sequence_dir / "{result}" / "coverage.html"
+    params:
+        output_dir =  lambda wildcards, output: pathlib.Path(output[0]).parents[0]
+    shell:
+        """
+        applauncher CoverageCalculator \
+            -log {input.sim_trace} \
+            -logAnalyser {input.analyser_trace} \
+            -out {params.output_dir} \
+            -skip 0
+        """
+
+    
+
 
 rule relaxed_report:
     input:

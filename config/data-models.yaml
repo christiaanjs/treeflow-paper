@@ -25,3 +25,30 @@ dengue:
           fixed
     site:
       none
+rsv:
+  alignment: data/rsv2-reduced.fasta
+  model:
+    tree:
+      coalescent_constant:
+        pop_size:
+          lognormal:
+            loc:  0.0
+            scale: 2.2
+    clock:
+      relaxed_lognormal:
+        clock_rate:
+          lognormal:
+            loc: -7.6
+            scale: 1.0
+        rate_sd:
+          lognormal:
+            loc: -1.4
+            scale: 0.45
+    substitution:
+      hky:
+        kappa:
+          fixed
+        frequencies:
+          fixed
+    site:
+      none

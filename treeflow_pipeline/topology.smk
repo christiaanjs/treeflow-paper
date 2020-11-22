@@ -67,10 +67,11 @@ rule starting_values:
     output:
         wd / "starting-values.yaml"
     run:
-        yaml_output({
-            **yaml_input(input.tree_starting_values),
-            **yaml_input(input.rooting_starting_values)
-        }, output[0])
+        yaml_output(top.finalise_starting_values(
+            yaml_input(input.tree_starting_values),
+            yaml_input(input.rooting_starting_values),
+            config["clock_model"]
+        ), output[0])
 
 rule tree:
     input:
@@ -78,4 +79,4 @@ rule tree:
     output:
         config["output"]
     run:
-        top.convert_tree(input[0], rooted_tree_format, output[0], 'newick', strip_data=True, allow_zero_branches=True, fix_dates=True)
+        top.convert_tree(input[0], rooted_tree_format, output[0], 'newick', strip_data=True, allow_zero_branches=False, fix_dates=True)

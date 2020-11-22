@@ -7,6 +7,8 @@ import yaml
 import treeflow_pipeline.model
 import pickle
 
+# TODO: Error handling - click.Abort on Exception
+
 DEFAULT_SEED = 123
 
 class Context:
@@ -50,6 +52,7 @@ def infer_topology(obj, working_directory, tree_method, rooting_method):
                 rooting_method=rooting_method,
                 subst_model=obj.model.subst_model,
                 site_model=obj.model.site_model,
+                clock_model=obj.model.clock_model,
                 seed=obj.seed
             ),
             targets=["tree", "starting_values"],

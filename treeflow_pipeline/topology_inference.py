@@ -3,6 +3,7 @@ import Bio.Phylo
 import Bio.Phylo.TreeConstruction
 import pathlib
 import treeflow_pipeline.util as util
+import treeflow_pipeline.model
 import subprocess
 import re
 import os
@@ -175,6 +176,14 @@ def get_starting_values_lsd(date_tree_file, distance_tree_file):
         clock_rate=estimate_rate(date_tree_file, distance_tree_file),
         pop_size=estimate_pop_size(date_tree_file, 'nexus')
     )
+
+def finalise_starting_values(tree_starting_values, rooting_starting_values, clock_model):
+    clock_model_defaults = treeflow_pipeline.model.get_non_rate_defaults(clock_model)
+    return {
+        **clock_model_defaults,
+        **tree_starting_values,
+        **rooting_starting_values
+    }
 
 EPSILON = 1e-6
 def adjust_zero_branches(clade, epsilon=EPSILON):

@@ -15,6 +15,8 @@ def parse_model(model):
     else:
         return model, None
 
+RELAXED_CLOCK_MODELS = ["relaxed_lognormal"]
+
 class Model:
     def __init__(self, dict):
         self.tree_model, self.tree_params = parse_model(dict["tree"])
@@ -27,6 +29,17 @@ class Model:
 
     def free_params(self):
         return { key: value for key, value in self.all_params().items() if value != 'fixed' }
+
+    def relaxed_clock(self):
+        return self.clock_model in RELAXED_CLOCK_MODELS
+
+def get_non_rate_defaults(clock_model):
+    if clock_model == "relaxed_lognormal":
+        return dict(rate_sd=1.0)
+    elif clock_model == "strict":
+        return {}
+    else:
+        raise ValueError(f"Clock model not known: {clock_model}")
 
 def cast(x):
     return tf.convert_to_tensor(x, treeflow.DEFAULT_FLOAT_DTYPE_TF)
@@ -95,8 +108,6 @@ def get_likelihood(newick_file, fasta_file, starting_values, model, vi_config):
             raise ValueError("Only fixed substitution model parameters supported with Beagle likelihood")
     else:
         raise ValueError("Unknown substitution model: {0}".format(model.subst_model))
-
-RELAXED_CLOCK_MODELS = ["relaxed_lognormal"]
 
 def get_variational_fit(newick_file, fasta_file, starting_values, model, vi_config, clock_approx):
     likelihood, instance = get_likelihood(newick_file, fasta_file, starting_values, model, vi_config)
