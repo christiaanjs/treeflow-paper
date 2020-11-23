@@ -53,3 +53,11 @@ def convert_simulated_sequences(input_file, output_file, output_format):
     records = [Bio.SeqIO.SeqRecord(Bio.Seq.Seq(tag.attrib['value'], Bio.Alphabet.generic_dna), tag.attrib['taxon'], description="") for tag in seq_xml_root.findall('./sequence')]
     with open(output_file, 'w') as f:
         Bio.SeqIO.write(records, f, 'fasta')
+
+
+import dendropy
+def aggregate_trees(input_files, input_format, output_file, output_format):
+    trees = [dendropy.Tree.get(path=input_file, schema="nexus", rooting="default-rooted", preserve_underscores=True) for input_file in input_files]
+    taxon_namespace = trees[0].taxon_namespace
+    tree_list = dendropy.TreeList(trees, taxon_namespace=taxon_namespace)
+    tree_list.write(path=output_file, schema=output_format)

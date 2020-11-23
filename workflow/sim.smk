@@ -13,12 +13,13 @@ model = mod.Model(yaml_input(config["model_file"]))
 
 SEQUENCE_LENGTHS = [1000]
 APPROXES = ["mean_field", "scaled"]
-SEEDS = list(range(config["replicates"]))
+SEEDS = list(range(1, config["replicates"]+1))
 
 rule test_sim:
     input:
-        expand("out/sim/aggregate/10taxa/{sequence_length}sites/variational-samples-{clock_approx}/coverage.html", sequence_length=SEQUENCE_LENGTHS, clock_approx=APPROXES),
-        expand("out/sim/aggregate/10taxa/{sequence_length}sites/beast/coverage.html", sequence_length=SEQUENCE_LENGTHS)
+        #expand("out/sim/aggregate/10taxa/{sequence_length}sites/variational-samples-{clock_approx}/coverage.html", sequence_length=SEQUENCE_LENGTHS, clock_approx=APPROXES),
+        #expand("out/sim/aggregate/10taxa/{sequence_length}sites/beast/coverage.html", sequence_length=SEQUENCE_LENGTHS),
+        "out/sim/aggregate/10taxa/tree-sim.trees"
 
 taxon_dir = "{taxon_count}taxa"
 
@@ -61,7 +62,7 @@ rule tree_sim:
     output:
         wd / taxon_dir / seed_dir / "tree-sim.trees"
     shell:
-        "beast -seed {config[seed]} {input}"
+        "beast -seed {wildcards.seed} {input}"
 
 rule tree_sim_newick:
     input:
@@ -94,7 +95,7 @@ rule branch_rate_sim:
         wd / taxon_dir / seed_dir / "branch-rate-sim.log",
         wd / taxon_dir / seed_dir / "branch-rate-sim.trees"
     shell:
-        "beast -seed {config[seed]} {input}"
+        "beast -seed {wildcards.seed} {input}"
 
 rule convert_branch_rates:
     input:
@@ -147,7 +148,7 @@ rule sequence_sim:
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "sequences.xml"
     shell:
-        "beast -seed {config[seed]} {input}"
+        "beast -seed {wildcards.seed} {input}"
 
 rule fasta_sim:
     input:
@@ -194,7 +195,7 @@ rule beast_run:
         wd / taxon_dir / seed_dir / sequence_dir / "beast.log",
         wd / taxon_dir / seed_dir / sequence_dir / "beast.trees"
     shell:
-        "beast -seed {config[seed]} {input}"
+        "beast -seed {wildcards.seed} {input}"
 
 rule beast_results:
     input:
@@ -227,7 +228,7 @@ rule variational_fit:
         wd / taxon_dir / seed_dir / sequence_dir / "variational-fit-{clock_approx}.pickle"
     shell:
         """
-        treeflow_pipeline -s {config[seed]} \
+        treeflow_pipeline -s {wildcards.seed} \
             {input.fasta} {config[model_file]} {output} \
             variational-fit \
             -t {input.tree} \
@@ -283,6 +284,15 @@ rule relaxed_plot:
 
 aggregate_dir = "aggregate"
 
+
+rule aggregate_sim_trees:
+    input:
+        expand(wd / taxon_dir / seed_dir / "tree-sim.trees", seed=SEEDS, allow_missing=True)
+    output:
+        wd / aggregate_dir / taxon_dir / "tree-sim.trees"
+    run:
+        sim.aggregate_trees(input, "nexus", output[0], "nexus")
+
 rule log_analyser:
     input:
         expand(wd / taxon_dir / seed_dir / sequence_dir / "{result}.log", seed=SEEDS, allow_missing=True)
@@ -317,6 +327,14 @@ rule coverage:
         """
 
     
+rule tree_annotator:
+    input:
+        trees = wd / taxon_dir / seed_dir / sequence_dir / "{result}.trees",
+        rate_sim = wd / taxon_dir / seed_dir / "branch-rate-sim.trees"
+    output:
+        wd / taxon_dir / seed_dir / sequence_dir / "{result}-mcc.trees"
+    shell:
+        "treeannotator -b "
 
 
 rule relaxed_report:
