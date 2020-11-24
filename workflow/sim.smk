@@ -261,7 +261,8 @@ rule variational_samples: # TODO: Include this in CLI
                 model,
                 wildcards.clock_approx,
                 output.trace,
-                output.trees
+                output.trees,
+                wildcards.seed
             ),
             output.samples
         )
@@ -344,21 +345,21 @@ rule coverage:
 rule tree_annotator:
     input:
         trees = wd / taxon_dir / seed_dir / sequence_dir / "{result}.trees",
-        rate_sim = wd / taxon_dir / seed_dir / "branch-rate-sim.trees"
+        tree_sim = wd / taxon_dir / seed_dir / "branch-rate-sim.trees"
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "mcc-{result}.trees"
     params:
         burn_in = int(beast_config["burn_in"] * 100)
     shell:
-        "treeannotator -b {params.burn_in} -target {input.rate_sim} {input.trees} {output}"
+        "treeannotator -b {params.burn_in} -target {input.tree_sim} {input.trees} {output}"
 
 rule tree_coverage:
     input:
         mcc_trees = expand(wd / taxon_dir / seed_dir / sequence_dir / "mcc-{result}.trees", seed=SEEDS, allow_missing=True),
         rate_sims = expand(wd / taxon_dir / seed_dir / "branch-rate-sim.trees", seed=SEEDS, allow_missing=True)
     params:
-        mcc_file_template = str(wd / taxon_dir / "$(n)" / sequence_dir / "mcc-{result}.trees"),
-        tree_file_template = str(wd / taxon_dir / "$(n)" / "branch-rate-sim.trees"),
+        mcc_file_template = str(wd / taxon_dir / "$(n)seed" / sequence_dir / "mcc-{result}.trees"),
+        tree_file_template = str(wd / taxon_dir / "$(n)seed" / "branch-rate-sim.trees"),
         from_index = min(SEEDS),
         to_index = max(SEEDS)
     output:
@@ -366,8 +367,8 @@ rule tree_coverage:
     shell:
         """
         applauncher MCCTreeComparator \
-            -mcc {params.mcc_file_template} \
-            -tree {params.tree_file_template} \
+            -mcc '{params.mcc_file_template}' \
+            -tree '{params.tree_file_template}' \
             -from {params.from_index} \
             -to {params.to_index} \
             -out {output}

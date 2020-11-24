@@ -120,25 +120,53 @@ def tensor_to_dendro(topology, taxon_namespace, taxon_names, branch_lengths, bra
     for i, node in enumerate(nodes[:-1]):
         node.edge_length = branch_lengths[i]
         for key, value in branch_metadata.items():
-            node.annotations[key] = value
+            node.annotations[key] = value[i]
         parent = nodes[topology["parent_indices"][i]]
         parent.add_child(node)
     return dendropy.Tree(taxon_namespace=taxon_namespace, seed_node=nodes[-1], is_rooted=True)
 
-def get_variational_samples(variational_fit, topology_file, model, clock_approx, trace_out, tree_out, n=1000):
+from dendropy.dataio import nexusprocessing
+
+class CustomNewickWriter(dendropy.dataio.newickwriter.NewickWriter):
+    def _write_node_body(self, node, out):
+        out.write(self._render_node_tag(node))
+        if not self.suppress_annotations:
+            node_annotation_comments = nexusprocessing.format_item_annotations_as_comments(node, # Place node annotations before colon
+                    nhx=self.annotations_as_nhx,
+                    real_value_format_specifier=self.real_value_format_specifier)
+            out.write(node_annotation_comments)
+        if node.edge and node.edge.length != None and not self.suppress_edge_lengths:
+            out.write(":{}".format(self.edge_label_compose_fn(node.edge)))
+        if not self.suppress_annotations:
+            edge_annotation_comments = nexusprocessing.format_item_annotations_as_comments(node.edge,
+                    nhx=self.annotations_as_nhx,
+                    real_value_format_specifier=self.real_value_format_specifier)
+            out.write(edge_annotation_comments)
+        out.write(self._compose_comment_string(node))
+        out.write(self._compose_comment_string(node.edge))
+
+class CustomNexusWriter(dendropy.dataio.nexuswriter.NexusWriter):
+    def __init__(self, **kwargs):
+        super(CustomNexusWriter, self).__init__(**kwargs)
+        
+        kwargs_to_preserve = ["unquoted_underscores", "preserve_spaces", "annotations_as_nhx", "suppress_annotations", "suppress_item_comments"]
+
+        newick_kwargs = dict(
+            unquoted_underscores = self.unquoted_underscores,
+            preserve_spaces = self.preserve_spaces,
+            annotations_as_nhx = self.annotations_as_nhx,
+            suppress_annotations = self.suppress_annotations,
+            suppress_item_comments = self.suppress_item_comments
+        )
+        self._newick_writer = CustomNewickWriter(**newick_kwargs)
+
+def get_variational_samples(variational_fit, topology_file, model, clock_approx, trace_out, tree_out, seed, n=1000):
     tree, taxon_names = treeflow.tree_processing.parse_newick(topology_file)
     taxon_namespace = dendropy.Tree.get(path=topology_file, schema="newick", preserve_underscores=True).taxon_namespace
     approx = treeflow_pipeline.model.reconstruct_approx(topology_file, variational_fit, model, clock_approx)
-    samples = approx.sample(n)
+    samples = approx.sample(n, seed=seed)
     branch_lengths = treeflow.sequences.get_branch_lengths(samples['tree']).numpy()
-    trees = dendropy.TreeList([tensor_to_dendro(
-        tree["topology"],
-        taxon_namespace,
-        taxon_names,
-        branch_lengths[i],
-        branch_metadata=(dict(rate=samples["rates"][i].numpy()) if model.relaxed_clock() else {})
-    ) for i in range(n)], taxon_namespace=taxon_namespace)
-    trees.write(path=tree_out, schema="nexus")
+    
     result_dict = { key: samples[key].numpy() for key in model.free_params() }
 
     heights =  samples["tree"]["heights"].numpy()
@@ -159,8 +187,20 @@ def get_variational_samples(variational_fit, topology_file, model, clock_approx,
         trace_dict["rate_stats.variance"] = np.var(absolute_rates, axis=1)
         trace_dict["rate_stats.coefficientOfVariation"] = np.sqrt(trace_dict["rate_stats.variance"]) / trace_dict["rate_stats.mean"]
 
-
     trace = pd.DataFrame(trace_dict)
     trace.index.name = "Sample"
     trace.to_csv(trace_out, sep="\t")
+
+    trees = dendropy.TreeList([tensor_to_dendro(
+        tree["topology"],
+        taxon_namespace,
+        taxon_names,
+        branch_lengths[i],
+        branch_metadata=(dict(rate=result_dict["absolute_rates"][i]) if model.relaxed_clock() else {})
+    ) for i in range(n)], taxon_namespace=taxon_namespace)
+
+    writer = CustomNexusWriter(unquoted_underscores=True)
+    with open(tree_out, "w") as f:
+        writer.write_tree_list(trees, f)
+
     return result_dict

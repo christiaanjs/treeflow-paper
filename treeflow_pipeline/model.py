@@ -16,7 +16,7 @@ def parse_model(model):
         return model, None
 
 RELAXED_CLOCK_MODELS = ["relaxed_lognormal"]
-APPROX_MODELS = ["mean_field", "scaled", "scaled_all"]
+APPROX_MODELS = ["mean_field", "scaled"]#, "scaled_all"]
 
 class Model:
     def __init__(self, dict):
