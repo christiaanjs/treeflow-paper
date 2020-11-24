@@ -8,12 +8,12 @@ clock:
   relaxed_lognormal:
     clock_rate:
       lognormal:
-        loc: -4.5
-        scale: 0.3
+        loc: -6.0
+        scale: 0.8
     rate_sd:
       lognormal:
-        loc: -0.7
-        scale: 0.1
+        loc: -0.64
+        scale: 0.14
 substitution:
   hky:
     kappa:

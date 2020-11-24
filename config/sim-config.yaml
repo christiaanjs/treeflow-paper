@@ -1,9 +1,8 @@
-seed: 123
 sampling_window: 9
-sequence_length: 10000
 kappa: 2.0
 frequencies: [0.24, 0.27, 0.26, 0.23]
 model_file: config/model.yaml
 working_directory: out/sim
 vi_config: config/vi-config.yaml
-replicates: 100
+beast_config: config/beast-config.yaml
+replicates: 4

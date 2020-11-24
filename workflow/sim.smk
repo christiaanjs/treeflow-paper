@@ -10,18 +10,30 @@ configfile: "config/sim-config.yaml"
 
 wd = pathlib.Path(config["working_directory"])
 model = mod.Model(yaml_input(config["model_file"]))
+beast_config = yaml_input(config["beast_config"])
 
-SEQUENCE_LENGTHS = [1000]
-APPROXES = ["mean_field", "scaled"]
+SEQUENCE_LENGTHS = [5000]
+APPROXES = ["mean_field", "scaled", "scaled_all"]
 SEEDS = list(range(1, config["replicates"]+1))
+DEMO_SEED = 4
 
-rule test_sim:
-    input:
-        #expand("out/sim/aggregate/10taxa/{sequence_length}sites/variational-samples-{clock_approx}/coverage.html", sequence_length=SEQUENCE_LENGTHS, clock_approx=APPROXES),
-        #expand("out/sim/aggregate/10taxa/{sequence_length}sites/beast/coverage.html", sequence_length=SEQUENCE_LENGTHS),
-        "out/sim/aggregate/10taxa/tree-sim.trees"
 
 taxon_dir = "{taxon_count}taxa"
+seed_dir = "{seed}seed"
+sequence_dir = "{sequence_length}sites"
+aggregate_dir = "aggregate"
+
+rule well_calibrated_study:
+    input:
+        expand("out/sim/aggregate/10taxa/{sequence_length}sites/variational-samples-{clock_approx}/coverage.html", sequence_length=SEQUENCE_LENGTHS, clock_approx=APPROXES),
+        expand("out/sim/aggregate/10taxa/{sequence_length}sites/beast/coverage.html", sequence_length=SEQUENCE_LENGTHS),
+        expand("out/sim/aggregate/10taxa/{sequence_length}sites/variational-samples-{clock_approx}/tree-coverage.txt", sequence_length=SEQUENCE_LENGTHS, clock_approx=APPROXES),
+        expand("out/sim/aggregate/10taxa/{sequence_length}sites/beast/tree-coverage.txt", sequence_length=SEQUENCE_LENGTHS)
+
+
+rule demo:
+    input:
+        expand(str(wd / "10taxa" / seed_dir / sequence_dir / "plot-posterior-relaxed-{clock_approx}.html"), sequence_length=SEQUENCE_LENGTHS, clock_approx=APPROXES, seed=[DEMO_SEED])
 
 rule sampling_times:
     output:
@@ -29,7 +41,6 @@ rule sampling_times:
     run:
         yaml_output(sim.get_sampling_times(config, int(wildcards.taxon_count)), output[0])
 
-seed_dir = "{seed}seed"
 
 rule sample_prior:
     input:
@@ -118,8 +129,6 @@ rule sim_trace:
     run:
         sim.build_sim_trace(input.tree, yaml_input(input.prior_sample), output[0], rate_trace=input.rates)
 
-sequence_dir = "{sequence_length}sites"
-
 rule sequence_sim_xml:
     input:
         tree = wd / taxon_dir / seed_dir / "tree-sim.newick",
@@ -175,7 +184,7 @@ rule beast_xml:
         fasta = wd / taxon_dir / seed_dir / sequence_dir / "sequences.fasta",
         tree = wd / taxon_dir / seed_dir / "tree-sim.newick",
         starting_values = wd / taxon_dir / seed_dir / "starting-values.yaml",
-        beast_config = "config/beast-config.yaml"
+        beast_config = config["beast_config"]
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "beast.xml"
     run:
@@ -184,7 +193,7 @@ rule beast_xml:
             text_input(input.tree),
             yaml_input(input.starting_values),
             model,
-            yaml_input(input.beast_config),
+            beast_config,
             output[0]
         ), output[0])
 
@@ -201,8 +210,7 @@ rule beast_results:
     input:
         topology = wd / taxon_dir / seed_dir / "tree-sim.newick",
         trees = wd / taxon_dir / seed_dir / sequence_dir / "beast.trees",
-        trace = wd / taxon_dir / seed_dir / sequence_dir / "beast.log",
-        beast_config = "config/beast-config.yaml"
+        trace = wd / taxon_dir / seed_dir / sequence_dir / "beast.log"
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "beast.pickle"
     run:
@@ -211,7 +219,7 @@ rule beast_results:
                 input.trees,
                 input.trace,
                 input.topology,
-                yaml_input(input.beast_config),
+                beast_config,
                 model
             ),
             output[0]
@@ -233,7 +241,7 @@ rule variational_fit:
             variational-fit \
             -t {input.tree} \
             -s {input.starting_values} \
-            -c {wildcards.clock_approx} \
+            -a {wildcards.clock_approx} \
             --config {config[vi_config]}
         """
 
@@ -282,8 +290,13 @@ rule relaxed_plot:
             -p rate_marginal_plot_out_file {output.rate_marginal_plot}
         """
 
-aggregate_dir = "aggregate"
-
+rule relaxed_report:
+    input:
+        wd / taxon_dir / seed_dir / sequence_dir / "plot-posterior-relaxed-{clock_approx}.ipynb"
+    output:
+        wd / taxon_dir / seed_dir / sequence_dir / "plot-posterior-relaxed-{clock_approx}.html"
+    shell:
+        "jupyter nbconvert --to html {input}"
 
 rule aggregate_sim_trees:
     input:
@@ -298,8 +311,10 @@ rule log_analyser:
         expand(wd / taxon_dir / seed_dir / sequence_dir / "{result}.log", seed=SEEDS, allow_missing=True)
     output:
         wd / aggregate_dir / taxon_dir / sequence_dir / "{result}.log"
+    params:
+        burn_in = int(beast_config["burn_in"] * 100)
     shell:
-        "loganalyser -oneline {input} > {output}"
+        "loganalyser -b {params.burn_in} -oneline {input} > {output}"
 
 rule aggregate_sim_trace:
     input:
@@ -326,21 +341,35 @@ rule coverage:
             -skip 0
         """
 
-    
 rule tree_annotator:
     input:
         trees = wd / taxon_dir / seed_dir / sequence_dir / "{result}.trees",
         rate_sim = wd / taxon_dir / seed_dir / "branch-rate-sim.trees"
     output:
-        wd / taxon_dir / seed_dir / sequence_dir / "{result}-mcc.trees"
+        wd / taxon_dir / seed_dir / sequence_dir / "mcc-{result}.trees"
+    params:
+        burn_in = int(beast_config["burn_in"] * 100)
     shell:
-        "treeannotator -b "
+        "treeannotator -b {params.burn_in} -target {input.rate_sim} {input.trees} {output}"
 
-
-rule relaxed_report:
+rule tree_coverage:
     input:
-        wd / taxon_dir / seed_dir / sequence_dir / "plot-posterior-relaxed-{clock_approx}.ipynb"
+        mcc_trees = expand(wd / taxon_dir / seed_dir / sequence_dir / "mcc-{result}.trees", seed=SEEDS, allow_missing=True),
+        rate_sims = expand(wd / taxon_dir / seed_dir / "branch-rate-sim.trees", seed=SEEDS, allow_missing=True)
+    params:
+        mcc_file_template = str(wd / taxon_dir / "$(n)" / sequence_dir / "mcc-{result}.trees"),
+        tree_file_template = str(wd / taxon_dir / "$(n)" / "branch-rate-sim.trees"),
+        from_index = min(SEEDS),
+        to_index = max(SEEDS)
     output:
-        wd / taxon_dir / seed_dir / sequence_dir / "plot-posterior-relaxed-{clock_approx}.html"
+        wd / aggregate_dir / taxon_dir / sequence_dir / "{result}" / "tree-coverage.txt"
     shell:
-        "jupyter nbconvert --to html {input}"
+        """
+        applauncher MCCTreeComparator \
+            -mcc {params.mcc_file_template} \
+            -tree {params.tree_file_template} \
+            -from {params.from_index} \
+            -to {params.to_index} \
+            -out {output}
+        """
+    

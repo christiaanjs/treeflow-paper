@@ -87,7 +87,7 @@ def yaml_config_provider(file_path, cmd_name):
 @click.option("-o", "--optimizer", type=click.Choice(["adam"]), default="adam")
 @click.option("-l", "--learning-rate", type=float, default=1e-2)
 @click.option("-n", "--num-steps", type=int, default=40000)
-@click.option("-c", "--clock-approx", type=click.Choice(["mean_field", "scaled", "tuneable"]), default="scaled")
+@click.option("-a", "--clock-approx", type=click.Choice(treeflow_pipeline.model.APPROX_MODELS), default="scaled")
 @click.option("-r", "--rescaling", type=bool, default=True)
 @click_config_file.configuration_option(provider=yaml_config_provider)
 @click.pass_context

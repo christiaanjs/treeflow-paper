@@ -82,6 +82,6 @@ rule variational_fit:
             variational-fit \
             -t {input.topology} \
             -s {input.starting_values} \
-            -c {wildcards.clock_approx} \
+            -a {wildcards.clock_approx} \
             --config {config[vi_config]}
         """

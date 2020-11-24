@@ -11,11 +11,12 @@ import treeflow.libsbn
 
 def parse_model(model):
     if isinstance(model, dict):
-        return next(iter(model.items())) # TODO: Parsing checks
+        return next(iter(model.items()))
     else:
         return model, None
 
 RELAXED_CLOCK_MODELS = ["relaxed_lognormal"]
+APPROX_MODELS = ["mean_field", "scaled", "scaled_all"]
 
 class Model:
     def __init__(self, dict):
@@ -109,6 +110,18 @@ def get_likelihood(newick_file, fasta_file, starting_values, model, vi_config):
     else:
         raise ValueError("Unknown substitution model: {0}".format(model.subst_model))
 
+def get_approx_dict(clock_approx, tree):
+    if clock_approx == "scaled_all":
+        return dict(clock_rate=dict(approx="scaled", tree_statistic="length", tree=tree))
+    else:
+        return {}
+
+def get_rate_approx_model(clock_approx):
+    if clock_approx in ["scaled", "scaled_all"]:
+        return "scaled"
+    else:
+        return "mean_field"
+
 def get_variational_fit(newick_file, fasta_file, starting_values, model, vi_config, clock_approx):
     likelihood, instance = get_likelihood(newick_file, fasta_file, starting_values, model, vi_config)
     tree_info = treeflow.libsbn.get_tree_info(instance)
@@ -121,7 +134,8 @@ def get_variational_fit(newick_file, fasta_file, starting_values, model, vi_conf
         init_mode=dict(
             pop_size=cast(starting_values["pop_size"]),
             clock_rate=cast(starting_values["clock_rate"])
-        )
+        ),
+        approxs=get_approx_dict(clock_approx, tree_info.tree)
     )
     
     q_tree, tree_vars = treeflow.model.construct_tree_approximation(newick_file, inst=instance)
@@ -129,7 +143,8 @@ def get_variational_fit(newick_file, fasta_file, starting_values, model, vi_conf
     vars["tree"] = tree_vars
 
     if model.clock_model in RELAXED_CLOCK_MODELS:
-        q_rates, rate_vars = treeflow.model.construct_rate_approximation(prior.model["rates"](cast(1.0)), approx_model=clock_approx)
+
+        q_rates, rate_vars = treeflow.model.construct_rate_approximation(prior.model["rates"](cast(1.0)), approx_model=get_rate_approx_model(clock_approx))
         q_dict["rates"] = q_rates
         vars["rates"] = rate_vars
 
@@ -142,12 +157,12 @@ def reconstruct_approx(newick_file, variational_fit, model, clock_approx):
     tree, taxon_names = treeflow.tree_processing.parse_newick(newick_file)
     init_heights = tree["heights"]
     prior = get_phylo_prior(init_heights[:(init_heights.shape[0] + 1)//2], model)
-    q_dict, _ = treeflow.model.construct_prior_approximation(prior, vars=vars)
+    q_dict, _ = treeflow.model.construct_prior_approximation(prior, vars=vars, approxs=get_approx_dict(clock_approx, tree))
     q_tree, _ = treeflow.model.construct_tree_approximation(newick_file, vars=vars["tree"])
     q_dict["tree"] = q_tree
 
     if model.clock_model in RELAXED_CLOCK_MODELS:
-        q_rates, _ = treeflow.model.construct_rate_approximation(prior.model["rates"](cast(1.0)), approx_model=clock_approx, vars=vars["rates"])
+        q_rates, _ = treeflow.model.construct_rate_approximation(prior.model["rates"](cast(1.0)), approx_model=get_rate_approx_model(clock_approx), vars=vars["rates"])
         q_dict["rates"] = q_rates
 
     return tfp.distributions.JointDistributionNamed(q_dict)
