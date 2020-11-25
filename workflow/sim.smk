@@ -13,7 +13,7 @@ model = mod.Model(yaml_input(config["model_file"]))
 beast_config = yaml_input(config["beast_config"])
 
 SEQUENCE_LENGTHS = [5000]
-APPROXES = ["mean_field", "scaled", "scaled_all"]
+APPROXES = ["mean_field", "scaled"]#, "scaled_all"]
 SEEDS = list(range(1, config["replicates"]+1))
 DEMO_SEED = 4
 
