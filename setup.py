@@ -7,12 +7,12 @@ setuptools.setup(
     install_requires=[
         'treeflow',
         'pyyaml',
-        'biopython',
         'jinja2',
         'dendropy',
         'pandas',
         'click',
-        'importlib'
+        'importlib',
+        'snakemake'
     ],
     entry_points='''
         [console_scripts]
