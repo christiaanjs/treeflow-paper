@@ -1,13 +1,15 @@
 #!/bin/bash
 set -euo pipefail
 
-module load Miniconda3/4.8.3
-module load GCC/9.2.0
+conda init bash
+source ~/.bashrc
 
-mkdir -p ~/treeflow-lib
+mkdir -p ~/treeflow-lib/bin
 export TREEFLOW_LIB=~/treeflow-lib
 
 SCRIPT=`realpath $0`
 SETUP_DIR=`dirname $SCRIPT`
 
+bash $SETUP_DIR/load-modules-nesi.sh
 bash $SETUP_DIR/setup.sh
+bash $SETUP_DIR/setup-beast.sh
