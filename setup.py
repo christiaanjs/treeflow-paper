@@ -12,7 +12,8 @@ setuptools.setup(
         'pandas',
         'click',
         'importlib',
-        'snakemake'
+        'snakemake',
+        'papermill'
     ],
     entry_points='''
         [console_scripts]
