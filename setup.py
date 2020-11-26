@@ -11,6 +11,7 @@ setuptools.setup(
         'dendropy',
         'pandas',
         'click',
+        'click-config-file',
         'importlib',
         'snakemake',
         'papermill'
