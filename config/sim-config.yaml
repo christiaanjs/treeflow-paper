@@ -1,4 +1,4 @@
-sampling_window: 9
+sampling_window: 20
 kappa: 2.0
 frequencies: [0.24, 0.27, 0.26, 0.23]
 model_file: config/model.yaml

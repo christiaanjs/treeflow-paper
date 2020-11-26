@@ -12,6 +12,7 @@ wd = pathlib.Path(config["working_directory"])
 model = mod.Model(yaml_input(config["model_file"]))
 beast_config = yaml_input(config["beast_config"])
 
+TAXON_COUNTS = [10, 20]
 SEQUENCE_LENGTHS = [10000]
 APPROXES = ["mean_field", "scaled"]
 SEEDS = list(range(1, config["replicates"]+1))
@@ -25,7 +26,7 @@ aggregate_dir = "aggregate"
 
 rule well_calibrated_study:
     input:
-        expand("out/sim/aggregate/10taxa/{sequence_length}sites/coverage.csv", sequence_length=SEQUENCE_LENGTHS)
+        expand(str(wd / aggregate_dir / taxon_dir / sequence_dir / "coverage.csv"), sequence_length=SEQUENCE_LENGTHS, taxon_count=TAXON_COUNTS)
 
 rule demo:
     input:

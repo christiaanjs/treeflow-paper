@@ -2,18 +2,18 @@ tree:
   coalescent_constant:
     pop_size:
       lognormal:
-        loc: 2.0
-        scale: 0.2
+        loc: 0.254133
+        scale: 2.573635
 clock:
   relaxed_lognormal:
     clock_rate:
       lognormal:
-        loc: -6.0
-        scale: 0.8
+        loc: -5.9393044
+        scale: 0.6361542
     rate_sd:
       lognormal:
-        loc: -0.64
-        scale: 0.14
+        loc: -1.3318051
+        scale: 0.4974137
 substitution:
   hky:
     kappa:
