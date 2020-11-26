@@ -4,6 +4,7 @@ import treeflow.tree_processing
 import treeflow.sequences
 import treeflow_pipeline.model
 import pandas as pd
+import io
 
 def construct_precedes_map(taxon_order): # [x, y] = True if x precedes y TODO: Do something that isn't quadratic
     precedes = {}
@@ -204,3 +205,29 @@ def get_variational_samples(variational_fit, topology_file, model, clock_approx,
         writer.write_tree_list(trees, f)
 
     return result_dict
+
+def calculate_coverage(stat_file):
+    df = pd.read_table(stat_file)
+    return df.truth.between(df["95HPDlow"], df["95HPDup"]).mean() # TODO: Bias and error stats?
+
+def parse_tree_coverage_file(tree_coverage_string):
+    df = pd.read_table(io.StringIO(tree_coverage_string.split("\n\n")[1])).set_index("metadata ")
+    filtered = df[df.index != "posterior"]
+    return (filtered["% matches"] / 100.0).to_dict()
+
+def build_method_coverage_table(method, coverage_stat_dict, tree_coverage_string, output_file):
+    data_dict = {
+        "method": method,
+        **{ stat: calculate_coverage(stat_file) for stat, stat_file in coverage_stat_dict.items() },
+        **parse_tree_coverage_file(tree_coverage_string)
+    }
+    df = pd.DataFrame([data_dict]).set_index("method")
+    df.to_csv(output_file)
+
+def aggregate_coverage_tables(coverage_tables, output_file):
+    df = pd.concat([pd.read_csv(file).set_index("method") for file in coverage_tables])
+    df.to_csv(output_file)
+
+
+
+

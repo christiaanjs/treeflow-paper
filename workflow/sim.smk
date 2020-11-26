@@ -12,24 +12,20 @@ wd = pathlib.Path(config["working_directory"])
 model = mod.Model(yaml_input(config["model_file"]))
 beast_config = yaml_input(config["beast_config"])
 
-SEQUENCE_LENGTHS = [5000]
-APPROXES = ["mean_field", "scaled"]#, "scaled_all"]
+SEQUENCE_LENGTHS = [10000]
+APPROXES = ["mean_field", "scaled"]
 SEEDS = list(range(1, config["replicates"]+1))
 DEMO_SEED = 4
-
 
 taxon_dir = "{taxon_count}taxa"
 seed_dir = "{seed}seed"
 sequence_dir = "{sequence_length}sites"
 aggregate_dir = "aggregate"
 
+
 rule well_calibrated_study:
     input:
-        expand("out/sim/aggregate/10taxa/{sequence_length}sites/variational-samples-{clock_approx}/coverage.html", sequence_length=SEQUENCE_LENGTHS, clock_approx=APPROXES),
-        expand("out/sim/aggregate/10taxa/{sequence_length}sites/beast/coverage.html", sequence_length=SEQUENCE_LENGTHS),
-        expand("out/sim/aggregate/10taxa/{sequence_length}sites/variational-samples-{clock_approx}/tree-coverage.txt", sequence_length=SEQUENCE_LENGTHS, clock_approx=APPROXES),
-        expand("out/sim/aggregate/10taxa/{sequence_length}sites/beast/tree-coverage.txt", sequence_length=SEQUENCE_LENGTHS)
-
+        expand("out/sim/aggregate/10taxa/{sequence_length}sites/coverage.csv", sequence_length=SEQUENCE_LENGTHS)
 
 rule demo:
     input:
@@ -197,6 +193,7 @@ rule beast_xml:
         tree = wd / taxon_dir / seed_dir / "tree-sim.newick",
         starting_values = wd / taxon_dir / seed_dir / "starting-values.yaml",
         beast_config = config["beast_config"]
+    group: "beast"
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "beast.xml"
     run:
@@ -215,6 +212,7 @@ rule beast_run:
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "beast.log",
         wd / taxon_dir / seed_dir / sequence_dir / "beast.trees"
+    group: "beast"
     shell:
         "beast -seed {wildcards.seed} {input}"
 
@@ -225,6 +223,7 @@ rule beast_results:
         trace = wd / taxon_dir / seed_dir / sequence_dir / "beast.log"
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "beast.pickle"
+    group: "beast"
     run:
         pickle_output(
             res.process_beast_results(
@@ -246,6 +245,7 @@ rule variational_fit:
         starting_values = wd / taxon_dir / seed_dir / "starting-values.yaml"
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "variational-fit-{clock_approx}.pickle"
+    group: "variational"
     shell:
         """
         treeflow_pipeline -s {wildcards.seed} \
@@ -265,6 +265,7 @@ rule variational_samples: # TODO: Include this in CLI
         trace = wd / taxon_dir / seed_dir / sequence_dir / "variational-samples-{clock_approx}.log",
         trees = wd / taxon_dir / seed_dir / sequence_dir / "variational-samples-{clock_approx}.trees",
         samples = wd / taxon_dir / seed_dir / sequence_dir / "variational-samples-{clock_approx}.pickle"
+    group: "variational"
     run:
         pickle_output(
             res.get_variational_samples(
@@ -324,6 +325,7 @@ rule log_analyser:
         expand(wd / taxon_dir / seed_dir / sequence_dir / "{result}.log", seed=SEEDS, allow_missing=True)
     output:
         wd / aggregate_dir / taxon_dir / sequence_dir / "{result}.log"
+    group: "aggregate"
     params:
         burn_in = int(beast_config["burn_in"] * 100)
     shell:
@@ -337,14 +339,22 @@ rule aggregate_sim_trace:
     run:
         sim.aggregate_sim_traces(input, output[0])
 
+stats = (
+    list(model.free_params().keys()) + 
+    [f"rate_stats.{stat}" for stat in ["variance", "mean", "coefficientOfVariation"]] +
+    [f"tree.{stat}" for stat in ["height", "treeLength"]]    
+)
+
 rule coverage:
     input:
         sim_trace = wd / aggregate_dir / taxon_dir / "sim.log",
         analyser_trace = wd / aggregate_dir / taxon_dir / sequence_dir / "{result}.log"
     output:
-        wd / aggregate_dir / taxon_dir / sequence_dir / "{result}" / "coverage.html"
+        report = wd / aggregate_dir / taxon_dir / sequence_dir / "{result}" / "coverage.html",
+        stats = [wd / aggregate_dir / taxon_dir / sequence_dir / "{result}" / f"{stat}.tsv" for stat in stats]
+    group: "aggregate"
     params:
-        output_dir =  lambda wildcards, output: pathlib.Path(output[0]).parents[0]
+        output_dir =  lambda wildcards, output: pathlib.Path(output.report).parents[0]
     shell:
         """
         applauncher CoverageCalculator \
@@ -354,12 +364,13 @@ rule coverage:
             -skip 0
         """
 
-rule tree_annotator:
+rule tree_annotator: # TODO: Methods in their own directories?
     input:
         trees = wd / taxon_dir / seed_dir / sequence_dir / "{result}.trees",
         tree_sim = wd / taxon_dir / seed_dir / "branch-rate-sim.trees"
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "mcc-{result}.trees"
+    group: "tree-aggregate"
     params:
         burn_in = int(beast_config["burn_in"] * 100)
     shell:
@@ -374,6 +385,7 @@ rule tree_coverage:
         tree_file_template = str(wd / taxon_dir / "$(n)seed" / "branch-rate-sim.trees"),
         from_index = min(SEEDS),
         to_index = max(SEEDS)
+    group: "tree-aggregate"
     output:
         wd / aggregate_dir / taxon_dir / sequence_dir / "{result}" / "tree-coverage.txt"
     shell:
@@ -385,4 +397,22 @@ rule tree_coverage:
             -to {params.to_index} \
             -out {output}
         """
+
+rule method_coverage_table:
+    input:
+        coverage_stats = rules.coverage.output.stats,
+        tree_coverage = rules.tree_coverage.output[0]
+    output:
+        wd / aggregate_dir / taxon_dir / sequence_dir / "{result}" / "coverage.csv"
+    run:
+        res.build_method_coverage_table(wildcards.result, dict(zip(stats, input.coverage_stats)), text_input(input.tree_coverage), output[0])
+
+methods = expand("variational-samples-{approx}", approx=APPROXES) + ["beast"]
+rule coverage_table:
+    input:
+        expand(rules.method_coverage_table.output[0], result=methods, allow_missing=True)
+    output:
+        wd / aggregate_dir / taxon_dir / sequence_dir / "coverage.csv"
+    run:
+        res.aggregate_coverage_tables(input, output[0])
     
