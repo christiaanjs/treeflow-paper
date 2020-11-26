@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -eo pipefail
 
 SCRIPT=`realpath $0`
 TREEFLOW_PAPER_DIR=`dirname $SCRIPT`

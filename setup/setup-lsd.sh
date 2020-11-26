@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -eo pipefail
 
 cd $TREEFLOW_LIB
 git clone https://github.com/tothuhien/lsd-0.3beta.git

@@ -8,4 +8,5 @@ module load ant/1.10.1-Java-1.8.0_144
 export TREEFLOW_LIB=~/treeflow-lib
 export PATH=$TREEFLOW_LIB/bin:$PATH
 export DISPLAY=""
+
 conda activate libsbn
