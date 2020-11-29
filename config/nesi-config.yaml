@@ -1,17 +1,19 @@
 __default__:
-  time: 00:02:00
-  mem: 512m
-variational_samples:
   time: 00:05:00
   mem: 1g
-variational_fit:
-  time: 00:20:00
-  mem: 1g
-beast_results:
-  time: 00:05:00
+
 beast_run:
-  time: 00:20:00
-  mem: 1g
-GROUP:
-  time: 00:20:00
-  mem: 1g
+  time: 00:30:00
+  mem: 4g
+
+beast_results:
+  time: 00:10:00
+  mem: 2g
+
+variational_fit:
+  time: 00:30:00
+  mem: 4g
+
+variational_samples:
+  time: 00:10:00
+  mem: 2g
