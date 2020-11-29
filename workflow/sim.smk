@@ -44,7 +44,6 @@ rule sample_prior:
         sampling_times = wd / taxon_dir / "sampling-times.yaml"
     output:
         wd / taxon_dir / seed_dir / "prior-sample.yaml"
-    group: "sim"
     run:
         yaml_output(sim.sample_prior(yaml_input(input.sampling_times), model, int(wildcards.seed)), output[0])
     
@@ -54,7 +53,6 @@ rule tree_sim_xml:
         prior_sample = wd / taxon_dir / seed_dir / "prior-sample.yaml"
     output:
         wd / taxon_dir / seed_dir / "tree-sim.xml"
-    group: "sim"
     run:
         text_output(
             tem.build_tree_sim(
@@ -71,7 +69,6 @@ rule tree_sim:
         wd / taxon_dir / seed_dir / "tree-sim.xml"
     output:
         wd / taxon_dir / seed_dir / "tree-sim.trees"
-    group: "sim"
     shell:
         "beast -seed {wildcards.seed} {input}"
 
@@ -80,7 +77,6 @@ rule tree_sim_newick:
         "{dir}/tree-sim.trees"
     output:
         "{dir}/tree-sim.newick"
-    group: "sim"
     run:
         top.convert_tree(input[0], 'nexus', output[0], 'newick')
 
@@ -90,7 +86,6 @@ rule branch_rate_sim_xml:
         tree = wd / taxon_dir / seed_dir / "tree-sim.newick"
     output:
         wd / taxon_dir / seed_dir / "branch-rate-sim.xml"
-    group: "sim"
     run:
         text_output(
             tem.build_branch_rate_sim(
@@ -107,7 +102,6 @@ rule branch_rate_sim:
     output:
         wd / taxon_dir / seed_dir / "branch-rate-sim.log",
         wd / taxon_dir / seed_dir / "branch-rate-sim.trees"
-    group: "sim"
     shell:
         "beast -seed {wildcards.seed} {input}"
 
@@ -116,7 +110,6 @@ rule convert_branch_rates:
         wd / taxon_dir / seed_dir / "branch-rate-sim.log"
     output:
         wd / taxon_dir / seed_dir / "branch-rates.yaml"
-    group: "sim"
     run:
         yaml_output(
             sim.parse_branch_rates(beast_log_input(input[0])),
@@ -130,7 +123,6 @@ rule sim_trace:
         rates = wd / taxon_dir / seed_dir / "branch-rate-sim.log"
     output:
         wd / taxon_dir / seed_dir / "sim.log"
-    group: "sim"
     run:
         sim.build_sim_trace(input.tree, yaml_input(input.prior_sample), output[0], rate_trace=input.rates)
 
@@ -142,7 +134,6 @@ rule sequence_sim_xml:
         sampling_times = wd / taxon_dir / "sampling-times.yaml"
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "sim-seq.xml"
-    group: "sim"
     run:
         text_output(
             tem.build_sequence_sim(
@@ -162,7 +153,6 @@ rule sequence_sim:
         wd / taxon_dir / seed_dir / sequence_dir / "sim-seq.xml"
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "sequences.xml"
-    group: "sim"
     shell:
         "beast -seed {wildcards.seed} {input}"
 
@@ -171,7 +161,6 @@ rule fasta_sim:
         "{wd}/sequences.xml"
     output:
         "{wd}/sequences.fasta"
-    group: "sim"
     run:
         sim.convert_simulated_sequences(input[0], output[0], 'fasta')
 
@@ -180,7 +169,6 @@ rule sim_starting_values:
         prior_sample = wd / taxon_dir / seed_dir / "prior-sample.yaml"
     output:
         wd / taxon_dir / seed_dir / "starting-values.yaml"
-    group: "sim"
     run:
         yaml_output(dict(
             frequencies=config["frequencies"],
@@ -194,7 +182,6 @@ rule beast_xml:
         tree = wd / taxon_dir / seed_dir / "tree-sim.newick",
         starting_values = wd / taxon_dir / seed_dir / "starting-values.yaml",
         beast_config = config["beast_config"]
-    group: "beast"
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "beast.xml"
     run:
@@ -213,7 +200,6 @@ rule beast_run:
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "beast.log",
         wd / taxon_dir / seed_dir / sequence_dir / "beast.trees"
-    group: "beast"
     shell:
         "beast -seed {wildcards.seed} {input}"
 
@@ -224,7 +210,6 @@ rule beast_results:
         trace = wd / taxon_dir / seed_dir / sequence_dir / "beast.log"
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "beast.pickle"
-    group: "beast"
     run:
         pickle_output(
             res.process_beast_results(
@@ -246,7 +231,6 @@ rule variational_fit:
         starting_values = wd / taxon_dir / seed_dir / "starting-values.yaml"
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "variational-fit-{clock_approx}.pickle"
-    group: "variational"
     shell:
         """
         treeflow_pipeline -s {wildcards.seed} \
@@ -266,7 +250,6 @@ rule variational_samples: # TODO: Include this in CLI
         trace = wd / taxon_dir / seed_dir / sequence_dir / "variational-samples-{clock_approx}.log",
         trees = wd / taxon_dir / seed_dir / sequence_dir / "variational-samples-{clock_approx}.trees",
         samples = wd / taxon_dir / seed_dir / sequence_dir / "variational-samples-{clock_approx}.pickle"
-    group: "variational"
     run:
         pickle_output(
             res.get_variational_samples(
@@ -326,7 +309,6 @@ rule log_analyser:
         expand(wd / taxon_dir / seed_dir / sequence_dir / "{result}.log", seed=SEEDS, allow_missing=True)
     output:
         wd / aggregate_dir / taxon_dir / sequence_dir / "{result}.log"
-    group: "aggregate"
     params:
         burn_in = int(beast_config["burn_in"] * 100)
     shell:
@@ -353,7 +335,6 @@ rule coverage:
     output:
         report = wd / aggregate_dir / taxon_dir / sequence_dir / "{result}" / "coverage.html",
         stats = [wd / aggregate_dir / taxon_dir / sequence_dir / "{result}" / f"{stat}.tsv" for stat in stats]
-    group: "aggregate"
     params:
         output_dir =  lambda wildcards, output: pathlib.Path(output.report).parents[0]
     shell:
@@ -371,7 +352,6 @@ rule tree_annotator: # TODO: Methods in their own directories?
         tree_sim = wd / taxon_dir / seed_dir / "branch-rate-sim.trees"
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "mcc-{result}.trees"
-    group: "tree-aggregate"
     params:
         burn_in = int(beast_config["burn_in"] * 100)
     shell:
@@ -386,7 +366,6 @@ rule tree_coverage:
         tree_file_template = str(wd / taxon_dir / "$(n)seed" / "branch-rate-sim.trees"),
         from_index = min(SEEDS),
         to_index = max(SEEDS)
-    group: "tree-aggregate"
     output:
         wd / aggregate_dir / taxon_dir / sequence_dir / "{result}" / "tree-coverage.txt"
     shell:
