@@ -12,7 +12,7 @@ wd = pathlib.Path(config["working_directory"])
 model = mod.Model(yaml_input(config["model_file"]))
 beast_config = yaml_input(config["beast_config"])
 
-TAXON_COUNTS = [10, 20]
+TAXON_COUNTS = [10]#, 20]
 SEQUENCE_LENGTHS = [10000]
 APPROXES = ["mean_field", "scaled"]
 SEEDS = list(range(1, config["replicates"]+1))
@@ -26,7 +26,9 @@ aggregate_dir = "aggregate"
 
 rule well_calibrated_study:
     input:
-        expand(str(wd / aggregate_dir / taxon_dir / sequence_dir / "coverage.csv"), sequence_length=SEQUENCE_LENGTHS, taxon_count=TAXON_COUNTS)
+        expand(str(wd / aggregate_dir / taxon_dir / sequence_dir / "coverage.csv"), sequence_length=SEQUENCE_LENGTHS, taxon_count=TAXON_COUNTS),
+        expand(str(wd / aggregate_dir / taxon_dir / sequence_dir / "coverage-plot.csv"), sequence_length=SEQUENCE_LENGTHS, taxon_count=TAXON_COUNTS)
+
 
 rule demo:
     input:
@@ -396,3 +398,18 @@ rule coverage_table:
     run:
         res.aggregate_coverage_tables(input, output[0])
     
+rule method_coverage_plot_table:
+    input:
+        coverage_stats = rules.coverage.output.stats
+    output:
+        wd / aggregate_dir / taxon_dir / sequence_dir / "{result}" / "coverage-plot.csv"
+    run:
+        res.build_method_coverage_plot_table(wildcards.result, dict(zip(stats, input.coverage_stats)), output[0])
+
+rule coverage_plot_table:
+    input:
+        expand(rules.method_coverage_plot_table.output[0], result=methods, allow_missing=True)
+    output:
+        wd / aggregate_dir / taxon_dir / sequence_dir / "coverage-plot.csv"
+    run:
+        res.aggregate_coverage_tables(input, output[0])
