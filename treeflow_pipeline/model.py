@@ -104,7 +104,9 @@ def get_likelihood(newick_file, fasta_file, starting_values, model, vi_config):
                 cast(starting_values["frequencies"]),
                 kappa=cast(starting_values["kappa"]),
                 rescaling=vi_config["rescaling"],
-                newick_file=newick_file)
+                newick_file=newick_file,
+                dated=True
+            )
         else:
             raise ValueError("Only fixed substitution model parameters supported with Beagle likelihood")
     else:
