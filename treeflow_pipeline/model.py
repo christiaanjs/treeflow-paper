@@ -124,6 +124,20 @@ def get_rate_approx_model(clock_approx):
     else:
         return "mean_field"
 
+def construct_approx(newick_file, model, clock_approx):
+    tree, taxon_names = treeflow.tree_processing.parse_newick(newick_file)
+    init_heights = tree["heights"]
+    prior = get_phylo_prior(init_heights[:(init_heights.shape[0] + 1)//2], model)
+    q_dict, _ = treeflow.model.construct_prior_approximation(prior, approxs=get_approx_dict(clock_approx, tree))
+    q_tree, _ = treeflow.model.construct_tree_approximation(newick_file)
+    q_dict["tree"] = q_tree
+
+    if model.clock_model in RELAXED_CLOCK_MODELS:
+        q_rates, _ = treeflow.model.construct_rate_approximation(prior.model["rates"](cast(1.0)), approx_model=get_rate_approx_model(clock_approx))
+        q_dict["rates"] = q_rates
+
+    return tfp.distributions.JointDistributionNamed(q_dict)
+
 def get_variational_fit(newick_file, fasta_file, starting_values, model, vi_config, clock_approx):
     likelihood, instance = get_likelihood(newick_file, fasta_file, starting_values, model, vi_config)
     tree_info = treeflow.libsbn.get_tree_info(instance)

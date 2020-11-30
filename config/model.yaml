@@ -2,8 +2,8 @@ tree:
   coalescent_constant:
     pop_size:
       lognormal:
-        loc: 0.254133
-        scale: 2.573635
+        loc: 0.1694182
+        scale: 1.991141
 clock:
   relaxed_lognormal:
     clock_rate:

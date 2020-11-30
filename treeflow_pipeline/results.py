@@ -161,15 +161,27 @@ class CustomNexusWriter(dendropy.dataio.nexuswriter.NexusWriter):
         )
         self._newick_writer = CustomNewickWriter(**newick_kwargs)
 
-def get_variational_samples(variational_fit, topology_file, model, clock_approx, trace_out, tree_out, seed, n=1000):
+def fit_successful(variational_fit):
+    return np.isfinite(variational_fit["loss"]).all()
+
+NUMERICAL_ISSUE_N = 2
+
+def get_variational_samples(variational_fit, topology_file, model, clock_approx, starting_values, trace_out, tree_out, seed, n=1000):
     tree, taxon_names = treeflow.tree_processing.parse_newick(topology_file)
     taxon_namespace = dendropy.Tree.get(path=topology_file, schema="newick", preserve_underscores=True).taxon_namespace
-    approx = treeflow_pipeline.model.reconstruct_approx(topology_file, variational_fit, model, clock_approx)
-    samples = approx.sample(n, seed=seed)
-    branch_lengths = treeflow.sequences.get_branch_lengths(samples['tree']).numpy()
-    
-    result_dict = { key: samples[key].numpy() for key in model.free_params() }
 
+    if fit_successful(variational_fit):
+        approx = treeflow_pipeline.model.reconstruct_approx(topology_file, variational_fit, model, clock_approx)
+        samples = approx.sample(n, seed=seed)
+    else: # In case there is are numerical issues # TODO: Fix
+        n = NUMERICAL_ISSUE_N
+        approx = treeflow_pipeline.model.construct_approx(topology_file, model, clock_approx)
+        samples = approx.sample(n, seed=seed)
+
+    branch_lengths = treeflow.sequences.get_branch_lengths(samples['tree']).numpy()
+
+    result_dict = { key: samples[key].numpy() for key in model.free_params() }
+    
     heights =  samples["tree"]["heights"].numpy()
     trace_dict = {
         "tree.height": heights[:, -1],

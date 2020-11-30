@@ -12,7 +12,7 @@ wd = pathlib.Path(config["working_directory"])
 model = mod.Model(yaml_input(config["model_file"]))
 beast_config = yaml_input(config["beast_config"])
 
-TAXON_COUNTS = [10]#, 20]
+TAXON_COUNTS = [20]
 SEQUENCE_LENGTHS = [10000]
 APPROXES = ["mean_field", "scaled"]
 SEEDS = list(range(1, config["replicates"]+1))
@@ -247,7 +247,8 @@ rule variational_fit:
 rule variational_samples: # TODO: Include this in CLI
     input:
         fit = wd / taxon_dir / seed_dir / sequence_dir / "variational-fit-{clock_approx}.pickle",
-        topology = wd / taxon_dir / seed_dir / "tree-sim.newick"
+        topology = wd / taxon_dir / seed_dir / "tree-sim.newick",
+        starting_values = wd / taxon_dir / seed_dir / "starting-values.yaml"
     output:
         trace = wd / taxon_dir / seed_dir / sequence_dir / "variational-samples-{clock_approx}.log",
         trees = wd / taxon_dir / seed_dir / sequence_dir / "variational-samples-{clock_approx}.trees",
@@ -259,6 +260,7 @@ rule variational_samples: # TODO: Include this in CLI
                 input.topology,
                 model,
                 wildcards.clock_approx,
+                yaml_input(input.starting_values),
                 output.trace,
                 output.trees,
                 wildcards.seed
