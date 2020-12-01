@@ -328,7 +328,7 @@ rule aggregate_sim_trace:
 
 stats = (
     list(model.free_params().keys()) + 
-    [f"rate_stats.{stat}" for stat in ["variance", "mean", "coefficientOfVariation"]] +
+    [f"rate_stats.{stat}" for stat in ["mean", "coefficientOfVariation"]] +
     [f"tree.{stat}" for stat in ["height", "treeLength"]]    
 )
 
