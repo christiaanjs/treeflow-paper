@@ -22,19 +22,9 @@ taxa_dir = config["taxa_dir"]
 sequence_dir = config["sequence_dir"]
 manuscript_dir = pathlib.Path("manuscript")
 
-rule test:
-    input:
-        manuscript_dir / "figures" / "coverage.png"
-
 rule ms:
     input:
         manuscript_dir / "out" / "main.pdf"
-
-rule coverage_table:
-    input: result(aggregate_result_dir / taxa_dir / sequence_dir / "coverage.csv")
-    output: manuscript_dir / "tables" / "coverage-table.tex"
-    run:
-        pd.read_csv(input[0]).to_latex(output[0])
 
 APPROXES = ["mean_field", "scaled"] # TODO: Where to store these in common?
 methods = ["beast"] + expand("variational-samples-{approx}", approx=APPROXES)
@@ -42,6 +32,12 @@ stats = (
     [f"rate_stats.{stat}" for stat in ["mean", "coefficientOfVariation"]] +
     [f"tree.{stat}" for stat in ["height", "treeLength"]]    
 )
+
+rule coverage_table:
+    input: result(aggregate_result_dir / taxa_dir / sequence_dir / "coverage.csv")
+    output: manuscript_dir / "tables" / "coverage-table.tex"
+    run:
+        treeflow_pipeline.manuscript.coverage_table(input[0], stats + ["height", "rate"], output[0])
 
 rule coverage_plot:
     input:
@@ -66,7 +62,7 @@ rule compile_ms:
     output:
         manuscript_dir / "out" / "main.pdf"
     params:
-        output_dir =  lambda wildcards, output: output[0].parents[0]
+        output_dir =  lambda wildcards, output: pathlib.Path(output[0]).parents[0]
     shell:
         "pdflatex -output-directory={params.output_dir} {input.main}"
 

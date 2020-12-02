@@ -7,6 +7,13 @@
 % Related to math
 \usepackage{amsmath,amssymb,amsfonts,amsthm}
 \usepackage{booktabs}
+\usepackage{graphicx}
+
+\makeatletter
+\def\input@path{ {manuscript/tables/} }
+\makeatother
+
+\graphicspath{ {manuscript/figures/} }
 
 \title{Fixed-topology variational methods for relaxed Bayesian phylogenetics}
 \author{Christiaan Swanepoel}
@@ -21,11 +28,20 @@
 \section*{Results}
 
 \begin{table}
-\input{tables/coverage-table.tex}
-\caption{Coverage statistics from the simulation study}
-\label{tab:coverage}
+    \centering
+    \input{coverage-table}
+    \caption{Coverage statistics from simulation study}
+    \label{tab:coverage}
 \end{table}
-% Posterior comparison - mean field VS product VS MCMC fixed
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{coverage}
+    \caption{Results of simulation study}
+    \label{fig:coverage}
+\end{figure}
+    % Posterior comparison - mean field VS product VS MCMC fixed
 % Performance evaluation - Variational vs MCMC - RSV dataset
 
 \section*{Discussion}
