@@ -1,0 +1,39 @@
+\BLOCK{extends template}
+
+\BLOCK{block preamble}
+\usepackage{booktabs}
+\BLOCK{endblock}
+
+\BLOCK{block abstract}
+This is the abstract
+\BLOCK{endblock}
+
+\BLOCK{block body}
+\section*{Introduction}
+
+\section*{Methods}
+
+\section*{Results}
+
+\begin{table}
+    \centering
+    \VAR{ tables["coverage"] }
+    \caption{Coverage statistics from simulation study}
+    \label{tab:coverage}
+\end{table}
+
+
+\begin{figure}
+    \centering
+    \VAR{ figures("coverage", "[width=\\linewidth]") }
+    \caption{Results of simulation study}
+    \label{fig:coverage}
+\end{figure}
+    % Posterior comparison - mean field VS product VS MCMC fixed
+% Performance evaluation - Variational vs MCMC - RSV dataset
+
+\section*{Discussion}
+
+\section*{Conclusions}
+
+\BLOCK{endblock}

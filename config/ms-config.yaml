@@ -4,3 +4,4 @@ aggregate_result_dir: out/sim/aggregate
 taxa_dir: 20taxa
 sequence_dir: 10000sites
 model_file: config/model.yaml
+submission: false

@@ -3,8 +3,11 @@ import pandas as pd
 import matplotlib
 matplotlib.use('AGG')
 import matplotlib.pyplot as plt
-import treeflow_pipeline.model
+import os
+import jinja2
 import treeflow_pipeline.results
+from treeflow_pipeline.util import text_input
+import treeflow_pipeline.model
 
 DPI = 300
 MAX_WIDTH_PIXELS = 2250
@@ -99,3 +102,29 @@ def coverage_table(coverage_table_file, stats, output):
     renamed.columns.name = "Method"
     renamed.index.name = "Statistic"
     (renamed * 100).to_latex(output, float_format="%.0f%%")
+
+
+latex_jinja_env = jinja2.Environment(
+    block_start_string='\BLOCK{',
+    block_end_string='}',
+    variable_start_string='\VAR{',
+    variable_end_string='}',
+    comment_start_string='\#{',
+    comment_end_string='}',
+    line_statement_prefix='%%',
+    line_comment_prefix='%#',
+    trim_blocks=True,
+    autoescape=False,
+    loader=jinja2.FileSystemLoader(".")
+)
+
+def build_manuscript(template_file, content_template_file,
+                     figures_dict, tables_dict,
+                     submission=False):
+    if submission:
+        figures = lambda x, args: None
+    else:
+        figures = lambda x, args: f"\\includegraphics{args}{{{str(os.path.splitext(figures_dict[x])[0])}}}"
+    tables = { key: text_input(filename) for key, filename in tables_dict.items() }
+    template = latex_jinja_env.get_template(content_template_file)
+    return template.render(template=template_file, tables=tables, figures=figures)

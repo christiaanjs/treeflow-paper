@@ -2,7 +2,7 @@ from snakemake.remote.FTP import RemoteProvider as FTPRemoteProvider
 import pathlib
 import pandas as pd
 import treeflow_pipeline.model
-from treeflow_pipeline.util import yaml_input, text_output
+from treeflow_pipeline.util import yaml_input, text_input, text_output
 import treeflow_pipeline.manuscript
 
 FTP = FTPRemoteProvider()
@@ -37,7 +37,7 @@ rule coverage_table:
     input: result(aggregate_result_dir / taxa_dir / sequence_dir / "coverage.csv")
     output: manuscript_dir / "tables" / "coverage-table.tex"
     run:
-        treeflow_pipeline.manuscript.coverage_table(input[0], stats + ["height", "rate"], output[0])
+        treeflow_pipeline.manuscript.coverage_table(input[0], list(model.free_params().keys()) + ["height", "rate"] + stats, output[0])
 
 rule coverage_plot:
     input:
@@ -53,12 +53,31 @@ rule coverage_plot:
             stats,
             output[0]
         )
+
+rule template_ms:
+    input:
+        coverage_table = rules.coverage_table.output[0],
+        coverage_plot = rules.coverage_plot.output[0],
+        template = manuscript_dir / "tex" / "plos-template.j2.tex",
+        body_template = manuscript_dir / "tex" / "main.j2.tex"
+    output:
+        manuscript_dir / "out" / "main.tex"
+    run:
+        text_output(
+            treeflow_pipeline.manuscript.build_manuscript(
+                input.template,
+                input.body_template,
+                dict(coverage=input.coverage_plot),
+                dict(coverage=input.coverage_table),
+                submission=config["submission"]
+            ),
+            output[0]
+        )
+
             
 rule compile_ms:
     input:
-        rules.coverage_table.output[0],
-        rules.coverage_plot.output[0],
-        main = manuscript_dir / "main.tex"
+        main = manuscript_dir / "out" / "main.tex"
     output:
         manuscript_dir / "out" / "main.pdf"
     params:
