@@ -11,7 +11,20 @@ This is the abstract
 \BLOCK{block body}
 \section*{Introduction}
 
+\subsection*{Relaxed clock models}
+
+Implementing an effective MCMC sampler for the posterior distribution resulting from relaxed clock models is non-trivial. The reciprocal relationship between rate and time means exploration using independent random walks is ineffective and results in slow mixing. One approach to improving mixing is to discretise the branch rate prior and sample assignments of branch rates to categories \cite{drummond2006relaxed}. A more recent approach develops an operator scheme that samples branch rates and divergence times while maintaining constant evolutionary distances \cite{zhang2020improving}.
+
 \section*{Methods}
+\subsection*{Variational parametrisation}
+
+The mean field variational approximation, while computationally convenient, introduces significant error in approximating the posterior distribution on times and branch rates. For some phylogenetic models, the mean field approximation provides useful estimates of marginal posterior distributions on parameters \cite{fourment2019evaluating}. However, the correlation structure in the relaxed clock posterior means that uncertainty in rates and divergence times is significantly underestimated. The KL divergence objective heavily penalises support in the approximation where the posterior has none, and as a result the mean field approximation concentrates on the centre of the rate/time posterior. As a result, the marginal posterior estimates of these parameters are underdispersed.
+
+Variational inference can be more effectively applied to inferring relaxed clock posteriors by explicity considering model structure. In a typical relaxed clock phylogenetic analysis, the input to the data likelihood is the genetic distance in substitutions per site on each branch, which is the product of the relative branch rate, the mean rate, and the branch length (which is a deterministic function of the divergence times). Rather than directly approximate the branch rate, we formulated our approximating distribution on this genetic distance. This is similar to to inferring the branch lengths of an unrooted phylogenetic tree, for which a mean field approximation has been shown to work well \cite{zhang2018variational}.
+
+% Mathematical formulation of model - refer to terminology of relaxed clock section
+
+\subsection*{Implementation}
 
 \section*{Results}
 
