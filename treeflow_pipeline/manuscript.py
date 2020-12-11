@@ -127,4 +127,4 @@ def build_manuscript(template_file, content_template_file,
         figures = lambda x, args: f"\\includegraphics{args}{{{str(os.path.splitext(figures_dict[x])[0])}}}"
     tables = { key: text_input(filename) for key, filename in tables_dict.items() }
     template = latex_jinja_env.get_template(content_template_file)
-    return template.render(template=template_file, tables=tables, figures=figures)
+    return template.render(template=template_file, tables=tables, figures=figures, submission=submission)
