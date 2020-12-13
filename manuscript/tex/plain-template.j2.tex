@@ -1,0 +1,41 @@
+\documentclass{article}
+%\usepackage[top=0.85in,left=2.75in,footskip=0.75in]{geometry}
+
+\usepackage{amsmath,amssymb}
+\usepackage[utf8x]{inputenc}
+\usepackage{textcomp,marvosym}
+\usepackage{cite}
+\usepackage{nameref,hyperref}
+\usepackage[right]{lineno}
+\usepackage{array}
+\bibliographystyle{plos2015}
+
+\BLOCK{ if not submission }
+\usepackage{setspace}
+\doublespacing
+\BLOCK{endif}
+
+% END MACROS SECTION
+\BLOCK{block preamble}\BLOCK{endblock}
+
+
+\begin{document}
+\section*{Abstract}
+\BLOCK{block abstract}\BLOCK{endblock}
+
+\BLOCK{block body}\BLOCK{endblock}
+\section*{Supporting information}
+
+% Include only the SI item label in the paragraph heading. Use the \nameref{label} command to cite SI items in the text.
+\paragraph*{S1 Fig.}
+\label{S1_Fig}
+{\bf Bold the title sentence.} Add descriptive text after the title of the item (optional).
+
+\section*{Acknowledgments}
+Acknowledgments
+
+
+\bibliography{main}
+
+\end{document}
+

@@ -277,7 +277,7 @@ TSWLatexianTemp*
 
 .ipynb_checkpoints/
 __pycache__/
-out/
+/out/
 .snakemake/
 *.egg-info/
 *xml.state

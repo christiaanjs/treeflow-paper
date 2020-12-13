@@ -58,7 +58,7 @@ rule template_ms:
     input:
         coverage_table = rules.coverage_table.output[0],
         coverage_plot = rules.coverage_plot.output[0],
-        template = manuscript_dir / "tex" / "plos-template.j2.tex",
+        template = manuscript_dir / "tex" / ("plos-template.j2.tex" if config["submission"] else "plain-template.j2.tex"),
         body_template = manuscript_dir / "tex" / "main.j2.tex"
     output:
         manuscript_dir / "out" / "main.tex"

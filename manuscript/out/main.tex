@@ -1,6 +1,19 @@
-\BLOCK{extends template}
+\documentclass{article}
+%\usepackage[top=0.85in,left=2.75in,footskip=0.75in]{geometry}
 
-\BLOCK{block preamble}
+\usepackage{amsmath,amssymb}
+\usepackage[utf8x]{inputenc}
+\usepackage{textcomp,marvosym}
+\usepackage{cite}
+\usepackage{nameref,hyperref}
+\usepackage[right]{lineno}
+\usepackage{array}
+\bibliographystyle{plos2015}
+
+\usepackage{setspace}
+\doublespacing
+
+% END MACROS SECTION
 \usepackage{booktabs}
 \usepackage{bm}
 \usepackage{mathtools}
@@ -11,13 +24,12 @@
 \newcommand{\kl}{\textrm{KL}\klx}
 
 
-\BLOCK{endblock}
 
-\BLOCK{block abstract}
+
+\begin{document}
+\section*{Abstract}
 This is the abstract
-\BLOCK{endblock}
 
-\BLOCK{block body}
 \section*{Introduction}
 
 \subsection*{Bayesian phylogenetics}
@@ -115,7 +127,23 @@ Many of the phylogenetics-specific computations such as Felsenstein's pruning al
 
 \begin{table}
     \centering
-    \VAR{ tables["coverage"] }
+    \begin{tabular}{lrrr}
+\toprule
+Method &  MCMC &  Variational (mean field) &  Variational (scaled) \\
+Statistic        &       &                           &                       \\
+\midrule
+Pop size         &   96\% &                       89\% &                   87\% \\
+Clock rate       &   88\% &                       50\% &                   77\% \\
+Rate prior scale &   94\% &                       42\% &                   23\% \\
+Node heights     &   94\% &                       76\% &                   84\% \\
+Rates            &   94\% &                       79\% &                   92\% \\
+Rate mean        &   82\% &                       68\% &                   88\% \\
+Rate CoV         &   91\% &                       36\% &                   38\% \\
+Tree height      &   91\% &                       60\% &                   66\% \\
+Tree length      &   96\% &                       56\% &                   80\% \\
+\bottomrule
+\end{tabular}
+
     \caption{Coverage statistics from simulation study}
     \label{tab:coverage}
 \end{table}
@@ -123,7 +151,7 @@ Many of the phylogenetics-specific computations such as Felsenstein's pruning al
 
 \begin{figure}
     \centering
-    \VAR{ figures("coverage", "[width=\\linewidth]") }
+    \includegraphics[width=\linewidth]{manuscript/figures/coverage}
     \caption{Results of simulation study}
     \label{fig:coverage}
 \end{figure}
@@ -134,4 +162,17 @@ Many of the phylogenetics-specific computations such as Felsenstein's pruning al
 
 \section*{Conclusions}
 
-\BLOCK{endblock}
+\section*{Supporting information}
+
+% Include only the SI item label in the paragraph heading. Use the \nameref{label} command to cite SI items in the text.
+\paragraph*{S1 Fig.}
+\label{S1_Fig}
+{\bf Bold the title sentence.} Add descriptive text after the title of the item (optional).
+
+\section*{Acknowledgments}
+Acknowledgments
+
+
+\bibliography{main}
+
+\end{document}
