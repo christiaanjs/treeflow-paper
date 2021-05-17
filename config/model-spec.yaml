@@ -1,0 +1,16 @@
+tree:
+  coalescent_constant:
+    pop_size:
+      lognormal: [10.0, 20.0]
+clock:
+  relaxed_lognormal_conjugate:
+    mean: [0.0001, 0.001]
+    cov: [0.1, 0.5]
+substitution:
+  hky:
+    kappa:
+      fixed
+    frequencies:
+      fixed
+site:
+  none
