@@ -4,12 +4,13 @@ import treeflow_pipeline.templating as tem
 import treeflow_pipeline.model as mod
 import treeflow_pipeline.topology_inference as top
 import treeflow_pipeline.results as res
+import treeflow_pipeline.priors as priors
 import pathlib
 
 configfile: "config/sim-config.yaml"
 
 wd = pathlib.Path(config["working_directory"])
-model = mod.Model(yaml_input(config["model_file"]))
+#model = mod.Model(yaml_input(config["model_file"]))
 beast_config = yaml_input(config["beast_config"])
 
 TAXON_COUNTS = [20]
@@ -23,6 +24,11 @@ seed_dir = "{seed}seed"
 sequence_dir = "{sequence_length}sites"
 aggregate_dir = "aggregate"
 
+model_file = config["model_file"]
+
+rule test:
+    input:
+        model_file
 
 rule well_calibrated_study:
     input:
@@ -40,14 +46,25 @@ rule sampling_times:
     run:
         yaml_output(sim.get_sampling_times(config, int(wildcards.taxon_count)), output[0])
 
+rule model_from_spec:
+    input:
+        model_spec = config["model_spec_file"]
+    output:
+        model = model_file
+    run:
+        yaml_output(
+            priors.get_priors_from_spec(yaml_input(input.model_spec)),
+            output.model
+        )
 
 rule sample_prior:
     input:
-        sampling_times = wd / taxon_dir / "sampling-times.yaml"
+        sampling_times = wd / taxon_dir / "sampling-times.yaml",
+        model = model_file
     output:
         wd / taxon_dir / seed_dir / "prior-sample.yaml"
     run:
-        yaml_output(sim.sample_prior(yaml_input(input.sampling_times), model, int(wildcards.seed)), output[0])
+        yaml_output(sim.sample_prior(yaml_input(input.sampling_times), yaml_input(input.model), int(wildcards.seed)), output[0])
     
 rule tree_sim_xml:
     input:
@@ -191,7 +208,7 @@ rule beast_xml:
             sequence_input(input.fasta),
             text_input(input.tree),
             yaml_input(input.starting_values),
-            model,
+            yaml_input,
             beast_config,
             output[0]
         ), output[0])
@@ -209,7 +226,8 @@ rule beast_results:
     input:
         topology = wd / taxon_dir / seed_dir / "tree-sim.newick",
         trees = wd / taxon_dir / seed_dir / sequence_dir / "beast.trees",
-        trace = wd / taxon_dir / seed_dir / sequence_dir / "beast.log"
+        trace = wd / taxon_dir / seed_dir / sequence_dir / "beast.log",
+        model = model_file
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "beast.pickle"
     run:
@@ -219,7 +237,7 @@ rule beast_results:
                 input.trace,
                 input.topology,
                 beast_config,
-                model
+                yaml_input(input.model)
             ),
             output[0]
         )
@@ -230,13 +248,14 @@ rule variational_fit:
     input:
         fasta = wd / taxon_dir / seed_dir / sequence_dir / "sequences.fasta",
         tree = wd / taxon_dir / seed_dir / "tree-sim.newick",
-        starting_values = wd / taxon_dir / seed_dir / "starting-values.yaml"
+        starting_values = wd / taxon_dir / seed_dir / "starting-values.yaml",
+        model = model_file
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "variational-fit-{clock_approx}.pickle"
     shell:
         """
         treeflow_pipeline -s {wildcards.seed} \
-            {input.fasta} {config[model_file]} {output} \
+            {input.fasta} {input.model} {output} \
             variational-fit \
             -t {input.tree} \
             -s {input.starting_values} \
@@ -248,7 +267,8 @@ rule variational_samples: # TODO: Include this in CLI
     input:
         fit = wd / taxon_dir / seed_dir / sequence_dir / "variational-fit-{clock_approx}.pickle",
         topology = wd / taxon_dir / seed_dir / "tree-sim.newick",
-        starting_values = wd / taxon_dir / seed_dir / "starting-values.yaml"
+        starting_values = wd / taxon_dir / seed_dir / "starting-values.yaml",
+        model = model_file
     output:
         trace = wd / taxon_dir / seed_dir / sequence_dir / "variational-samples-{clock_approx}.log",
         trees = wd / taxon_dir / seed_dir / sequence_dir / "variational-samples-{clock_approx}.trees",
@@ -258,7 +278,7 @@ rule variational_samples: # TODO: Include this in CLI
             res.get_variational_samples(
                 pickle_input(input.fit),
                 input.topology,
-                model,
+                yaml_input(input.model),
                 wildcards.clock_approx,
                 yaml_input(input.starting_values),
                 output.trace,
@@ -273,7 +293,8 @@ rule relaxed_plot:
         topology = wd / taxon_dir / seed_dir / "tree-sim.newick",
         beast_result = wd / taxon_dir / seed_dir / sequence_dir / "beast.pickle",
         variational_fit = wd / taxon_dir / seed_dir / sequence_dir / "variational-fit-{clock_approx}.pickle",
-        notebook = "notebook/plot-posterior-relaxed.ipynb"
+        notebook = "notebook/plot-posterior-relaxed.ipynb",
+        model = model_file
     output:
         notebook = wd / taxon_dir / seed_dir / sequence_dir / "plot-posterior-relaxed-{clock_approx}.ipynb",
         correlation_plot = wd / taxon_dir / seed_dir / sequence_dir / "rate-correlations-{clock_approx}.png",
@@ -284,7 +305,7 @@ rule relaxed_plot:
         papermill {input.notebook} {output.notebook} \
             -p beast_result_file {input.beast_result} \
             -p topology_file {input.topology} \
-            -p model_file {config[model_file]} \
+            -p model_file {input.model} \
             -p variational_fit_file {input.variational_fit} \
             -p clock_approx {wildcards.clock_approx} \
             -p correlation_plot_out_file {output.correlation_plot} \
@@ -326,8 +347,9 @@ rule aggregate_sim_trace:
     run:
         sim.aggregate_sim_traces(input, output[0])
 
+free_params = priors.get_free_params_from_model_spec(yaml_input(config["model_spec_file"]))
 stats = (
-    list(model.free_params().keys()) + 
+    free_params + 
     [f"rate_stats.{stat}" for stat in ["mean", "coefficientOfVariation"]] +
     [f"tree.{stat}" for stat in ["height", "treeLength"]]    
 )
