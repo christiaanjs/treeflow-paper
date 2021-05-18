@@ -22,13 +22,14 @@ def get_priors_from_spec(spec):
     clock_model, clock_spec = next(iter(spec.pop("clock").items()))
     if clock_model == "relaxed_lognormal_conjugate":
         (
-            clock_params,
+            conjugate_prior_params,
             clock_res,
         ) = treeflow.priors.get_params_for_quantiles_lognormal_conjugate(
             clock_spec["cov"], clock_spec["mean"], probs=probs
         )
         assert clock_res["loc"].success
         assert clock_res["precision"].success
+        clock_params = { f"rate_{param}": prior for param, prior in conjugate_prior_params.items() }
     else:
         raise ValueError(f"Clock model not implemented: {clock_model}")
 
@@ -47,7 +48,7 @@ def get_priors_from_spec(spec):
     return {
         "clock": {
             clock_model: {
-                param: {
+                param: {  # TODO: Refactor this with above function
                     dist_name: {
                         key: value.item() for key, value in prior_params.items()
                     }

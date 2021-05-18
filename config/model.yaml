@@ -1,26 +1,21 @@
+clock:
+  relaxed_lognormal_conjugate:
+    rate_loc:
+      normal:
+        loc: -8.117321296021004
+        scale: 0.6145984625809157
+    rate_precision:
+      gamma:
+        concentration: 2.0264094157104164
+        rate: 0.055894814133092476
+site: none
+substitution:
+  hky:
+    frequencies: fixed
+    kappa: fixed
 tree:
   coalescent_constant:
     pop_size:
       lognormal:
-        loc: 0.1694182
-        scale: 1.991141
-clock:
-  relaxed_lognormal:
-    clock_rate:
-      lognormal:
-        loc: -5.9393044
-        scale: 0.6361542
-    rate_sd:
-      lognormal:
-        loc: -1.3318051
-        scale: 0.4974137
-substitution:
-  hky:
-    kappa:
-      fixed
-    frequencies:
-      fixed
-site:
-  none
-  
-
+        loc: 2.649158682654296
+        scale: 0.1768265088821407
