@@ -1,11 +1,9 @@
 clock:
   relaxed_lognormal_conjugate:
-    rate_loc:
-      normal:
+    rate_loc_precision:
+      normalgamma:
         loc: -8.117321296021004
-        scale: 0.6145984625809157
-    rate_precision:
-      gamma:
+        precision_scale: 0.6145984625809157
         concentration: 2.0264094157104164
         rate: 0.055894814133092476
 site: none

@@ -9,6 +9,7 @@ import treeflow.substitution_model
 import treeflow.sequences
 import treeflow.beagle
 import treeflow.libsbn
+import treeflow.priors
 
 
 def parse_model(model):
@@ -18,7 +19,7 @@ def parse_model(model):
         return model, None
 
 
-RELAXED_CLOCK_MODELS = ["relaxed_lognormal"]
+RELAXED_CLOCK_MODELS = ["relaxed_lognormal", "relaxed_lognormal_conjugate"]
 APPROX_MODELS = ["mean_field", "scaled"]  # , "scaled_all"]
 
 
@@ -100,8 +101,13 @@ def get_phylo_prior(sampling_times, model):
             sample_shape=2 * taxon_count - 2,
         )
     elif model.clock_model == "relaxed_lognormal_conjugate":
-        model_dict["rate_loc"] = get_dist(model.clock_params["rate_loc"])
-        model_dict["rate_precision"] = get_dist(model.clock_params["rate_precision"])
+        conjugate_prior_dict = treeflow.priors.get_normal_conjugate_prior_dict(
+            **model.clock_params["loc_precision"]["normalgamma"]
+        )
+        model_dict["rate_precision"] = conjugate_prior_dict["precision"]
+        model_dict["rate_loc"] = lambda rate_precision: conjugate_prior_dict["loc"](
+            rate_precision
+        )
         model_dict["rates"] = lambda rate_loc, rate_precision: tfd.Sample(
             tfd.LogNormal(loc=rate_loc, scale=tf.math.sqrt(1.0 / rate_precision)),
             sample_shape=2 * taxon_count - 2,
@@ -156,10 +162,27 @@ def get_likelihood(newick_file, fasta_file, starting_values, model, vi_config):
         raise ValueError("Unknown substitution model: {0}".format(model.subst_model))
 
 
-def get_approx_dict(clock_approx, tree):
+def get_approx_dict(clock_approx, tree, model):
     if clock_approx == "scaled_all":
         return dict(
             clock_rate=dict(approx="scaled", tree_statistic="length", tree=tree)
+        )
+    elif clock_approx == "lognormal_conjugate":
+        return dict(
+            rate_loc=dict(
+                approx="normal_conjugate",
+                param="loc",
+                prior_params=model.clock_params["rate_loc_precision"],
+                input_callable=lambda f: (
+                    lambda rates, precision: f(tf.math.log(rates), precision)
+                ),
+            ),
+            rate_precision=dict(
+                approx="normal_conjugate",
+                param="precision",
+                prior_params=model.clock_params["rate_loc_precision"],
+                input_callable=lambda f: (lambda rates: f(tf.math.log(rates))),
+            ),
         )
     else:
         return {}
@@ -177,7 +200,7 @@ def construct_approx(newick_file, model, clock_approx):
     init_heights = tree["heights"]
     prior = get_phylo_prior(init_heights[: (init_heights.shape[0] + 1) // 2], model)
     q_dict, _ = treeflow.model.construct_prior_approximation(
-        prior, approxs=get_approx_dict(clock_approx, tree)
+        prior, approxs=get_approx_dict(clock_approx, tree, model)
     )
     q_tree, _ = treeflow.model.construct_tree_approximation(newick_file)
     q_dict["tree"] = q_tree
@@ -188,7 +211,6 @@ def construct_approx(newick_file, model, clock_approx):
             approx_model=get_rate_approx_model(clock_approx),
         )
         q_dict["rates"] = q_rates
-
     return tfp.distributions.JointDistributionNamed(q_dict)
 
 
@@ -201,9 +223,7 @@ def get_variational_fit(
     tree_info = treeflow.libsbn.get_tree_info(instance)
     init_heights = tree_info.tree["heights"]
     prior = get_phylo_prior(init_heights[: (init_heights.shape[0] + 1) // 2], model)
-    log_p = treeflow.model.get_log_posterior(
-        prior, likelihood, relaxed_clock=model.clock_model in RELAXED_CLOCK_MODELS
-    )
+    log_p = treeflow.model.get_log_posterior(prior, likelihood)
 
     q_dict, vars = treeflow.model.construct_prior_approximation(
         prior,
@@ -211,7 +231,7 @@ def get_variational_fit(
             pop_size=cast(starting_values["pop_size"]),
             clock_rate=cast(starting_values["clock_rate"]),
         ),
-        approxs=get_approx_dict(clock_approx, tree_info.tree),
+        approxs=get_approx_dict(clock_approx, tree_info.tree, model),
     )
 
     q_tree, tree_vars = treeflow.model.construct_tree_approximation(
@@ -240,7 +260,7 @@ def reconstruct_approx(newick_file, variational_fit, model, clock_approx):
     init_heights = tree["heights"]
     prior = get_phylo_prior(init_heights[: (init_heights.shape[0] + 1) // 2], model)
     q_dict, _ = treeflow.model.construct_prior_approximation(
-        prior, vars=vars, approxs=get_approx_dict(clock_approx, tree)
+        prior, vars=vars, approxs=get_approx_dict(clock_approx, tree, model)
     )
     q_tree, _ = treeflow.model.construct_tree_approximation(
         newick_file, vars=vars["tree"]
