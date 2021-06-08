@@ -44,9 +44,16 @@ class Model:
         }
 
     def free_params(self):
-        return {
+        res = {
             key: value for key, value in self.all_params().items() if value != "fixed"
         }
+        if (
+            self.clock_model == "relaxed_lognormal_conjugate"
+        ):  # TODO: Do this more tidily
+            clock_prior = res.pop("rate_loc_precision")
+            res["rate_loc"] = clock_prior
+            res["rate_precision"] = clock_prior
+        return res
 
     def relaxed_clock(self):
         return self.clock_model in RELAXED_CLOCK_MODELS

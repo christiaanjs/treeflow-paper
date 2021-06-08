@@ -10,7 +10,6 @@ import pathlib
 configfile: "config/sim-config.yaml"
 
 wd = pathlib.Path(config["working_directory"])
-#model = mod.Model(yaml_input(config["model_file"]))
 beast_config = yaml_input(config["beast_config"])
 
 TAXON_COUNTS = [20]
@@ -26,9 +25,12 @@ aggregate_dir = "aggregate"
 
 model_file = config["model_file"]
 
+def parse_model(file):
+    return mod.Model(yaml_input(file))
+
 rule test:
     input:
-        model_file
+        expand(str(wd / taxon_dir / seed_dir / sequence_dir / "sequences.xml"), sequence_length=SEQUENCE_LENGTHS, taxon_count=TAXON_COUNTS, seed=list(range(1, 4)))
 
 rule well_calibrated_study:
     input:
@@ -64,7 +66,7 @@ rule sample_prior:
     output:
         wd / taxon_dir / seed_dir / "prior-sample.yaml"
     run:
-        yaml_output(sim.sample_prior(yaml_input(input.sampling_times), yaml_input(input.model), int(wildcards.seed)), output[0])
+        yaml_output(sim.sample_prior(yaml_input(input.sampling_times), parse_model(input.model), int(wildcards.seed)), output[0])
     
 rule tree_sim_xml:
     input:
@@ -102,12 +104,14 @@ rule tree_sim_newick:
 rule branch_rate_sim_xml:
     input:
         prior_sample = wd / taxon_dir / seed_dir / "prior-sample.yaml",
-        tree = wd / taxon_dir / seed_dir / "tree-sim.newick"
+        tree = wd / taxon_dir / seed_dir / "tree-sim.newick",
+        model = model_file
     output:
         wd / taxon_dir / seed_dir / "branch-rate-sim.xml"
     run:
         text_output(
             tem.build_branch_rate_sim(
+                parse_model(input.model),
                 text_input(input.tree),
                 yaml_input(input.prior_sample),
                 output[0]
@@ -150,13 +154,15 @@ rule sequence_sim_xml:
         tree = wd / taxon_dir / seed_dir / "tree-sim.newick",
         prior_sample = wd / taxon_dir / seed_dir / "prior-sample.yaml",
         branch_rates = wd / taxon_dir / seed_dir / "branch-rates.yaml",
-        sampling_times = wd / taxon_dir / "sampling-times.yaml"
+        sampling_times = wd / taxon_dir / "sampling-times.yaml",
+        model = model_file
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "sim-seq.xml"
     run:
         text_output(
             tem.build_sequence_sim(
                 config,
+                parse_model(input.model_file),
                 text_input(input.tree),
                 yaml_input(input.prior_sample),
                 yaml_input(input.branch_rates),
@@ -237,7 +243,7 @@ rule beast_results:
                 input.trace,
                 input.topology,
                 beast_config,
-                yaml_input(input.model)
+                parse_model(input.model)
             ),
             output[0]
         )
@@ -278,7 +284,7 @@ rule variational_samples: # TODO: Include this in CLI
             res.get_variational_samples(
                 pickle_input(input.fit),
                 input.topology,
-                yaml_input(input.model),
+                parse_model(input.model),
                 wildcards.clock_approx,
                 yaml_input(input.starting_values),
                 output.trace,
