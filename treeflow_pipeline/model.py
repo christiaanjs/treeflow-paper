@@ -170,11 +170,7 @@ def get_likelihood(newick_file, fasta_file, starting_values, model, vi_config):
 
 
 def get_approx_dict(clock_approx, tree, model):
-    if clock_approx == "scaled_all":
-        return dict(
-            clock_rate=dict(approx="scaled", tree_statistic="length", tree=tree)
-        )
-    elif clock_approx == "lognormal_conjugate":
+    if clock_approx == "scaled_conjugate":
         return dict(
             rate_loc=dict(
                 approx="normal_conjugate",
@@ -196,7 +192,7 @@ def get_approx_dict(clock_approx, tree, model):
 
 
 def get_rate_approx_model(clock_approx):
-    if clock_approx in ["scaled", "scaled_all"]:
+    if clock_approx in ["scaled", "scaled_conjugate"]:
         return "scaled"
     else:
         return "mean_field"
@@ -238,10 +234,7 @@ def get_variational_fit(
     q_dict, vars = treeflow.model.construct_prior_approximation(
         prior,
         prior_sample,
-        init_mode=dict(
-            pop_size=cast(starting_values["pop_size"]),
-            clock_rate=cast(starting_values["clock_rate"]),
-        ),
+        init_mode={key: cast(value) for key, value in starting_values.items()},
         approxs=get_approx_dict(clock_approx, tree_info.tree, model),
     )
 
@@ -255,6 +248,7 @@ def get_variational_fit(
 
         q_rates, rate_vars = treeflow.model.construct_rate_approximation(
             treeflow.model.get_concrete_dist(prior.model["rates"], prior_sample),
+            prior,
             approx_model=get_rate_approx_model(clock_approx),
         )
         q_dict["rates"] = q_rates
@@ -285,6 +279,7 @@ def reconstruct_approx(newick_file, variational_fit, model, clock_approx):
     if model.clock_model in RELAXED_CLOCK_MODELS:
         q_rates, _ = treeflow.model.construct_rate_approximation(
             treeflow.model.get_concrete_dist(prior.model["rates"], prior_sample),
+            prior,
             approx_model=get_rate_approx_model(clock_approx),
             vars=vars["rates"],
         )

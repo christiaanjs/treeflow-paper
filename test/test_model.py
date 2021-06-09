@@ -104,7 +104,45 @@ def conjugate_model_and_keys():
 def test_construct_approx_conjugate(conjugate_model_and_keys, test_newick_file):
     model, param_keys = conjugate_model_and_keys
 
-    dist = mod.construct_approx(str(test_newick_file), model, "lognormal_conjugate")
+    dist = mod.construct_approx(str(test_newick_file), model, "scaled_conjugate")
     dist_sample = dist.sample()
     dist.log_prob(dist_sample)
     assert set(dist_sample.keys()) == set(param_keys + ["tree"])
+
+
+@pytest.fixture()
+def conjugate_model(conjugate_model_and_keys):
+    return conjugate_model_and_keys[0]
+
+
+@pytest.mark.parametrize("approx", ["mean_field", "scaled", "scaled_conjugate"])
+def test_variational_fit_conjugate(
+    conjugate_model, test_newick_file, test_fasta_file, approx
+):
+
+    sampling_times = tf.zeros(3, dtype=treeflow.DEFAULT_FLOAT_DTYPE_TF)
+    prior = mod.get_phylo_prior(sampling_times, conjugate_model)
+    prior_sample = prior.sample()
+    prior_sample.pop("rates")
+    prior_sample.pop("tree")
+    starting_values = {
+        "frequencies": [0.26, 0.24, 0.27, 0.23],
+        "kappa": 2.0,
+        **prior_sample,
+    }
+    vi_config = dict(
+        optimizer="adam",
+        optimizer_kwargs=dict(learning_rate=0.005),
+        num_steps=10,
+        rescaling=False,
+        seed=3,
+    )
+
+    res = mod.get_variational_fit(
+        str(test_newick_file),
+        str(test_fasta_file),
+        starting_values,
+        conjugate_model,
+        vi_config,
+        approx,
+    )

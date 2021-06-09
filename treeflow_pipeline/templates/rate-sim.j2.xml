@@ -12,9 +12,9 @@
             IsLabelledNewick="true"
             adjustTipHeights="false"/>
     <branchRateModel spec="UCRelaxedClockModel" tree="@tree" id="relaxedClock" clock.rate="{{ clock_rate }}">
-        <distr spec="LogNormalDistributionModel" meanInRealSpace="true" id="ratePrior">
-            <parameter name="M" value="1"/>
-            <parameter name="S" value="{{ rate_sd }}"/>
+        <distr spec="LogNormalDistributionModel" meanInRealSpace="false" id="ratePrior">
+            <parameter name="M" value="{{ rate_loc }}"/>
+            <parameter name="S" value="{{ rate_scale }}"/>
         </distr>
         <parameter spec="RealParameter" id="rates" name="rates" value="0"/>
     </branchRateModel>

@@ -14,7 +14,7 @@ beast_config = yaml_input(config["beast_config"])
 
 TAXON_COUNTS = [20]
 SEQUENCE_LENGTHS = [10000]
-APPROXES = ["mean_field", "scaled"]
+APPROXES = ["mean_field", "scaled", "scaled_conjugate"]
 SEEDS = list(range(1, config["replicates"]+1))
 DEMO_SEED = 4
 
@@ -30,7 +30,8 @@ def parse_model(file):
 
 rule test:
     input:
-        expand(str(wd / taxon_dir / seed_dir / sequence_dir / "sequences.xml"), sequence_length=SEQUENCE_LENGTHS, taxon_count=TAXON_COUNTS, seed=list(range(1, 4)))
+        expand(str(wd / taxon_dir / seed_dir / sequence_dir / "plot-posterior-relaxed-{clock_approx}.html"), sequence_length=SEQUENCE_LENGTHS, taxon_count=TAXON_COUNTS, seed=list(range(1, 4)), clock_approx=APPROXES),
+        
 
 rule well_calibrated_study:
     input:
@@ -162,7 +163,7 @@ rule sequence_sim_xml:
         text_output(
             tem.build_sequence_sim(
                 config,
-                parse_model(input.model_file),
+                parse_model(input.model),
                 text_input(input.tree),
                 yaml_input(input.prior_sample),
                 yaml_input(input.branch_rates),
