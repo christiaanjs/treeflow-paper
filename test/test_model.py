@@ -146,3 +146,19 @@ def test_variational_fit_conjugate(
         vi_config,
         approx,
     )
+
+
+def test_reconstruct_approx_scaled_conjugate(
+    conjugate_model_and_keys, test_newick_file, test_data_dir
+):
+    import pickle
+
+    with open(test_data_dir / "variational-fit-scaled_conjugate.pickle", "rb") as f:
+        variational_fit = pickle.load(f)
+    model, param_keys = conjugate_model_and_keys
+    approx = mod.reconstruct_approx(
+        str(test_newick_file), variational_fit, model, "scaled_conjugate"
+    )
+    approx_sample = approx.sample(10, seed=4)
+    print(approx_sample)
+    assert set(approx_sample.keys()) == set(param_keys + ["tree"])

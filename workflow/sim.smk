@@ -30,7 +30,7 @@ def parse_model(file):
 
 rule test:
     input:
-        expand(str(wd / taxon_dir / seed_dir / sequence_dir / "plot-posterior-relaxed-{clock_approx}.html"), sequence_length=SEQUENCE_LENGTHS, taxon_count=TAXON_COUNTS, seed=list(range(1, 4)), clock_approx=APPROXES),
+        expand(str(wd / aggregate_dir / taxon_dir / sequence_dir / "variational-samples-{approx}" / "coverage.html"), sequence_length=SEQUENCE_LENGTHS, taxon_count=TAXON_COUNTS, approx=APPROXES),
         
 
 rule well_calibrated_study:
@@ -290,7 +290,7 @@ rule variational_samples: # TODO: Include this in CLI
                 yaml_input(input.starting_values),
                 output.trace,
                 output.trees,
-                wildcards.seed
+                int(wildcards.seed)
             ),
             output.samples
         )
@@ -376,6 +376,7 @@ rule coverage:
             -log {input.sim_trace} \
             -logAnalyser {input.analyser_trace} \
             -out {params.output_dir} \
+            -guessFileOrder false \
             -skip 0
         """
 

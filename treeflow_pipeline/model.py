@@ -20,7 +20,7 @@ def parse_model(model):
 
 
 RELAXED_CLOCK_MODELS = ["relaxed_lognormal", "relaxed_lognormal_conjugate"]
-APPROX_MODELS = ["mean_field", "scaled"]  # , "scaled_all"]
+APPROX_MODELS = ["mean_field", "scaled", "scaled_conjugate"]  # , "scaled_all"]
 
 
 class Model:
@@ -109,7 +109,12 @@ def get_phylo_prior(sampling_times, model):
         )
     elif model.clock_model == "relaxed_lognormal_conjugate":
         conjugate_prior_dict = treeflow.priors.get_normal_conjugate_prior_dict(
-            **model.clock_params["rate_loc_precision"]["normalgamma"]
+            **{
+                key: cast(value)
+                for key, value in model.clock_params["rate_loc_precision"][
+                    "normalgamma"
+                ].items()
+            }
         )
         model_dict["rate_precision"] = conjugate_prior_dict["precision"]
         model_dict["rate_loc"] = lambda rate_precision: conjugate_prior_dict["loc"](
