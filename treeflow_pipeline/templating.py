@@ -108,7 +108,19 @@ def get_state_tag(name, dist_dict, init_value):
 
 
 dist_functions = dict(
-    lognormal=lambda loc, scale: ("LogNormal", dict(M=str(loc), S=str(scale)))
+    lognormal=lambda loc, scale: ET.Element(
+        "LogNormal", attrib=dict(M=str(loc), S=str(scale)), name="distr"
+    ),
+    gamma=lambda concentration, rate: ET.Element(
+        "LogNormalWithPrecision",
+        attrib=dict(alpha=str(concentration), beta=str(rate), mode="ShapeRate"),
+        name="distr",
+    ),
+    normal_gamma_normal=lambda loc, precision, precision_scale: ET.Element(
+        "NormalGammaNormal",
+        attrib=dict(mean=str(loc), tau=str(precision), tauScale=str(precision_scale)),
+        name="distr",
+    ),
 )
 
 
@@ -126,6 +138,25 @@ def get_prior_tag(name, dist_dict):
         raise ValueError(f"Unknown distribution {dist_name} for {name}")
     dist_tag = ET.Element(tag_name, attrib=params_attrib, name="distr")
     return x2s(wrap_in_prior(name, dist_tag))
+
+
+def get_normalgamma_prior_tags(loc_name, precision_name, dist_dict):
+    params = dist_dict["normalgamma"]
+    precision_params = dict(concentration=params["concentration"], rate=params["rate"])
+    precision_tag = get_prior_tag(
+        precision_name,
+        dict(gamma=precision_params),
+    )
+    loc_params = dict(
+        loc=params["loc"],
+        precision=f"@{precision_name}",
+        precision_scale=params["precision_scale"],
+    )
+    loc_tag = get_prior_tag(
+        loc_name,
+        dict(normal_gamma_normal=loc_params),
+    )
+    return [precision_tag, loc_tag]
 
 
 def resolve_param_value(name, model, init_value):
@@ -296,7 +327,7 @@ def build_beast_analysis(
     sequence_dict,
     newick_string,
     init_values,
-    model,
+    model: treeflow_pipeline.model.Model,
     beast_config,
     out_file,
     estimate_topology=False,
@@ -312,9 +343,17 @@ def build_beast_analysis(
         get_state_tag(name, dist_dict, init_values[name])
         for name, dist_dict in model.free_params().items()
     ]
-    prior_tags = [
-        get_prior_tag(name, dist_dict)
-        for name, dist_dict in model.free_params().items()
+    free_params = model.free_params()
+    prior_tags = []
+    if model.clock_model == "relaxed_lognormal_conjugate":
+        rate_hyperprior = model.free_params().pop("rate_loc")
+        model.free_params().pop("rate_precision")
+        prior_tags += get_normalgamma_prior_tags(
+            "rate_loc", "rate_precision", rate_hyperprior
+        )
+
+    prior_tags += [
+        get_prior_tag(name, dist_dict) for name, dist_dict in free_params.items()
     ]
     tree_prior_tag = get_tree_prior_tag(
         model.tree_model, model.tree_params, init_values

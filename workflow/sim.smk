@@ -14,7 +14,7 @@ beast_config = yaml_input(config["beast_config"])
 
 TAXON_COUNTS = [20]
 SEQUENCE_LENGTHS = [10000]
-APPROXES = ["mean_field", "scaled", "scaled_conjugate"]
+APPROXES = ["scaled_conjugate"]#["mean_field", "scaled", "scaled_conjugate"]
 SEEDS = list(range(1, config["replicates"]+1))
 DEMO_SEED = 4
 
@@ -30,7 +30,7 @@ def parse_model(file):
 
 rule test:
     input:
-        expand(str(wd / aggregate_dir / taxon_dir / sequence_dir / "variational-samples-{approx}" / "coverage.html"), sequence_length=SEQUENCE_LENGTHS, taxon_count=TAXON_COUNTS, approx=APPROXES),
+        expand(str(wd / taxon_dir / seed_dir / sequence_dir / "beast.log"), sequence_length=SEQUENCE_LENGTHS, taxon_count=TAXON_COUNTS, seed=[1]),
         
 
 rule well_calibrated_study:
@@ -207,7 +207,8 @@ rule beast_xml:
         fasta = wd / taxon_dir / seed_dir / sequence_dir / "sequences.fasta",
         tree = wd / taxon_dir / seed_dir / "tree-sim.newick",
         starting_values = wd / taxon_dir / seed_dir / "starting-values.yaml",
-        beast_config = config["beast_config"]
+        beast_config = config["beast_config"],
+        model = model_file
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "beast.xml"
     run:
@@ -215,7 +216,7 @@ rule beast_xml:
             sequence_input(input.fasta),
             text_input(input.tree),
             yaml_input(input.starting_values),
-            yaml_input,
+            parse_model(input.model),
             beast_config,
             output[0]
         ), output[0])

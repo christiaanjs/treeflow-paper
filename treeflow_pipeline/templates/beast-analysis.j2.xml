@@ -7,7 +7,9 @@
     </data>
 <map name="Exponential" >beast.math.distributions.Exponential</map>
 <map name="LogNormal" >beast.math.distributions.LogNormalDistributionModel</map>
+<map name="LogNormalWithPrecision" >beast.math.distributions.LogNormalWithPrecision</map>
 <map name="Normal" >beast.math.distributions.Normal</map>
+<map name="NormalGammaNormal" >beast.math.distributions.NormalGammaNormal</map>
 <map name="Beta" >beast.math.distributions.Beta</map>
 <map name="Gamma" >beast.math.distributions.Gamma</map>
 <map name="LaplaceDistribution" >beast.math.distributions.LaplaceDistribution</map>
