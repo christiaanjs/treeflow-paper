@@ -30,8 +30,11 @@ def parse_model(file):
 
 rule test:
     input:
-        expand(str(wd / taxon_dir / seed_dir / sequence_dir / "beast.log"), sequence_length=SEQUENCE_LENGTHS, taxon_count=TAXON_COUNTS, seed=[1]),
+        expand(str(wd / aggregate_dir / taxon_dir / sequence_dir / "beast" / "coverage.html"), sequence_length=SEQUENCE_LENGTHS, taxon_count=TAXON_COUNTS),
+        expand(str(wd / taxon_dir / seed_dir / sequence_dir / "beast.pickle"), sequence_length=SEQUENCE_LENGTHS, taxon_count=TAXON_COUNTS, seed=SEEDS)
         
+rule plot:
+    input:
 
 rule well_calibrated_study:
     input:

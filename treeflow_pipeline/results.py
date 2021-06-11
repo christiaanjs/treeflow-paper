@@ -138,7 +138,10 @@ def process_beast_results(tree_file, trace_file, topology_file, beast_config, mo
 
     if relaxed:
         absolute_rates = trees_parsed["metadata"]["rate"]
-        rates = absolute_rates / trace.clock_rate[:, np.newaxis]
+        if "clock_rate" in trace.columns:
+            rates = absolute_rates / trace.clock_rate[:, np.newaxis]
+        else:
+            rates = absolute_rates
         result["absolute_rates"] = remove_burn_in(absolute_rates, burn_in)
         result["rates"] = remove_burn_in(rates, burn_in)
 
