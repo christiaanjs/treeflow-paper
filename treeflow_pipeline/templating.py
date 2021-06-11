@@ -91,10 +91,13 @@ def x2s(x):
     return ET.tostring(x, encoding="unicode")
 
 
+dist_name_mapping = dict(normal_gamma_normal="normal")
+
+
 def get_state_tag(name, dist_dict, init_value):
     dist_name, params = next(iter(dist_dict.items()))
     support = treeflow.model.distribution_class_supports[
-        treeflow_pipeline.model.dists[dist_name]
+        treeflow_pipeline.model.dists[dist_name_mapping.get(dist_name, dist_name)]
     ]
     element = ET.Element("parameter", attrib=dict(name="stateNode", id=name))
     element.text = str(init_value)
@@ -108,18 +111,14 @@ def get_state_tag(name, dist_dict, init_value):
 
 
 dist_functions = dict(
-    lognormal=lambda loc, scale: ET.Element(
-        "LogNormal", attrib=dict(M=str(loc), S=str(scale)), name="distr"
+    lognormal=lambda loc, scale: ("LogNormal", dict(M=str(loc), S=str(scale))),
+    gamma=lambda concentration, rate: (
+        "Gamma",
+        dict(alpha=str(concentration), beta=str(rate), mode="ShapeRate"),
     ),
-    gamma=lambda concentration, rate: ET.Element(
-        "LogNormalWithPrecision",
-        attrib=dict(alpha=str(concentration), beta=str(rate), mode="ShapeRate"),
-        name="distr",
-    ),
-    normal_gamma_normal=lambda loc, precision, precision_scale: ET.Element(
+    normal_gamma_normal=lambda loc, precision, precision_scale: (
         "NormalGammaNormal",
-        attrib=dict(mean=str(loc), tau=str(precision), tauScale=str(precision_scale)),
-        name="distr",
+        dict(mean=str(loc), tau=str(precision), tauScale=str(precision_scale)),
     ),
 )
 
@@ -140,23 +139,19 @@ def get_prior_tag(name, dist_dict):
     return x2s(wrap_in_prior(name, dist_tag))
 
 
-def get_normalgamma_prior_tags(loc_name, precision_name, dist_dict):
+def get_normalgamma_params(loc_name, precision_name, dist_dict):
     params = dist_dict["normalgamma"]
     precision_params = dict(concentration=params["concentration"], rate=params["rate"])
-    precision_tag = get_prior_tag(
-        precision_name,
-        dict(gamma=precision_params),
-    )
+
     loc_params = dict(
         loc=params["loc"],
         precision=f"@{precision_name}",
         precision_scale=params["precision_scale"],
     )
-    loc_tag = get_prior_tag(
-        loc_name,
-        dict(normal_gamma_normal=loc_params),
-    )
-    return [precision_tag, loc_tag]
+    return {
+        precision_name: dict(gamma=precision_params),
+        loc_name: dict(normal_gamma_normal=loc_params),
+    }
 
 
 def resolve_param_value(name, model, init_value):
@@ -184,6 +179,16 @@ def get_rate_prior_tag(clock_model, params):
             meanInRealSpace="true",
             name="distr",
             id="rate_prior",
+        )
+        return x2s(wrap_in_prior("rates", dist_tag))
+    elif clock_model == "relaxed_lognormal_conjugate":
+        dist_tag = ET.Element(
+            "LogNormalWithPrecision",
+            meanInRealSpace="false",
+            name="distr",
+            id="rate_prior",
+            M="@rate_loc",
+            tau="@rate_precision",
         )
         return x2s(wrap_in_prior("rates", dist_tag))
     else:
@@ -256,11 +261,13 @@ def get_branch_rate_model_tag(clock_model, params, init_values):
         "id": "branch_rate_model",
         "clock.rate": resolve_param_value(
             "clock_rate", params["clock_rate"], init_values["clock_rate"]
-        ),
+        )
+        if "clock_rate" in params
+        else str(1.0),
     }
     if clock_model == "strict":
         attrib["spec"] = "StrictClockModel"
-    elif clock_model == "relaxed_lognormal":
+    elif clock_model in ["relaxed_lognormal", "relaxed_lognormal_conjugate"]:
         attrib.update(
             dict(
                 spec="UCRelaxedClockModel",
@@ -274,10 +281,19 @@ def get_branch_rate_model_tag(clock_model, params, init_values):
     return x2s(ET.Element("branchRateModel", attrib=attrib))
 
 
+scale_operator_func = lambda scale_factor: dict(
+    spec="ScaleOperator", scaleFactor=str(scale_factor)
+)
+random_walk_operator_func = lambda window_size: dict(
+    spec="RealRandomWalkOperator", windowSize=str(window_size)
+)
+
 op_functions = dict(
-    nonnegative=lambda scale_factor=0.75: dict(
-        spec="ScaleOperator", scaleFactor=str(scale_factor)
-    )
+    nonnegative=lambda scale_factor=0.75: [scale_operator_func(scale_factor)],
+    real=lambda scale_factor=0.75, window_size=1.0: [
+        scale_operator_func(scale_factor),
+        random_walk_operator_func(window_size),
+    ],
 )
 
 
@@ -286,36 +302,40 @@ def get_operator_tag(
 ):  # TODO: Deal with special
     dist_name, params = next(iter(dist_dict.items()))
     support = treeflow.model.distribution_class_supports[
-        treeflow_pipeline.model.dists[dist_name]
+        treeflow_pipeline.model.dists[dist_name_mapping.get(dist_name, dist_name)]
     ]
     try:
-        attrib = op_functions[support](**op_kwargs)
+        attribs = op_functions[support](**op_kwargs)
     except KeyError:
         raise ValueError(
             f"Unknown support {support} for distribution {dist_name} for {name}"
         )
-    return x2s(ET.Element("operator", attrib, parameter=f"@{name}", weight=str(weight)))
+    return [
+        x2s(ET.Element("operator", attrib, parameter=f"@{name}", weight=str(weight)))
+        for attrib in attribs
+    ]
 
 
 def get_clock_operator_tags(clock_model, params):
-    clock_rate_dist = next(iter(params["clock_rate"]))
     ops = []
+    if "clock_rate" in params:
+        clock_rate_dist = next(iter(params["clock_rate"]))
 
-    if clock_rate_dist != "fixed":
-        ops.append(
-            x2s(
-                ET.Element(
-                    "operator",
-                    spec="UpDownOperator",
-                    scaleFactor=str(0.75),
-                    weight=str(3.0),
-                    up="@clock_rate",
-                    down="@tree",
+        if clock_rate_dist != "fixed":
+            ops.append(
+                x2s(
+                    ET.Element(
+                        "operator",
+                        spec="UpDownOperator",
+                        scaleFactor=str(0.75),
+                        weight=str(3.0),
+                        up="@clock_rate",
+                        down="@tree",
+                    )
                 )
             )
-        )
 
-    # TODO: Relaxed clock rate operators
+        # TODO: Relaxed clock rate operators
     return ops
 
 
@@ -337,22 +357,24 @@ def build_beast_analysis(
     date_dict = treeflow_pipeline.topology_inference.parse_dates(sequence_dict)
     date_trait_string = build_date_string(date_dict)
 
+    free_params = model.free_params()
+
+    if model.clock_model == "relaxed_lognormal_conjugate":
+        rate_hyperprior = free_params.pop("rate_loc")
+        free_params.pop("rate_precision")
+        free_params = {
+            **free_params,
+            **get_normalgamma_params("rate_loc", "rate_precision", rate_hyperprior),
+        }
+
     # TODO: Handle case when init_values missing
     # TODO: Starting value for rates?
     state_tags = [
         get_state_tag(name, dist_dict, init_values[name])
-        for name, dist_dict in model.free_params().items()
+        for name, dist_dict in free_params.items()
     ]
-    free_params = model.free_params()
-    prior_tags = []
-    if model.clock_model == "relaxed_lognormal_conjugate":
-        rate_hyperprior = model.free_params().pop("rate_loc")
-        model.free_params().pop("rate_precision")
-        prior_tags += get_normalgamma_prior_tags(
-            "rate_loc", "rate_precision", rate_hyperprior
-        )
 
-    prior_tags += [
+    prior_tags = [
         get_prior_tag(name, dist_dict) for name, dist_dict in free_params.items()
     ]
     tree_prior_tag = get_tree_prior_tag(
@@ -370,10 +392,11 @@ def build_beast_analysis(
     )
 
     operator_tags = [
-        get_operator_tag(name, dist_dict)
-        for name, dist_dict in model.free_params().items()
+        operator_tag
+        for name, dist_dict in free_params.items()
+        for operator_tag in get_operator_tag(name, dist_dict)
     ] + get_clock_operator_tags(model.clock_model, model.clock_params)
-    log_tags = [get_log_tag(name) for name in model.free_params()]
+    log_tags = [get_log_tag(name) for name in free_params]
 
     return template.render(
         estimate_topology=estimate_topology,
