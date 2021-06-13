@@ -2,10 +2,10 @@ clock:
   relaxed_lognormal_conjugate:
     rate_loc_precision:
       normalgamma:
-        loc: -8.117321296021004
-        precision_scale: 0.6145984625809157
-        concentration: 2.0264094157104164
-        rate: 0.055894814133092476
+        loc: -5.814736203026958
+        precision_scale: 0.4
+        concentration: 3.3164221870890347
+        rate: 0.3028646047813991
 site: none
 substitution:
   hky:
@@ -15,5 +15,5 @@ tree:
   coalescent_constant:
     pop_size:
       lognormal:
-        loc: 2.649158682654296
-        scale: 0.1768265088821407
+        loc: 0.06367702938213937
+        scale: 0.13341435492327347

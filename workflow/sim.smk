@@ -12,7 +12,7 @@ configfile: "config/sim-config.yaml"
 wd = pathlib.Path(config["working_directory"])
 beast_config = yaml_input(config["beast_config"])
 
-TAXON_COUNTS = [20]
+TAXON_COUNTS = [100]
 SEQUENCE_LENGTHS = [10000]
 APPROXES = ["scaled_conjugate"]#["mean_field", "scaled", "scaled_conjugate"]
 SEEDS = list(range(1, config["replicates"]+1))
@@ -28,7 +28,6 @@ model_file = config["model_file"]
 def parse_model(file):
     return mod.Model(yaml_input(file))
 
-
 rule well_calibrated_study:
     input:
         expand(str(wd / aggregate_dir / taxon_dir / sequence_dir / "coverage.csv"), sequence_length=SEQUENCE_LENGTHS, taxon_count=TAXON_COUNTS),
@@ -37,7 +36,7 @@ rule well_calibrated_study:
 
 rule demo:
     input:
-        expand(str(wd / "10taxa" / seed_dir / sequence_dir / "plot-posterior-relaxed-{clock_approx}.html"), sequence_length=SEQUENCE_LENGTHS, clock_approx=APPROXES, seed=[DEMO_SEED])
+        expand(str(wd / taxon_dir / seed_dir / sequence_dir / "plot-posterior-relaxed-{clock_approx}.html"), sequence_length=SEQUENCE_LENGTHS, clock_approx=APPROXES, seed=[DEMO_SEED], taxon_count=TAXON_COUNTS)
 
 rule sampling_times:
     output:

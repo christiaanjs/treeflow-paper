@@ -359,5 +359,5 @@ def build_method_coverage_plot_table(method, coverage_stat_dict, output_file):
 
 
 def aggregate_coverage_plot_tables(coverage_tables, output_file):
-    df = pd.concat([pd.rad_csv(file) for file in coverage_tables])
+    df = pd.concat([pd.read_csv(file) for file in coverage_tables])
     df.to_csv(output_file, index=False)

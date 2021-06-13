@@ -1,6 +1,6 @@
 variational-fit:
   optimizer: adam
   optimizer_kwargs:
-    learning_rate: 0.005
-  num_steps: 20000
+    learning_rate: 0.001
+  num_steps: 50000
   rescaling: false

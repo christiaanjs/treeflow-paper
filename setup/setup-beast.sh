@@ -25,7 +25,9 @@ cd ..
 git clone https://github.com/tgvaughan/MASTER.git
 cd MASTER
 ant build-package
+cd ..
 git clone https://github.com/christiaanjs/beast-validation.git
+cd beast-validation
 ant addon
 # Add beast-validation package
 EXPERIMENTER_DIR=~/.beast/2.6/Experimenter
@@ -35,3 +37,15 @@ cp build/dist/$EXPERIMENTER_ZIP $EXPERIMENTER_DIR
 cd $EXPERIMENTER_DIR
 unzip $EXPERIMENTER_ZIP
 rm $EXPERIMENTER_ZIP
+
+cd $TREEFLOW_LIB
+git clone https://github.com/christiaanjs/normal-conjugate.git
+cd normal-conjugate
+ant addon
+CONJUGATE_DIR=~/.beast/2.6/NormalConjugate
+CONJUGATE_ZIP=NormalConjugate.addon.v0.0.1.zip
+mkdir -p $CONJUGATE_DIR
+cp build/dist/$CONJUGATE_ZIP $CONJUGATE_DIR
+cd $CONJUGATE_DIR
+unzip $CONJUGATE_ZIP
+rm $CONJUGATE_ZIP
