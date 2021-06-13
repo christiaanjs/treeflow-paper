@@ -1,9 +1,9 @@
 __default__:
-  time: 1:00:00
+  time: 01:00:00
   mem: 16g
 
 beast_run:
-  time: 1:00:00
+  time: 01:00:00
   mem: 16g
 
 beast_results:
@@ -11,7 +11,7 @@ beast_results:
   mem: 2g
 
 variational_fit:
-  time: 1:00:00
+  time: 01:00:00
   mem: 16g
 
 variational_samples:
