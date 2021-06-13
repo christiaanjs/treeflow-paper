@@ -11,8 +11,8 @@ beast_results:
   mem: 2g
 
 variational_fit:
-  time: 00:30:00
-  mem: 4g
+  time: 1:00:00
+  mem: 16g
 
 variational_samples:
   time: 00:10:00

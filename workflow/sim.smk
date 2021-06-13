@@ -12,9 +12,15 @@ configfile: "config/sim-config.yaml"
 wd = pathlib.Path(config["working_directory"])
 beast_config = yaml_input(config["beast_config"])
 
-TAXON_COUNTS = [100]
+TAXON_COUNTS = [50]
 SEQUENCE_LENGTHS = [10000]
-APPROXES = ["scaled_conjugate"]#["mean_field", "scaled", "scaled_conjugate"]
+APPROXES = [
+        "mean_field",
+        "scaled",
+        "scaled_shrinkage", "scaled_conjugate",
+        "scaled_shrinkage_conjugate",
+        "scaled_shrinkage_local_conjugate",
+    ]
 SEEDS = list(range(1, config["replicates"]+1))
 DEMO_SEED = 4
 

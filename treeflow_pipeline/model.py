@@ -175,7 +175,11 @@ def get_likelihood(newick_file, fasta_file, starting_values, model, vi_config):
 
 
 def get_approx_dict(clock_approx, tree, model):
-    if clock_approx == "scaled_conjugate":
+    if clock_approx in [
+        "scaled_conjugate",
+        "scaled_shrinkage_conjugate",
+        "scaled_shrinkage_local_conjugate",
+    ]:
         return dict(
             rate_loc=dict(
                 approx="normal_conjugate",
@@ -196,9 +200,13 @@ def get_approx_dict(clock_approx, tree, model):
         return {}
 
 
-def get_rate_approx_model(clock_approx):
+def get_rate_approx_model(clock_approx):  # "mean_field",
     if clock_approx in ["scaled", "scaled_conjugate"]:
         return "scaled"
+    elif clock_approx in ["scaled_shrinkage", "scaled_shrinkage_conjugate"]:
+        return "scaled_shrinkage"
+    elif clock_approx in ["scaled_shrinkage_local", "scaled_shrinkage_local_conjugate"]:
+        return "scaled_shrinkage_local"
     else:
         return "mean_field"
 

@@ -115,7 +115,17 @@ def conjugate_model(conjugate_model_and_keys):
     return conjugate_model_and_keys[0]
 
 
-@pytest.mark.parametrize("approx", ["mean_field", "scaled", "scaled_conjugate"])
+@pytest.mark.parametrize(
+    "approx",
+    [
+        "mean_field",
+        "scaled",
+        "scaled_shrinkage",
+        "scaled_conjugate",
+        "scaled_shrinkage_conjugate",
+        "scaled_shrinkage_local_conjugate",
+    ],
+)
 def test_variational_fit_conjugate(
     conjugate_model, test_newick_file, test_fasta_file, approx
 ):
