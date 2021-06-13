@@ -28,13 +28,6 @@ model_file = config["model_file"]
 def parse_model(file):
     return mod.Model(yaml_input(file))
 
-rule test:
-    input:
-        expand(str(wd / aggregate_dir / taxon_dir / sequence_dir / "beast" / "coverage.html"), sequence_length=SEQUENCE_LENGTHS, taxon_count=TAXON_COUNTS),
-        expand(str(wd / taxon_dir / seed_dir / sequence_dir / "beast.pickle"), sequence_length=SEQUENCE_LENGTHS, taxon_count=TAXON_COUNTS, seed=SEEDS)
-        
-rule plot:
-    input:
 
 rule well_calibrated_study:
     input:
@@ -69,6 +62,7 @@ rule sample_prior:
         model = model_file
     output:
         wd / taxon_dir / seed_dir / "prior-sample.yaml"
+    group: "sim"
     run:
         yaml_output(sim.sample_prior(yaml_input(input.sampling_times), parse_model(input.model), int(wildcards.seed)), output[0])
     
@@ -78,6 +72,7 @@ rule tree_sim_xml:
         prior_sample = wd / taxon_dir / seed_dir / "prior-sample.yaml"
     output:
         wd / taxon_dir / seed_dir / "tree-sim.xml"
+    group: "sim"
     run:
         text_output(
             tem.build_tree_sim(
@@ -94,6 +89,7 @@ rule tree_sim:
         wd / taxon_dir / seed_dir / "tree-sim.xml"
     output:
         wd / taxon_dir / seed_dir / "tree-sim.trees"
+    group: "sim"
     shell:
         "beast -seed {wildcards.seed} {input}"
 
@@ -102,6 +98,7 @@ rule tree_sim_newick:
         "{dir}/tree-sim.trees"
     output:
         "{dir}/tree-sim.newick"
+    group: "sim"
     run:
         top.convert_tree(input[0], 'nexus', output[0], 'newick')
 
@@ -112,6 +109,7 @@ rule branch_rate_sim_xml:
         model = model_file
     output:
         wd / taxon_dir / seed_dir / "branch-rate-sim.xml"
+    group: "sim"
     run:
         text_output(
             tem.build_branch_rate_sim(
@@ -129,6 +127,7 @@ rule branch_rate_sim:
     output:
         wd / taxon_dir / seed_dir / "branch-rate-sim.log",
         wd / taxon_dir / seed_dir / "branch-rate-sim.trees"
+    group: "sim"
     shell:
         "beast -seed {wildcards.seed} {input}"
 
@@ -137,6 +136,7 @@ rule convert_branch_rates:
         wd / taxon_dir / seed_dir / "branch-rate-sim.log"
     output:
         wd / taxon_dir / seed_dir / "branch-rates.yaml"
+    group: "sim"
     run:
         yaml_output(
             sim.parse_branch_rates(beast_log_input(input[0])),
@@ -150,6 +150,7 @@ rule sim_trace:
         rates = wd / taxon_dir / seed_dir / "branch-rate-sim.log"
     output:
         wd / taxon_dir / seed_dir / "sim.log"
+    group: "sim"
     run:
         sim.build_sim_trace(input.tree, yaml_input(input.prior_sample), output[0], rate_trace=input.rates)
 
@@ -160,6 +161,7 @@ rule sequence_sim_xml:
         branch_rates = wd / taxon_dir / seed_dir / "branch-rates.yaml",
         sampling_times = wd / taxon_dir / "sampling-times.yaml",
         model = model_file
+    group: "sim"
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "sim-seq.xml"
     run:
@@ -182,6 +184,7 @@ rule sequence_sim:
         wd / taxon_dir / seed_dir / sequence_dir / "sim-seq.xml"
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "sequences.xml"
+    group: "sim"
     shell:
         "beast -seed {wildcards.seed} {input}"
 
@@ -190,6 +193,7 @@ rule fasta_sim:
         "{wd}/sequences.xml"
     output:
         "{wd}/sequences.fasta"
+    group: "sim"
     run:
         sim.convert_simulated_sequences(input[0], output[0], 'fasta')
 
@@ -198,6 +202,7 @@ rule sim_starting_values:
         prior_sample = wd / taxon_dir / seed_dir / "prior-sample.yaml"
     output:
         wd / taxon_dir / seed_dir / "starting-values.yaml"
+    group: "sim"
     run:
         yaml_output(dict(
             frequencies=config["frequencies"],
@@ -212,6 +217,7 @@ rule beast_xml:
         starting_values = wd / taxon_dir / seed_dir / "starting-values.yaml",
         beast_config = config["beast_config"],
         model = model_file
+    group: "beast"
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "beast.xml"
     run:
@@ -230,6 +236,7 @@ rule beast_run:
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "beast.log",
         wd / taxon_dir / seed_dir / sequence_dir / "beast.trees"
+    group: "beast"
     shell:
         "beast -seed {wildcards.seed} {input}"
 
@@ -239,6 +246,7 @@ rule beast_results:
         trees = wd / taxon_dir / seed_dir / sequence_dir / "beast.trees",
         trace = wd / taxon_dir / seed_dir / sequence_dir / "beast.log",
         model = model_file
+    group: "beast"
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "beast.pickle"
     run:
@@ -261,6 +269,7 @@ rule variational_fit:
         tree = wd / taxon_dir / seed_dir / "tree-sim.newick",
         starting_values = wd / taxon_dir / seed_dir / "starting-values.yaml",
         model = model_file
+    group: "variational"
     output:
         wd / taxon_dir / seed_dir / sequence_dir / "variational-fit-{clock_approx}.pickle"
     shell:
@@ -284,6 +293,7 @@ rule variational_samples: # TODO: Include this in CLI
         trace = wd / taxon_dir / seed_dir / sequence_dir / "variational-samples-{clock_approx}.log",
         trees = wd / taxon_dir / seed_dir / sequence_dir / "variational-samples-{clock_approx}.trees",
         samples = wd / taxon_dir / seed_dir / sequence_dir / "variational-samples-{clock_approx}.pickle"
+    group: "variational"
     run:
         pickle_output(
             res.get_variational_samples(

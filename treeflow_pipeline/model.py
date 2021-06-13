@@ -135,7 +135,7 @@ def get_phylo_prior(sampling_times, model):
     return tfd.JointDistributionNamed(model_dict)
 
 
-optimizers = dict(adam=tf.optimizers.Adam)
+optimizers = dict(adam=tf.optimizers.Adam, sgd=tf.optimizers.SGD)
 
 
 def fit_surrogate_posterior(log_p, q, vi_config):

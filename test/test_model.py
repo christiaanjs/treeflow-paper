@@ -130,10 +130,11 @@ def test_variational_fit_conjugate(
         "kappa": 2.0,
         **prior_sample,
     }
+    n_iter = 10
     vi_config = dict(
         optimizer="adam",
         optimizer_kwargs=dict(learning_rate=0.005),
-        num_steps=10,
+        num_steps=n_iter,
         rescaling=False,
         seed=3,
     )
@@ -146,6 +147,7 @@ def test_variational_fit_conjugate(
         vi_config,
         approx,
     )
+    assert res["loss"].shape == (n_iter,)
 
 
 def test_reconstruct_approx_scaled_conjugate(

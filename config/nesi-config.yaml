@@ -1,6 +1,6 @@
 __default__:
-  time: 00:05:00
-  mem: 1g
+  time: 00:30:00
+  mem: 4g
 
 beast_run:
   time: 00:30:00
