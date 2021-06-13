@@ -1,8 +1,10 @@
-sampling_window: 20
+sampling_window: 2
 kappa: 2.0
 frequencies: [0.24, 0.27, 0.26, 0.23]
 model_file: config/model.yaml
+model_spec_file: config/model-spec.yaml
 working_directory: /nesi/project/uoa02746/out/sim
 vi_config: config/vi-config.yaml
 beast_config: config/beast-config.yaml
 replicates: 100
+taxon_count: 20

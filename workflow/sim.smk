@@ -12,7 +12,7 @@ configfile: "config/sim-config.yaml"
 wd = pathlib.Path(config["working_directory"])
 beast_config = yaml_input(config["beast_config"])
 
-TAXON_COUNTS = [50]
+TAXON_COUNTS = [config["taxon_count"]]
 SEQUENCE_LENGTHS = [10000]
 APPROXES = [
         "mean_field",

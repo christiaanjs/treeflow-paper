@@ -3,6 +3,7 @@ import treeflow
 import tensorflow as tf
 import treeflow_pipeline.model as mod
 import tensorflow_probability as tfp
+import numpy as np
 
 
 def c(x):
@@ -158,6 +159,7 @@ def test_variational_fit_conjugate(
         approx,
     )
     assert res["loss"].shape == (n_iter,)
+    assert np.all(np.isfinite(res["loss"]))
 
 
 def test_reconstruct_approx_scaled_conjugate(

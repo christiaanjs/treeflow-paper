@@ -1,5 +1,4 @@
 #!/bin/bash
-set -eo pipefail
 
 # Let us use conda inside this shell
 source $(which conda | xargs dirname)/../etc/profile.d/conda.sh
