@@ -20,7 +20,14 @@ def parse_model(model):
 
 
 RELAXED_CLOCK_MODELS = ["relaxed_lognormal", "relaxed_lognormal_conjugate"]
-APPROX_MODELS = ["mean_field", "scaled", "scaled_conjugate"]  # , "scaled_all"]
+APPROX_MODELS = [
+    "mean_field",
+    "scaled",
+    "scaled_shrinkage",
+    "scaled_conjugate",
+    "scaled_shrinkage_conjugate",
+    "scaled_shrinkage_local_conjugate",
+]
 
 
 class Model:
