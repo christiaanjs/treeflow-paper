@@ -226,6 +226,32 @@ def fit_successful(variational_fit):
 NUMERICAL_ISSUE_N = 2
 
 
+def write_tensor_trees(topology_file, branch_lengths, output_file, branch_metadata={}):
+    taxon_namespace = dendropy.Tree.get(
+        path=topology_file, schema="newick", preserve_underscores=True
+    ).taxon_namespace
+    tree, taxon_names = treeflow.tree_processing.parse_newick(topology_file)
+    trees = dendropy.TreeList(
+        [
+            tensor_to_dendro(
+                tree["topology"],
+                taxon_namespace,
+                taxon_names,
+                branch_lengths[i],
+                branch_metadata={
+                    key: value[i] for key, value in branch_metadata.items()
+                },
+            )
+            for i in range(branch_lengths.shape[0])
+        ],
+        taxon_namespace=taxon_namespace,
+    )
+
+    writer = CustomNexusWriter(unquoted_underscores=True)
+    with open(output_file, "w") as f:
+        writer.write_tree_list(trees, f)
+
+
 def get_variational_samples(
     variational_fit,
     topology_file,
@@ -237,11 +263,6 @@ def get_variational_samples(
     seed,
     n=1000,
 ):
-    tree, taxon_names = treeflow.tree_processing.parse_newick(topology_file)
-    taxon_namespace = dendropy.Tree.get(
-        path=topology_file, schema="newick", preserve_underscores=True
-    ).taxon_namespace
-
     if fit_successful(variational_fit):
         approx = treeflow_pipeline.model.reconstruct_approx(
             topology_file, variational_fit, model, clock_approx
@@ -288,27 +309,14 @@ def get_variational_samples(
     trace.index.name = "Sample"
     trace.to_csv(trace_out, sep="\t")
 
-    trees = dendropy.TreeList(
-        [
-            tensor_to_dendro(
-                tree["topology"],
-                taxon_namespace,
-                taxon_names,
-                branch_lengths[i],
-                branch_metadata=(
-                    dict(rate=result_dict["absolute_rates"][i])
-                    if model.relaxed_clock()
-                    else {}
-                ),
-            )
-            for i in range(n)
-        ],
-        taxon_namespace=taxon_namespace,
+    write_tensor_trees(
+        topology_file,
+        branch_lengths,
+        tree_out,
+        branch_metadata=(
+            dict(rate=result_dict["absolute_rates"]) if model.relaxed_clock() else {}
+        ),
     )
-
-    writer = CustomNexusWriter(unquoted_underscores=True)
-    with open(tree_out, "w") as f:
-        writer.write_tree_list(trees, f)
 
     return result_dict
 

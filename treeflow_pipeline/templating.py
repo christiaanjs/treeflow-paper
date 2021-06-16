@@ -17,7 +17,9 @@ def build_date_string(date_dict):
     return ",".join(["{0}={1}".format(name, date) for name, date in date_dict.items()])
 
 
-def build_tree_sim(sim_config, sampling_times, prior_sample, out_file):
+def build_tree_sim(
+    sim_config, sampling_times, prior_sample, out_file, trees_filename="tree-sim.trees"
+):
     out_path = pathlib.Path(out_file)
     template = template_env.get_template("tree-sim.j2.xml")
     date_trait_string = build_date_string(sampling_times)
@@ -26,7 +28,7 @@ def build_tree_sim(sim_config, sampling_times, prior_sample, out_file):
         pop_size=prior_sample["pop_size"],
         date_trait_string=date_trait_string,
         taxon_names=taxon_names,
-        out_file=out_path.parents[0] / "tree-sim.trees",
+        out_file=out_path.parents[0] / trees_filename,
     )
 
 
