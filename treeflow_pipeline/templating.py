@@ -70,7 +70,7 @@ def build_sequence_sim(
 ):
     out_path = pathlib.Path(out_file)
     template = template_env.get_template("sim-seq.j2.xml")
-    if model.clock_model == "lognormal_relaxed":
+    if model.clock_model in ["lognormal_relaxed", "strict"]:
         clock_rate = prior_sample["clock_rate"]
     elif model.clock_model == "relaxed_lognormal_conjugate":
         clock_rate = 1.0
@@ -84,7 +84,7 @@ def build_sequence_sim(
         clock_rate=clock_rate,
         kappa=sim_config["kappa"],
         frequencies=sim_config["frequencies"],
-        relaxed_clock=True,
+        relaxed_clock=model.relaxed_clock(),
         branch_rates=branch_rates,
     )
 
