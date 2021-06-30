@@ -145,8 +145,9 @@ def get_phylo_prior(sampling_times, model):
 optimizers = dict(adam=tf.optimizers.Adam, sgd=tf.optimizers.SGD)
 
 
-def fit_surrogate_posterior(log_p, q, vi_config):
-    trace_fn = lambda x: (x.loss, x.parameters)
+def fit_surrogate_posterior(
+    log_p, q, vi_config, trace_fn=lambda x: (x.loss, x.parameters), vi_kwargs={}
+):
     return tfp.vi.fit_surrogate_posterior(
         log_p,
         q,
@@ -154,7 +155,8 @@ def fit_surrogate_posterior(log_p, q, vi_config):
         vi_config["num_steps"],
         trace_fn=trace_fn,
         seed=vi_config["seed"],
-    )  # TODO: Convergence criterion
+        **vi_kwargs,
+    )
 
 
 def get_likelihood(newick_file, fasta_file, starting_values, model, vi_config):
@@ -240,8 +242,23 @@ def construct_approx(newick_file, model, clock_approx):
 
 
 def get_variational_fit(
-    newick_file, fasta_file, starting_values, model, vi_config, clock_approx
+    newick_file,
+    fasta_file,
+    starting_values,
+    model,
+    vi_config,
+    clock_approx,
+    debug_log_dir=None,
+    trace_fn=None,
+    vi_kwargs={},
 ):
+    if debug_log_dir is not None:
+        tf.debugging.experimental.enable_dump_debug_info(
+            debug_log_dir,
+            tensor_debug_mode="FULL_HEALTH",
+            circular_buffer_size=-1,
+        )
+
     likelihood, instance = get_likelihood(
         newick_file, fasta_file, starting_values, model, vi_config
     )
@@ -275,8 +292,21 @@ def get_variational_fit(
         vars["rates"] = rate_vars
 
     q = tfp.distributions.JointDistributionNamed(q_dict)
-    loss, params = fit_surrogate_posterior(log_p, q, vi_config)
-    return dict(loss=loss, vars=vars, params=params)
+
+    if trace_fn is None:
+        loss, params = fit_surrogate_posterior(log_p, q, vi_config, vi_kwargs=vi_kwargs)
+        return dict(loss=loss, vars=vars, params=params)
+    else:
+        return (
+            fit_surrogate_posterior(
+                log_p,
+                q,
+                vi_config,
+                vi_kwargs=vi_kwargs,
+                trace_fn=trace_fn,
+            ),
+            vars,
+        )
 
 
 def reconstruct_approx(newick_file, variational_fit, model, clock_approx):
