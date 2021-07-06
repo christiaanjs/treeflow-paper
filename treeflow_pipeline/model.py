@@ -10,6 +10,7 @@ import treeflow.sequences
 import treeflow.beagle
 import treeflow.libsbn
 import treeflow.priors
+from treeflow_pipeline.optimization import RobustOptimizer
 
 
 def parse_model(model):
@@ -142,7 +143,14 @@ def get_phylo_prior(sampling_times, model):
     return tfd.JointDistributionNamed(model_dict)
 
 
-optimizers = dict(adam=tf.optimizers.Adam, sgd=tf.optimizers.SGD)
+optimizers_base = dict(adam=tf.optimizers.Adam, sgd=tf.optimizers.SGD)
+optimizers = {
+    **optimizers_base,
+    **{
+        f"robust_{key}": lambda **kwargs: RobustOptimizer(optimizer(**kwargs))
+        for key, optimizer in optimizers_base.items()
+    },
+}
 
 
 def fit_surrogate_posterior(
@@ -155,6 +163,7 @@ def fit_surrogate_posterior(
         vi_config["num_steps"],
         trace_fn=trace_fn,
         seed=vi_config["seed"],
+        sample_size=vi_config["sample_size"],
         **vi_kwargs,
     )
 
