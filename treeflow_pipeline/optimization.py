@@ -2,8 +2,10 @@ import tensorflow as tf
 
 
 class RobustOptimizer:  # Pseudo-optimizer
-    def __init__(self, inner):  # TODO: Count number of failed steps
+    def __init__(self, inner, max_retries=10):  # TODO: Count number of failed steps
         self.inner = inner
+        self.max_retries = max_retries
+        self.retries = tf.Variable(0)
 
     def apply_gradients(self, grads_and_vars, name=None, **kwargs):
         """Apply gradients to variables.
@@ -25,8 +27,19 @@ class RobustOptimizer:  # Pseudo-optimizer
         #     lambda: tf.constant(True, name=name),
         # )
         any_nan = tf.reduce_any([tf.reduce_any(tf.math.is_nan(x)) for x in grads])
+
+        def nan_handler():
+            assertion = tf.assert_less(self.retries, self.max_retries)
+            with tf.control_dependencies([assertion]):
+                self.retries.assign_add(1)
+            return tf.no_op()
+
+        def update_handler():
+            self.retries.assign(0)
+            return self.inner.apply_gradients(grads_and_vars, name=name, **kwargs)
+
         return tf.cond(
             any_nan,
-            lambda: tf.no_op(),
-            lambda: self.inner.apply_gradients(grads_and_vars, name=name, **kwargs),
+            nan_handler,
+            update_handler,
         )
