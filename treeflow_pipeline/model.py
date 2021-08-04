@@ -10,6 +10,7 @@ import treeflow.sequences
 import treeflow.beagle
 import treeflow.libsbn
 import treeflow.priors
+import treeflow.vi
 from treeflow_pipeline.optimization import RobustOptimizer
 
 
@@ -154,18 +155,36 @@ optimizers = {
 
 
 def fit_surrogate_posterior(
-    log_p, q, vi_config, trace_fn=lambda x: (x.loss, x.parameters), vi_kwargs={}
+    log_p,
+    q,
+    vi_config,
+    trace_fn=lambda x: (x.loss, x.parameters),
+    vi_kwargs={},
+    function_mode=True,
 ):
-    return tfp.vi.fit_surrogate_posterior(
-        log_p,
-        q,
-        optimizers[vi_config["optimizer"]](**vi_config["optimizer_kwargs"]),
-        vi_config["num_steps"],
-        trace_fn=trace_fn,
-        seed=vi_config["seed"],
-        sample_size=vi_config["sample_size"],
-        **vi_kwargs,
-    )
+    optimizer = optimizers[vi_config["optimizer"]](**vi_config["optimizer_kwargs"])
+    if function_mode:
+        return tfp.vi.fit_surrogate_posterior(
+            log_p,
+            q,
+            optimizer,
+            vi_config["num_steps"],
+            trace_fn=trace_fn,
+            seed=vi_config["seed"],
+            sample_size=vi_config["sample_size"],
+            **vi_kwargs,
+        )
+    else:
+        return treeflow.vi.fit_surrogate_posterior(
+            log_p,
+            q,
+            optimizer,
+            vi_config["num_steps"],
+            trace_fn=trace_fn,
+            seed=vi_config["seed"],
+            sample_size=vi_config["sample_size"],
+            **vi_kwargs,
+        )
 
 
 def get_likelihood(newick_file, fasta_file, starting_values, model, vi_config):
@@ -260,6 +279,7 @@ def get_variational_fit(
     debug_log_dir=None,
     trace_fn=None,
     vi_kwargs={},
+    function_mode=True,
 ):
     if debug_log_dir is not None:
         tf.debugging.experimental.enable_dump_debug_info(
@@ -302,8 +322,10 @@ def get_variational_fit(
 
     q = tfp.distributions.JointDistributionNamed(q_dict)
 
-    if trace_fn is None:
-        loss, params = fit_surrogate_posterior(log_p, q, vi_config, vi_kwargs=vi_kwargs)
+    if trace_fn is None:  # TODO: Tidy this up
+        loss, params = fit_surrogate_posterior(
+            log_p, q, vi_config, vi_kwargs=vi_kwargs, function_mode=function_mode
+        )
         return dict(loss=loss, vars=vars, params=params)
     else:
         return (
@@ -313,12 +335,15 @@ def get_variational_fit(
                 vi_config,
                 vi_kwargs=vi_kwargs,
                 trace_fn=trace_fn,
+                function_mode=function_mode,
             ),
             vars,
         )
 
 
-def reconstruct_approx(newick_file, variational_fit, model, clock_approx):
+def reconstruct_approx(
+    newick_file, variational_fit, model, clock_approx
+):  # TODO: Use libsbn parsing?
     vars = variational_fit["vars"]
     tree, taxon_names = treeflow.tree_processing.parse_newick(newick_file)
     init_heights = tree["heights"]
