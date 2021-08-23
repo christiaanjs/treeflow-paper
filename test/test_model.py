@@ -148,6 +148,7 @@ def test_variational_fit_conjugate(
         num_steps=n_iter,
         rescaling=False,
         seed=3,
+        sample_size=1,
     )
 
     res = mod.get_variational_fit(
