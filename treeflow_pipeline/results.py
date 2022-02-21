@@ -1,7 +1,6 @@
 import dendropy
 import numpy as np
-import treeflow.tree_processing
-import treeflow.sequences
+from treeflow.tree.io import parse_newick
 import treeflow_pipeline.model
 import pandas as pd
 import io
@@ -160,7 +159,7 @@ def tensor_to_dendro(
         node.edge_length = branch_lengths[i]
         for key, value in branch_metadata.items():
             node.annotations[key] = value[i]
-        parent = nodes[topology["parent_indices"][i]]
+        parent = nodes[topology.parent_indices[i]]
         parent.add_child(node)
     return dendropy.Tree(
         taxon_namespace=taxon_namespace, seed_node=nodes[-1], is_rooted=True
@@ -230,13 +229,13 @@ def write_tensor_trees(topology_file, branch_lengths, output_file, branch_metada
     taxon_namespace = dendropy.Tree.get(
         path=topology_file, schema="newick", preserve_underscores=True
     ).taxon_namespace
-    tree, taxon_names = treeflow.tree_processing.parse_newick(topology_file)
+    tree = parse_newick(topology_file)
     trees = dendropy.TreeList(
         [
             tensor_to_dendro(
-                tree["topology"],
+                tree.topology,
                 taxon_namespace,
-                taxon_names,
+                tree.taxon_set,
                 branch_lengths[i],
                 branch_metadata={
                     key: value[i] for key, value in branch_metadata.items()
