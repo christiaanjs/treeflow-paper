@@ -1,8 +1,6 @@
+import numpy as np
 import jinja2
 import pathlib
-import treeflow.model
-import treeflow.clock_approx
-import treeflow.priors
 import treeflow_pipeline.model
 import treeflow_pipeline.topology_inference
 import xml.etree.ElementTree as ET
@@ -42,9 +40,8 @@ def build_branch_rate_sim(model, newick_string, prior_sample, out_file):
         clock_rate = prior_sample["clock_rate"]
     elif model.clock_model == "relaxed_lognormal_conjugate":
         rate_loc = prior_sample["rate_loc"]
-        rate_scale = treeflow.priors.precision_to_scale_np(
-            prior_sample["rate_precision"]
-        )
+        rate_scale = 1.0 / np.sqrt(prior_sample["rate_precision"])
+
         clock_rate = 1.0
     else:
         raise ValueError(f"Unknown clock model: {model.clock_model}")
@@ -98,9 +95,8 @@ dist_name_mapping = dict(normal_gamma_normal="normal")
 
 def get_state_tag(name, dist_dict, init_value):
     dist_name, params = next(iter(dist_dict.items()))
-    support = treeflow.model.distribution_class_supports[
-        treeflow_pipeline.model.dists[dist_name_mapping.get(dist_name, dist_name)]
-    ]
+    support = None
+    raise NotImplemented("Support needs implementing")
     element = ET.Element("parameter", attrib=dict(name="stateNode", id=name))
     element.text = str(init_value)
     if support == "nonnegative":

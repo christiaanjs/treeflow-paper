@@ -1,11 +1,10 @@
 import numpy as np
 import treeflow_pipeline.model
-import treeflow.tree_processing
-import treeflow.sequences
 import xml
 import pandas as pd
 import Bio.Seq
 import Bio.SeqIO
+from treeflow.tree.io import parse_newick
 
 
 def rng(sim_config, hash=0):
@@ -26,8 +25,8 @@ def sample_prior(sampling_times, model, seed):
 
 
 def build_sim_trace(tree_file, prior_sample, out_file, rate_trace=None):
-    tree, _ = treeflow.tree_processing.parse_newick(tree_file)
-    branch_lengths = treeflow.sequences.get_branch_lengths(tree)
+    tree = parse_newick(tree_file)
+    branch_lengths = tree.branch_lengths
 
     values = {
         "tree.height": tree["heights"][-1],
