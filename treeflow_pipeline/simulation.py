@@ -66,7 +66,7 @@ def convert_simulated_sequences(input_file, output_file, output_format):
     seq_xml_root = xml.etree.ElementTree.parse(input_file)
     records = [
         Bio.SeqIO.SeqRecord(
-            Bio.Seq.Seq(tag.attrib["value"], Bio.Alphabet.generic_dna),
+            Bio.Seq.Seq(tag.attrib["value"]),
             tag.attrib["taxon"],
             description="",
         )
