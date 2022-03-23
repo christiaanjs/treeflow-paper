@@ -1,0 +1,28 @@
+\BLOCK{extends template}
+
+\BLOCK{block preamble}
+\BLOCK{endblock}
+
+\BLOCK{block abstract}
+This is the abstract
+\BLOCK{endblock}
+
+\BLOCK{block body}
+\section{Introduction}
+
+Traditionally, phylogenetic analyses have been performed by specialist software. A number of software packages exist that implement a broad but predefined collection of models and associated specialized inference methods. Typically, inference is handled by carefully crafted but computationally costly stochastic optimisation or Markov Chain Monte Carlo (MCMC) methods. In contrast, in other realms of statistical analysis, \textit{probabilistic programming} software libraries have entered into widespread use. These allow the specification of almost any model as a probabilistic program, and inference is provided automatically with a generic inference method. Having the power of probabilistic programming in phylogenetic analyses could significantly accelerate research. % TODO: Citations for software libraries
+
+Probabilistic programming tools, such as BUGS \cite{lunn2000winbugs}, Stan \cite{carpenter2017stan}, PyMC3 \cite{salvatier2016probabilistic}, Pyro \cite{bingham2019pyro}, and TensorFlow Probability \cite{dillon2017tensorflow} allow users to specify probabilistic models by describing the generative process with code as a \textit{probabilistic program}. Advancements in automatic inference methods have allow these tools to perform efficient inference on almost any model. Some of notable examples, including Automatic Differentiation Variational Inference \cite{kucukelbir2017automatic} (ADVI) and Hamiltonian Monte Carlo \cite{duane1987hybrid}, use local information gradient information from the model's probability density function to efficiently navigate the parameter space.
+
+One key technology that enables these gradient-based automatic inference algorithms is \textit{automatic differentiation}. Automatic differentiation refers to methods which efficiently calculate machine-precision gradients of functions, specified by computer programs, without extra analytical derivation or excessive computational overhead compared to the function evaluation. Automatic differentiation frameworks that have statistical inference packages built on top of them include Theano \cite{bergstra2010theano}, Pytorch \cite{paszke2019pytorch}, JAX \cite{jax2018github} and TensorFlow \cite{abadi2016tensorflow}. Some of these extend to non-trivial computational constructs such as control flow and recursion \cite{yu2018dynamic}.
+
+The structure of the phylogenetic tree object is a major barrier to implementing probabilistic programming for phylogenetics. It is not clear how the association between its discrete and continuous quantities (the topology and branch lengths respectively) should be represented and handled in inference. Also, the combinatorial explosion of the size of the phylogenetic state space presents a major challenge to any inference algorithm. Generic random search methods for discrete variables, as in the naive implementation of MCMC sampling, do not scale appropriately to allow inference on modern datasets with thousands of sequences.
+
+One core computation that presents a challenge to automatic differentiation is the \textit{phylogenetic likelihood}. This computes the probability function of a collection of sequences given a phylogenetic tree, integrating out the character states at ancestral nodes \cite{felsenstein1981evolutionary}. This is most efficiently performed through dynamic programming, which requires sequential control flow or recursion, which are not always trivial to implement in a functional automatic differentiation framework such as TensorFlow. Additionally, since the computational cost scales linearly with the number of sequences, naively computing the likelihood's gradient with respect to each branch of the tree yields a quadratic computational cost \cite{ji2020gradients}.
+
+\section{Methods}
+
+\section{Results}
+
+
+\BLOCK{endblock}

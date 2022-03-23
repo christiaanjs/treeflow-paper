@@ -1,19 +1,16 @@
-from snakemake.remote.FTP import RemoteProvider as FTPRemoteProvider
 import pathlib
 import pandas as pd
 import treeflow_pipeline.model
 from treeflow_pipeline.util import yaml_input, text_input, text_output
 import treeflow_pipeline.manuscript
 
-FTP = FTPRemoteProvider()
 
 configfile: "config/ms-config.yaml"
 model = treeflow_pipeline.model.Model(yaml_input(config["model_file"]))
 
 def result(path):
     if config["remote_results"]:
-        project_dir = pathlib.Path(config["project_dir"])
-        return FTP.remote(str(project_dir / path))
+        raise NotImplemented("Remote files note implemented")
     else:
         return pathlib.Path(path)
 
@@ -24,7 +21,7 @@ manuscript_dir = pathlib.Path("manuscript")
 
 rule ms:
     input:
-        manuscript_dir / "out" / "main.pdf"
+        manuscript_dir / "out" / "treeflow.pdf"
 
 APPROXES = ["mean_field", "scaled"] # TODO: Where to store these in common?
 methods = ["beast"] + expand("variational-samples-{approx}", approx=APPROXES)
@@ -54,11 +51,13 @@ rule coverage_plot:
             output[0]
         )
 
-rule template_ms:
+tex_template = manuscript_dir / "tex" / ("plos-template.j2.tex" if config["submission"] else "plain-template.j2.tex")
+
+rule template_relaxed_clock_ms:
     input:
         coverage_table = rules.coverage_table.output[0],
         coverage_plot = rules.coverage_plot.output[0],
-        template = manuscript_dir / "tex" / ("plos-template.j2.tex" if config["submission"] else "plain-template.j2.tex"),
+        template = tex_template,
         body_template = manuscript_dir / "tex" / "main.j2.tex"
     output:
         manuscript_dir / "out" / "main.tex"
@@ -74,14 +73,35 @@ rule template_ms:
             output[0]
         )
 
+rule template_treeflow_ms:
+    input:
+        coverage_table = rules.coverage_table.output[0],
+        coverage_plot = rules.coverage_plot.output[0],
+        template = tex_template,
+        body_template = manuscript_dir / "tex" / "treeflow.j2.tex"
+    output:
+        manuscript_dir / "out" / "treeflow.tex"
+    run:
+        text_output(
+            treeflow_pipeline.manuscript.build_manuscript(
+                input.template,
+                input.body_template,
+                dict(),
+                dict(),
+                submission=config["submission"]
+            ),
+            output[0]
+        )
+
+
             
 rule compile_ms:
     input:
-        main = manuscript_dir / "out" / "main.tex",
+        main = manuscript_dir / "out" / "{manuscript}.tex",
         bib = manuscript_dir / "tex" / "main.bib",
         bst = manuscript_dir / "tex" / "plos2015.bst"
     output:
-        manuscript_dir / "out" / "main.pdf"
+        manuscript_dir / "out" / "{manuscript}.pdf"
     params:
         output_dir =  lambda _, output: pathlib.Path(output[0]).parents[0],
         aux_file = lambda _, output: pathlib.Path(output[0]).with_suffix(".aux"),
