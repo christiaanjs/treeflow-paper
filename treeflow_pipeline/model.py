@@ -3,17 +3,15 @@ import tensorflow_probability as tfp
 
 tfd = tfp.distributions
 import treeflow
+from treeflow.model.phylo_model import (
+    PhyloModel as Model,
+    parse_model,
+    RELAXED_CLOCK_MODELS,
+    prior_distribution_classes as dists,
+)
 from treeflow_pipeline.optimization import RobustOptimizer
 
 
-def parse_model(model):
-    if isinstance(model, dict):
-        return next(iter(model.items()))
-    else:
-        return model, None
-
-
-RELAXED_CLOCK_MODELS = ["relaxed_lognormal", "relaxed_lognormal_conjugate"]
 APPROX_MODELS = [
     "mean_field",
     "scaled",
@@ -22,42 +20,6 @@ APPROX_MODELS = [
     "scaled_shrinkage_conjugate",
     "scaled_shrinkage_local_conjugate",
 ]
-
-
-class Model:
-    def __init__(self, dict):
-        self.tree_model, self.tree_params = parse_model(dict["tree"])
-        self.clock_model, self.clock_params = parse_model(dict["clock"])
-        self.subst_model, self.subst_params = parse_model(dict["substitution"])
-        self.site_model, self.site_params = parse_model(dict["site"])
-
-    def all_params(self):
-        return {
-            key: value
-            for comp_params in [
-                self.tree_params,
-                self.clock_params,
-                self.subst_params,
-                self.site_params,
-            ]
-            if comp_params is not None
-            for key, value in comp_params.items()
-        }
-
-    def free_params(self):
-        res = {
-            key: value for key, value in self.all_params().items() if value != "fixed"
-        }
-        if (
-            self.clock_model == "relaxed_lognormal_conjugate"
-        ):  # TODO: Do this more tidily
-            clock_prior = res.pop("rate_loc_precision")
-            res["rate_loc"] = clock_prior
-            res["rate_precision"] = clock_prior
-        return res
-
-    def relaxed_clock(self):
-        return self.clock_model in RELAXED_CLOCK_MODELS
 
 
 def get_non_rate_defaults(clock_model):
@@ -71,9 +33,6 @@ def get_non_rate_defaults(clock_model):
 
 def cast(x):
     return tf.convert_to_tensor(x, treeflow.DEFAULT_FLOAT_DTYPE_TF)
-
-
-dists = dict(lognormal=tfd.LogNormal, gamma=tfd.Gamma, normal=tfd.Normal)
 
 
 def get_dist(dist_dict):

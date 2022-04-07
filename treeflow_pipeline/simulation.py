@@ -1,6 +1,6 @@
 import numpy as np
 import treeflow_pipeline.model
-import xml
+import xml.etree.ElementTree
 import pandas as pd
 import Bio.Seq
 import Bio.SeqIO
@@ -62,18 +62,43 @@ def parse_branch_rates(df):
     return df.iloc[0, 1:].tolist()
 
 
+def parse_sequence_value(tag):
+    if "value" in tag.attrib:
+        return tag.attrib["value"]
+    else:
+        text = tag.text.strip()
+        children = list(tag)
+        i = 0
+        n = len(children)
+        while not text and i < n:
+            text = children[i].tail
+            i += 1
+        return "".join(text.split())
+
+
+def parse_taxon_name(tag):
+    if "taxon" in tag.attrib:
+        return tag.attrib["taxon"]
+    else:
+        taxon_tag = tag.find("./taxon")
+        if "idref" in taxon_tag.attrib:
+            return taxon_tag.attrib["idref"]
+        else:
+            raise ValueError("Can't find taxon in sequence tag")
+
+
 def convert_simulated_sequences(input_file, output_file, output_format):
     seq_xml_root = xml.etree.ElementTree.parse(input_file)
     records = [
         Bio.SeqIO.SeqRecord(
-            Bio.Seq.Seq(tag.attrib["value"]),
-            tag.attrib["taxon"],
+            Bio.Seq.Seq(parse_sequence_value(tag)),
+            parse_taxon_name(tag),
             description="",
         )
-        for tag in seq_xml_root.findall("./sequence")
+        for tag in seq_xml_root.findall(".//sequence")
     ]
     with open(output_file, "w") as f:
-        Bio.SeqIO.write(records, f, "fasta")
+        Bio.SeqIO.write(records, f, output_format)
 
 
 import dendropy

@@ -1,6 +1,7 @@
 from treeflow_pipeline.util import yaml_input, yaml_output, text_input, text_output, sequence_input
 import treeflow_pipeline.templating as tem
 import treeflow_pipeline.model
+from treeflow_pipeline.simulation import convert_simulated_sequences
 import pathlib
 
 configfile: "config/data-config.yaml"
@@ -15,8 +16,21 @@ dataset_dir = "{dataset}"
 
 rule data:
     input:
-        expand(wd / dataset_dir / "variational-fit-scaled.pickle", dataset=datasets),
-        expand(wd / dataset_dir / "beast.log", dataset=datasets)
+        wd / "carnivores-data.fasta"
+
+rule carnivores_data_xml:
+    output:
+        wd / "carnivores-data.xml"
+    shell:
+        "curl {config[carnivores_xml_url]} -o {output}"
+
+rule xml_to_fasta:
+    input:
+        wd / "{dataset}-data.xml"
+    output:
+        wd / "{dataset}-data.fasta"
+    run:
+        convert_simulated_sequences(input[0], output[0], "fasta")
 
 rule model_files:
     output:
