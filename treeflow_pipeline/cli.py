@@ -34,7 +34,8 @@ def cli(ctx, alignment, model, output, seed):
 
 
 DEFAULT_TREE_METHOD = "raxml"
-DEFAULT_ROOTING_METHOD = "lsd"
+DEFAULT_ROOTING_METHOD = "lsd-dates"
+DEFAULT_LSD_OUTPUT_FORMAT = "newick"
 
 
 @cli.command()
@@ -45,17 +46,24 @@ DEFAULT_ROOTING_METHOD = "lsd"
 )
 @click.option(
     "--rooting-method",
-    type=click.Choice(["lsd"], case_sensitive=False),
+    type=click.Choice(["lsd", "lsd-dates"], case_sensitive=False),
     default=DEFAULT_ROOTING_METHOD,
 )
 @click.option("-w", "--working-directory", type=click.Path())
+@click.option(
+    "--lsd-output-format",
+    type=click.Choice(["newick", "nexus"]),
+    default=DEFAULT_LSD_OUTPUT_FORMAT,
+)
 @click.pass_obj
-def infer_topology(obj, working_directory, tree_method, rooting_method):
+def infer_topology(
+    obj, working_directory, tree_method, rooting_method, lsd_output_format
+):
     if working_directory is None:
         working_directory = obj.output_path.parents[0]
 
     with importlib.resources.path("treeflow_pipeline", "topology.smk") as snakefile:
-        snakemake.snakemake(
+        success = snakemake.snakemake(
             snakefile,
             config=dict(
                 alignment=obj.alignment_path,
@@ -66,10 +74,15 @@ def infer_topology(obj, working_directory, tree_method, rooting_method):
                 subst_model=obj.model.subst_model,
                 site_model=obj.model.site_model,
                 clock_model=obj.model.clock_model,
+                lsd_output_format=lsd_output_format,
                 seed=obj.seed,
             ),
             targets=["tree", "starting_values"],
             lock=False,
+        )
+    if not success:
+        raise click.UsageError(
+            "Topology inference pipeline was unsuccessful, check inputs"
         )
 
 

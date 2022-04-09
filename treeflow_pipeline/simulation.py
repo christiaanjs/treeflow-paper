@@ -76,23 +76,29 @@ def parse_sequence_value(tag):
         return "".join(text.split())
 
 
-def parse_taxon_name(tag):
+def parse_taxon_name(tag, reformat=False):
     if "taxon" in tag.attrib:
-        return tag.attrib["taxon"]
+        raw_taxon_name: str = tag.attrib["taxon"]
     else:
         taxon_tag = tag.find("./taxon")
         if "idref" in taxon_tag.attrib:
-            return taxon_tag.attrib["idref"]
+            raw_taxon_name: str = taxon_tag.attrib["idref"]
         else:
             raise ValueError("Can't find taxon in sequence tag")
+    if reformat:
+        return raw_taxon_name.replace(" ", "_")
+    else:
+        return raw_taxon_name
 
 
-def convert_simulated_sequences(input_file, output_file, output_format):
+def convert_simulated_sequences(
+    input_file, output_file, output_format, reformat_taxon_name=False
+):
     seq_xml_root = xml.etree.ElementTree.parse(input_file)
     records = [
         Bio.SeqIO.SeqRecord(
             Bio.Seq.Seq(parse_sequence_value(tag)),
-            parse_taxon_name(tag),
+            parse_taxon_name(tag, reformat=reformat_taxon_name),
             description="",
         )
         for tag in seq_xml_root.findall(".//sequence")

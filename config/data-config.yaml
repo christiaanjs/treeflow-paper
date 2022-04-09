@@ -3,3 +3,4 @@ model_file: config/data-models.yaml
 working_directory: out/
 vi_config: config/vi-config.yaml
 carnivores_xml_url: https://raw.githubusercontent.com/beast-dev/beast-mcmc/v1.10.4/examples/Benchmarks/benchmark2.xml
+lsd_output_format: newick

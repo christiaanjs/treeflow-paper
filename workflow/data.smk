@@ -16,7 +16,7 @@ dataset_dir = "{dataset}"
 
 rule data:
     input:
-        wd / "carnivores-data.fasta"
+        wd / "carnivores" / "topology.nwk"
 
 rule carnivores_data_xml:
     output:
@@ -28,9 +28,9 @@ rule xml_to_fasta:
     input:
         wd / "{dataset}-data.xml"
     output:
-        wd / "{dataset}-data.fasta"
+        pathlib.Path("data") / "{dataset}.fasta"
     run:
-        convert_simulated_sequences(input[0], output[0], "fasta")
+        convert_simulated_sequences(input[0], output[0], "fasta", reformat_taxon_name=True)
 
 rule model_files:
     output:
@@ -43,7 +43,8 @@ rule topology:
         fasta = lambda wildcards: all_models[wildcards.dataset]["alignment"],
         model_file = wd / dataset_dir / "model.yaml"
     params:
-        wd = str(wd / dataset_dir)
+        wd = str(wd / dataset_dir),
+        rooting_method = lambda wildcards: "lsd-dates" if all_models[wildcards.dataset]["dates"] else "lsd"
     output:
         topology = wd / dataset_dir / "topology.nwk",
         starting_values = wd / dataset_dir / "starting-values.yaml"
@@ -51,7 +52,9 @@ rule topology:
         """
         treeflow_pipeline -s {config[seed]} \
             {input.fasta} {input.model_file} {output.topology} \
-            infer-topology -w {params.wd}
+            infer-topology -w {params.wd} \
+            --rooting-method {params.rooting_method} \
+            --lsd-output-format {config[lsd_output_format]}
         """
 
 rule beast_xml:

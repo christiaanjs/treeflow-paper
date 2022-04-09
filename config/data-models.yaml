@@ -1,5 +1,6 @@
-dengue:
-  alignment: data/dengue.fasta
+carnivores:
+  alignment: data/carnivores.fasta
+  dates: False
   model:
     tree:
       coalescent_constant:
@@ -27,6 +28,7 @@ dengue:
       none
 rsv:
   alignment: data/rsv2-reduced.fasta
+  dates: True
   model:
     tree:
       coalescent_constant:

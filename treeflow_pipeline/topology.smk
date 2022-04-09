@@ -8,9 +8,12 @@ unrooted_tree_filename = dict(
     raxml="RAxML_bestTree.raxml"
 )[config["tree_method"]]
 
-rooted_tree_filename, rooted_tree_format = dict(
-    lsd=("lsd-tree.date.nexus", "nexus")
-)[config["rooting_method"]]
+lsd_output_format = config["lsd_output_format"]
+
+rooted_tree_filename, rooted_tree_format, fix_dates = {
+    "lsd": (f"lsd-tree.date.{lsd_output_format}", lsd_output_format, False),
+    "lsd-dates": (f"lsd-dates-tree.date.{lsd_output_format}", lsd_output_format, True)
+}[config["rooting_method"]]
 
 rule raxml_topology:
     input:
@@ -31,12 +34,22 @@ rule lsd_dates:
 
 rule root_topology_lsd:
     input:
+        tree = wd / unrooted_tree_filename
+    output:
+        date_tree = wd / f"lsd-tree.date.{lsd_output_format}",
+        distance_tree = wd / f"lsd-tree.{lsd_output_format}",
+        log = (wd / "lsd-tree")
+    shell:
+        "lsd -c -r a -i {input.tree} -o {output.log}"
+
+rule root_topology_lsd_dates:
+    input:
         dates = wd / "lsd.dates",
         tree = wd / unrooted_tree_filename
     output:
-        wd / "lsd-tree.date.nexus",
-        wd / "lsd-tree.nexus",
-        log= (wd / "lsd-tree")
+        date_tree = wd / f"lsd-dates-tree.date.{lsd_output_format}",
+        distance_tree = wd / f"lsd-dates-tree.{lsd_output_format}",
+        log= (wd / "lsd-dates-tree")
     shell:
         "lsd -c -r a -i {input.tree} -d {input.dates} -o {output.log}"
 
@@ -50,14 +63,28 @@ rule starting_values_raxml:
 
 rule starting_values_lsd:
     input:
-        date_tree = wd / "lsd-tree.date.nexus",
-        distance_tree = wd / "lsd-tree.nexus"
+        date_tree = rules.root_topology_lsd.output.date_tree,
+        distance_tree = rules.root_topology_lsd.output.distance_tree
     output:
         wd / "starting-values-lsd.yaml"
     run:
         yaml_output(top.get_starting_values_lsd(
             input.date_tree,
-            input.distance_tree
+            input.distance_tree,
+            lsd_output_format
+        ), output[0])
+
+rule starting_values_lsd_dates:
+    input:
+        date_tree = rules.root_topology_lsd_dates.output.date_tree,
+        distance_tree = rules.root_topology_lsd.output.distance_tree
+    output:
+        wd / "starting-values-lsd-dates.yaml"
+    run:
+        yaml_output(top.get_starting_values_lsd(
+            input.date_tree,
+            input.distance_tree,
+            lsd_output_format
         ), output[0])
 
 rule starting_values:
@@ -79,4 +106,4 @@ rule tree:
     output:
         config["output"]
     run:
-        top.convert_tree(input[0], rooted_tree_format, output[0], 'newick', strip_data=True, allow_zero_branches=False, fix_dates=True)
+        top.convert_tree(input[0], rooted_tree_format, output[0], 'newick', strip_data=True, allow_zero_branches=False, fix_dates=fix_dates)
