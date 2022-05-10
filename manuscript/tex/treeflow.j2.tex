@@ -20,7 +20,21 @@ The structure of the phylogenetic tree object is a major barrier to implementing
 
 One core computation that presents a challenge to automatic differentiation is the \textit{phylogenetic likelihood}. This computes the probability function of a collection of sequences given a phylogenetic tree, integrating out the character states at ancestral nodes \cite{felsenstein1981evolutionary}. This is most efficiently performed through dynamic programming, which requires sequential control flow or recursion, which are not always trivial to implement in a functional automatic differentiation framework such as TensorFlow. Additionally, since the computational cost scales linearly with the number of sequences, naively computing the likelihood's gradient with respect to each branch of the tree yields a quadratic computational cost \cite{ji2020gradients}.
 
-\section{Methods}
+\section{Description}
+
+TreeFlow is a library for probabilistic programming in Python. It is built on TensorFlow, a computational framework for machine learning. TreeFlow leverages Tensorflow's capabilities for accelerated numerical computation and automatic differentiation.
+% TODO: Flesh out this first paragraph
+
+TensorFlow's core computational object is the Tensor, a multi-dimensional array with a uniform data type. Phylogenetic trees are not immediately at home in a Tensor-centric universe, as they are a complex data structure, often defined recursively, with both continuous and discrete components. TreeFlow represents trees as a structure of Tensors; floating point Tensors representing the times and branch lengths, and integer Tensors representing the topology. Common tree operations such as traversals and navigating to ancestor nodes can be performed through these integer Tensors. TensorFlow has extensive support for "nested" structures of Tensors, including using them as arguments to compiled functions and defining distributions over complex objects. This means computations and models involving phylogenetic trees can be expressed naturally.
+
+A range of phylogenetic distributions and models are implemented in TreeFlow. These are primarily generative models for phylogenetic trees and models of sequence evolution. Generative models of phylogenetic trees, such as Kingman's coalescent \cite{kuhner1995estimating} and Birth-Death-Sampling speciation processes \cite{stadler2009incomplete}, can be used to infer parameters related to population dynamics from genetic sequence data. TreeFlow implements models of nucleotide sequence evolution such as the HKY85 \cite{hasegawa1985dating} and General Time Reversible (GTR) \cite{tavare1986some}. It includes a standard approach for dealing with heterogeneity in mutation rate across sites based on a marginalizing over a discretized site rate distribution \cite{yang1994maximum}. The probabilistic programming framework, however, allows for the use of any appropriate distribution as the base site rate distribution rather than just the standard single-parameter Gamma distribution. Thanks to TensorFlow's vectorized arithmetic operations, it is also natural to model variations in mutation rate over lineages by specifying parameters for multiple rates (possibly with a hierarchical prior) and multiplying by the branch lengths of the phylogenetic (time) tree. Models which can be naturally expressed this way include the log-Normal random local clock \cite{drummond2006relaxed} and auto-correlated relaxed clock models \cite{thorne1998estimating}.
+
+These distributions can be composed into a *probabilistic graphical model* using TensorFlow Probability's joint distribution functionality \cite{piponi2020joint}.
+
+% Phylogenetic likelihood 
+
+% Inference
+% Ratio transform
 
 \section{Results}
 
