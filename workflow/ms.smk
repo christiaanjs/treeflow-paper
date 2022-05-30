@@ -4,6 +4,8 @@ import treeflow_pipeline.model
 from treeflow_pipeline.util import yaml_input, text_input, text_output
 import treeflow_pipeline.manuscript
 
+import treeflow_benchmarks
+treeflow_benchmarks_dir = pathlib.Path(treeflow_benchmarks.__file__).parents[1]
 
 configfile: "config/ms-config.yaml"
 model = treeflow_pipeline.model.Model(yaml_input(config["model_file"]))
@@ -68,6 +70,7 @@ rule template_relaxed_clock_ms:
                 input.body_template,
                 dict(coverage=input.coverage_plot),
                 dict(coverage=input.coverage_table),
+                dict(),
                 submission=config["submission"]
             ),
             output[0]
@@ -78,7 +81,8 @@ rule template_treeflow_ms:
         coverage_table = rules.coverage_table.output[0],
         coverage_plot = rules.coverage_plot.output[0],
         template = tex_template,
-        body_template = manuscript_dir / "tex" / "treeflow.j2.tex"
+        body_template = manuscript_dir / "tex" / "treeflow.j2.tex",
+        treeflow_benchmarks_config = treeflow_benchmarks_dir / "config.yaml",
     output:
         manuscript_dir / "out" / "treeflow.tex"
     run:
@@ -88,6 +92,7 @@ rule template_treeflow_ms:
                 input.body_template,
                 dict(),
                 dict(),
+                treeflow_pipeline.manuscript.get_treeflow_manuscript_vars(yaml_input(input.treeflow_benchmarks_config)),
                 submission=config["submission"]
             ),
             output[0]

@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 import matplotlib
-matplotlib.use('AGG')
+
+matplotlib.use("AGG")
 import matplotlib.pyplot as plt
 import os
 import jinja2
@@ -11,7 +12,7 @@ import treeflow_pipeline.model
 
 DPI = 300
 MAX_WIDTH_PIXELS = 2250
-MAX_WIDTH = MAX_WIDTH_PIXELS/DPI
+MAX_WIDTH = MAX_WIDTH_PIXELS / DPI
 MAX_HEIGHT_PIXELS = 2625
 MAX_HEIGHT = MAX_HEIGHT_PIXELS / DPI
 
@@ -24,26 +25,33 @@ param_name_mapping = {
     "tree.height": "Tree height",
     "tree.treeLength": "Tree length",
     "height": "Node heights",
-    "rate": "Rates"
+    "rate": "Rates",
 }
 
 method_name_mapping = {
     "beast": "MCMC",
     "variational-samples-mean_field": "Variational (mean field)",
-    "variational-samples-scaled": "Variational (scaled)"
+    "variational-samples-scaled": "Variational (scaled)",
 }
 
 np_func = lambda f: (lambda x: f(x).numpy())
 
+
 def get_stats(log, sim_trace, name):
     run_filter = log[f"{name}.ESS"] > treeflow_pipeline.results.NUMERICAL_ISSUE_N
     trace_filtered = log[run_filter]
-    return [sim_trace[name][run_filter]] + [trace_filtered[f"{name}.{stat}"] for stat in ["mean", "95%HPDlo", "95%HPDup"]]
+    return [sim_trace[name][run_filter]] + [
+        trace_filtered[f"{name}.{stat}"] for stat in ["mean", "95%HPDlo", "95%HPDup"]
+    ]
+
 
 BLUE = "#0384fc"
 RED = "#ff3d51"
 
-def coverage_plot(log_file_dict, sim_trace_file, model, stats, output, prior_scale=False):
+
+def coverage_plot(
+    log_file_dict, sim_trace_file, model, stats, output, prior_scale=False
+):
     MARKER_WIDTH = 3
     TICK_LABEL_SIZE = 6
 
@@ -57,7 +65,7 @@ def coverage_plot(log_file_dict, sim_trace_file, model, stats, output, prior_sca
         ncols=ncols,
         figsize=(MAX_WIDTH, MAX_HEIGHT),
         dpi=DPI,
-        constrained_layout=True
+        constrained_layout=True,
     )
 
     for i, name in enumerate(stats_params):
@@ -66,31 +74,52 @@ def coverage_plot(log_file_dict, sim_trace_file, model, stats, output, prior_sca
     for j, name in enumerate(log_file_dict.keys()):
         ax = axs[0, j]
         ax.set_xlabel(method_name_mapping[name])
-        ax.xaxis.set_label_position('top') 
+        ax.xaxis.set_label_position("top")
 
     for j, (method, method_log_file) in enumerate(log_file_dict.items()):
         log = pd.read_table(method_log_file)
         for i, name in enumerate(stats_params):
 
-            ax = axs[i, j]            
+            ax = axs[i, j]
             if name in params and prior_scale:
                 prior = treeflow_pipeline.model.get_dist(params[name])
                 scale_functions = (np_func(prior.cdf), np_func(prior.quantile))
                 ax.set_xscale("function", functions=scale_functions)
                 ax.set_yscale("function", functions=scale_functions)
-                
+
             true, mean, lower, upper = get_stats(log, sim_trace, name)
             covered = (lower <= true) & (true <= upper)
 
             ax.set_xlim(0, max(true))
             ax.set_ylim(0, max(upper[covered]))
 
-            ax.vlines(true, lower, upper, color=np.where(covered, BLUE, RED), linewidths=MARKER_WIDTH, alpha=0.5)
-            ax.scatter(true, mean, marker="_", color="black", s=MARKER_WIDTH ** 2, linewidth=1.0)
-            ax.plot([0, max(true)], [0, max(true)], color="black", linestyle="--", linewidth=1.0)
-            ax.tick_params(axis='both', which='major', labelsize=TICK_LABEL_SIZE)
-    
+            ax.vlines(
+                true,
+                lower,
+                upper,
+                color=np.where(covered, BLUE, RED),
+                linewidths=MARKER_WIDTH,
+                alpha=0.5,
+            )
+            ax.scatter(
+                true,
+                mean,
+                marker="_",
+                color="black",
+                s=MARKER_WIDTH**2,
+                linewidth=1.0,
+            )
+            ax.plot(
+                [0, max(true)],
+                [0, max(true)],
+                color="black",
+                linestyle="--",
+                linewidth=1.0,
+            )
+            ax.tick_params(axis="both", which="major", labelsize=TICK_LABEL_SIZE)
+
     fig.savefig(output)
+
 
 def coverage_table(coverage_table_file, stats, output):
     df = pd.read_csv(coverage_table_file)
@@ -105,26 +134,58 @@ def coverage_table(coverage_table_file, stats, output):
 
 
 latex_jinja_env = jinja2.Environment(
-    block_start_string='\BLOCK{',
-    block_end_string='}',
-    variable_start_string='\VAR{',
-    variable_end_string='}',
-    comment_start_string='\#{',
-    comment_end_string='}',
-    line_statement_prefix='%%',
-    line_comment_prefix='%#',
+    block_start_string="\BLOCK{",
+    block_end_string="}",
+    variable_start_string="\VAR{",
+    variable_end_string="}",
+    comment_start_string="\#{",
+    comment_end_string="}",
+    line_statement_prefix="%%",
+    line_comment_prefix="%#",
     trim_blocks=True,
     autoescape=False,
-    loader=jinja2.FileSystemLoader(".")
+    loader=jinja2.FileSystemLoader("."),
 )
 
-def build_manuscript(template_file, content_template_file,
-                     figures_dict, tables_dict,
-                     submission=False):
+TREEFLOW_PAPER_TEMPLATE_KEYS = {
+    "min_sequence_count",
+    "max_sequence_count",
+    "sequence_length",
+    "replicate_count",
+    "sample_count",
+}
+
+
+def get_treeflow_manuscript_vars(treeflow_benchmarks_config):
+    return dict(
+        min_sequence_count=min(treeflow_benchmarks_config["full_taxon_counts"]),
+        max_sequence_count=max(treeflow_benchmarks_config["full_taxon_counts"]),
+        sequence_length=treeflow_benchmarks_config["sequence_length"],
+        replicate_count=treeflow_benchmarks_config["replicates"],
+        sample_count=treeflow_benchmarks_config["sample_count"],
+    )
+
+
+def build_manuscript(
+    template_file,
+    content_template_file,
+    figures_dict,
+    tables_dict,
+    vars,
+    submission=False,
+):
     if submission:
         figures = lambda x, args: None
     else:
-        figures = lambda x, args: f"\\includegraphics{args}{{{str(os.path.splitext(figures_dict[x])[0])}}}"
-    tables = { key: text_input(filename) for key, filename in tables_dict.items() }
+        figures = (
+            lambda x, args: f"\\includegraphics{args}{{{str(os.path.splitext(figures_dict[x])[0])}}}"
+        )
+    tables = {key: text_input(filename) for key, filename in tables_dict.items()}
     template = latex_jinja_env.get_template(content_template_file)
-    return template.render(template=template_file, tables=tables, figures=figures, submission=submission)
+    return template.render(
+        template=template_file,
+        tables=tables,
+        figures=figures,
+        submission=submission,
+        **vars,
+    )
