@@ -133,6 +133,11 @@ def coverage_table(coverage_table_file, stats, output):
     (renamed * 100).to_latex(output, float_format="%.0f%%")
 
 
+def benchmark_fit_table(benchmark_table_file, output):
+    df = pd.read_csv(benchmark_table_file)
+    df.to_latex(output)
+
+
 latex_jinja_env = jinja2.Environment(
     block_start_string="\BLOCK{",
     block_end_string="}",
@@ -146,14 +151,6 @@ latex_jinja_env = jinja2.Environment(
     autoescape=False,
     loader=jinja2.FileSystemLoader("."),
 )
-
-TREEFLOW_PAPER_TEMPLATE_KEYS = {
-    "min_sequence_count",
-    "max_sequence_count",
-    "sequence_length",
-    "replicate_count",
-    "sample_count",
-}
 
 
 def get_treeflow_manuscript_vars(treeflow_benchmarks_config):

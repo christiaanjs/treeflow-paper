@@ -76,6 +76,15 @@ rule template_relaxed_clock_ms:
             output[0]
         )
 
+rule benchmark_fit_table:
+    input:
+        treeflow_benchmarks_dir / "out" / "fit-table.csv"
+    output:
+        manuscript_dir / "tables" / "benchmark-table.tex"
+    run:
+        treeflow_pipeline.manuscript.benchmark_fit_table(input[0], output[0])
+
+
 rule template_treeflow_ms:
     input:
         coverage_table = rules.coverage_table.output[0],
@@ -83,6 +92,8 @@ rule template_treeflow_ms:
         template = tex_template,
         body_template = manuscript_dir / "tex" / "treeflow.j2.tex",
         treeflow_benchmarks_config = treeflow_benchmarks_dir / "config.yaml",
+        benchmark_plot = treeflow_benchmarks_dir / "out" / "log-scale-plot.png",
+        benchmark_fit_table = rules.benchmark_fit_table.output[0]
     output:
         manuscript_dir / "out" / "treeflow.tex"
     run:
@@ -90,8 +101,8 @@ rule template_treeflow_ms:
             treeflow_pipeline.manuscript.build_manuscript(
                 input.template,
                 input.body_template,
-                dict(),
-                dict(),
+                dict(benchmark=input.benchmark_plot),
+                dict(benchmark_fit=input.benchmark_fit_table),
                 treeflow_pipeline.manuscript.get_treeflow_manuscript_vars(yaml_input(input.treeflow_benchmarks_config)),
                 submission=config["submission"]
             ),
