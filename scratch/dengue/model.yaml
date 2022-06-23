@@ -1,0 +1,13 @@
+clock:
+  strict:
+    clock_rate: 1.0
+site:
+  none
+substitution:
+  jc
+tree:
+  yule:
+    birth_rate:
+      lognormal:
+        loc: 1.0
+        scale: 1.5
