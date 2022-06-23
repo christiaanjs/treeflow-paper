@@ -50,6 +50,8 @@ def build_raxml_command(
         )
     if site_model == "none":
         args.append("-V")
+    elif site_model == "discrete_gamma":
+        pass
     else:
         raise ValueError("Unsupported site model for RAxML: {0}".format(site_model))
     kwargs = dict(p=seed, n="raxml", s=alignment_file, w=working_directory, m="GTRCATX")

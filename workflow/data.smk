@@ -13,10 +13,14 @@ datasets = list(all_models.keys())
 models = { dataset: treeflow_pipeline.model.Model(all_models[dataset]["model"]) for dataset in datasets }
 
 dataset_dir = "{dataset}"
+data_dir = pathlib.Path("data")
+default_out_dir = pathlib.Path("out")
 
 rule data:
     input:
-        wd / "carnivores" / "topology.nwk"
+        #wd / "carnivores" / "topology.nwk",
+        default_out_dir / "carnivores-beast2.log",
+        wd / "dengue" / "topology.nwk"
 
 rule carnivores_data_xml:
     output:
@@ -28,9 +32,18 @@ rule xml_to_fasta:
     input:
         wd / "{dataset}-data.xml"
     output:
-        pathlib.Path("data") / "{dataset}.fasta"
+        data_dir / "{dataset}.fasta"
     run:
         convert_simulated_sequences(input[0], output[0], "fasta", reformat_taxon_name=True)
+
+rule carnivores_beast_run:
+    input:
+        xml = data_dir / "carnivores-beast2.xml"
+    output:
+        trees = default_out_dir / "carnivores-beast2.trees",
+        trace = default_out_dir / "carnivores-beast2.log"
+    shell:
+        "beast -overwrite {input.xml}"
 
 rule model_files:
     output:
