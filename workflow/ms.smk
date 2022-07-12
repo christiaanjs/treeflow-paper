@@ -4,8 +4,10 @@ import treeflow_pipeline.model
 from treeflow_pipeline.util import yaml_input, text_input, text_output
 import treeflow_pipeline.manuscript
 
+import treeflow
 import treeflow_benchmarks
 treeflow_benchmarks_dir = pathlib.Path(treeflow_benchmarks.__file__).parents[1]
+treeflow_dir = pathlib.Path(treeflow.__file__).parents[1]
 
 configfile: "config/ms-config.yaml"
 model = treeflow_pipeline.model.Model(yaml_input(config["model_file"]))
@@ -20,6 +22,7 @@ aggregate_result_dir = pathlib.Path(config["aggregate_result_dir"])
 taxa_dir = config["taxa_dir"]
 sequence_dir = config["sequence_dir"]
 manuscript_dir = pathlib.Path("manuscript")
+out_dir = pathlib.Path("out")
 
 rule ms:
     input:
@@ -84,6 +87,15 @@ rule benchmark_fit_table:
     run:
         treeflow_pipeline.manuscript.benchmark_fit_table(input[0], output[0])
 
+rule carnivores_marginals_plot:
+    params:
+        beast_trace = out_dir / "carnivores-beast2.log",
+        vi_trace = treeflow_dir / "examples" / "demo-out" / "carnivores-base-samples.csv"
+    output:
+        manuscript_dir / "figures" / "carnivores-marginals.png"
+    script:
+        "../scripts/carnivores-marginals-plot.R"
+
 
 rule template_treeflow_ms:
     input:
@@ -93,7 +105,8 @@ rule template_treeflow_ms:
         body_template = manuscript_dir / "tex" / "treeflow.j2.tex",
         treeflow_benchmarks_config = treeflow_benchmarks_dir / "config.yaml",
         benchmark_plot = treeflow_benchmarks_dir / "out" / "log-scale-plot.png",
-        benchmark_fit_table = rules.benchmark_fit_table.output[0]
+        benchmark_fit_table = rules.benchmark_fit_table.output[0],
+        carnivores_marginals_plot = rules.carnivores_marginals_plot.output[0]
     output:
         manuscript_dir / "out" / "treeflow.tex"
     run:
@@ -101,9 +114,9 @@ rule template_treeflow_ms:
             treeflow_pipeline.manuscript.build_manuscript(
                 input.template,
                 input.body_template,
-                dict(benchmark=input.benchmark_plot),
-                dict(benchmark_fit=input.benchmark_fit_table),
-                treeflow_pipeline.manuscript.get_treeflow_manuscript_vars(yaml_input(input.treeflow_benchmarks_config)),
+                figures_dict=dict(benchmark=input.benchmark_plot, carnivores_marginals=input.carnivores_marginals_plot),
+                tables_dict=dict(benchmark_fit=input.benchmark_fit_table),
+                vars=treeflow_pipeline.manuscript.get_treeflow_manuscript_vars(yaml_input(input.treeflow_benchmarks_config)),
                 submission=config["submission"]
             ),
             output[0]

@@ -1,16 +1,24 @@
-setClass("Snakemake", representation(input="list"))
-snakemake <- new("Snakemake", input=list(
-  beast_trace="../out/carnivores-beast2.log",
-  vi_trace="../../treeflow/examples/demo-out/carnivores-base-samples.csv"
-))
-
 readBeastTrace <- function(filename, burnIn=0.1){
   raw <- readr::read_tsv(filename, comment="#")
   burnedIn <- dplyr::filter(raw, dplyr::row_number() > nrow(raw) * burnIn)
-  dplyr::transmute(burnedIn, Kappa=kappa, `Tree height`=TreeHeight, `Birth rate`=birthRate, `Gamma shape`=gammaShape)
+  dplyr::transmute(burnedIn, Kappa=kappa, `Birth rate`=birthRate, `Gamma shape`=gammaShape, `Tree height`=TreeHeight, )
+}
+
+readViTrace <- function(filename){
+  raw <- readr::read_csv(filename)
+  dplyr::transmute(raw, Kappa=kappa, `Birth rate`=birth_rate, `Gamma shape`=site_gamma_shape, `Tree height`=tree_height)
 }
 
 dfs <- list(
-  beast=readBeastTrace(snakemake@input["beast_trace"]),
-  vi=readr::read_csv(snakemake@input["vi_trace"])
+  `Beast 2`=readBeastTrace(snakemake@params["beast_trace"]),
+  `Treeflow VI`=readViTrace(snakemake@params["vi_trace"])
 )
+
+stacked <- dplyr::bind_rows(dfs, .id="Method")
+pivoted <- tidyr::pivot_longer(stacked, !Method, names_to="variable")
+
+fig <- ggplot2::ggplot(pivoted) +
+  ggplot2::geom_density(ggplot2::aes(value, colour=Method)) +
+  ggplot2::facet_wrap(~variable, scales="free")
+
+ggplot2::ggsave(snakemake@output[[1]], fig, width=8, height=6)
