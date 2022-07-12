@@ -11,7 +11,7 @@ unrooted_tree_filename = dict(
 lsd_output_format = config["lsd_output_format"]
 
 rooted_tree_filename, rooted_tree_format, fix_dates = {
-    "lsd": (f"lsd-tree.date.{lsd_output_format}", lsd_output_format, False),
+    "lsd": (f"lsd-tree.{lsd_output_format}", lsd_output_format, False),
     "lsd-dates": (f"lsd-dates-tree.date.{lsd_output_format}", lsd_output_format, True)
 }[config["rooting_method"]]
 
