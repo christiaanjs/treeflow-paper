@@ -18,8 +18,8 @@ default_out_dir = pathlib.Path("out")
 
 rule data:
     input:
-        #wd / "carnivores" / "topology.nwk",
-        default_out_dir / "carnivores-beast2.log",
+        wd / "carnivores" / "topology.nwk",
+        #default_out_dir / "carnivores-beast2.log",
         wd / "dengue" / "topology.nwk"
 
 rule carnivores_data_xml:
