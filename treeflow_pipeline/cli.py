@@ -74,6 +74,7 @@ def infer_topology(
                 subst_model=obj.model.subst_model,
                 site_model=obj.model.site_model,
                 clock_model=obj.model.clock_model,
+                tree_model=obj.model.tree_model,
                 lsd_output_format=lsd_output_format,
                 seed=obj.seed,
             ),

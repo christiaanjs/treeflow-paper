@@ -71,7 +71,8 @@ rule starting_values_lsd:
         yaml_output(top.get_starting_values_lsd(
             input.date_tree,
             input.distance_tree,
-            lsd_output_format
+            lsd_output_format,
+            config["tree_model"]
         ), output[0])
 
 rule starting_values_lsd_dates:
