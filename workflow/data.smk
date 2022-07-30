@@ -18,9 +18,9 @@ default_out_dir = pathlib.Path("out")
 
 rule data:
     input:
-        wd / "carnivores" / "topology.nwk",
+        wd / "dengue" / "beast.log",
         #default_out_dir / "carnivores-beast2.log",
-        wd / "dengue" / "topology.nwk"
+        #wd / "dengue" / "topology.nwk"
 
 rule carnivores_data_xml:
     output:
@@ -35,6 +35,7 @@ rule xml_to_fasta:
         data_dir / "{dataset}.fasta"
     run:
         convert_simulated_sequences(input[0], output[0], "fasta", reformat_taxon_name=True)
+
 
 rule carnivores_beast_run:
     input:

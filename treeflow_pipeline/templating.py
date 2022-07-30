@@ -92,11 +92,12 @@ def x2s(x):
 
 dist_name_mapping = dict(normal_gamma_normal="normal")
 
+DISTRIBUTION_SUPPORTS = dict(lognormal="nonnegative", gamma="nonnegative")
+
 
 def get_state_tag(name, dist_dict, init_value):
     dist_name, params = next(iter(dist_dict.items()))
-    support = None
-    raise NotImplemented("Support needs implementing")
+    support = DISTRIBUTION_SUPPORTS[dist_name]
     element = ET.Element("parameter", attrib=dict(name="stateNode", id=name))
     element.text = str(init_value)
     if support == "nonnegative":
@@ -153,20 +154,21 @@ def get_normalgamma_params(loc_name, precision_name, dist_dict):
 
 
 def resolve_param_value(name, model, init_value):
-    if model == "fixed":
-        if isinstance(
-            init_value, collections.Iterable
-        ):  # TODO: Case of 0d Numpy as array
+    if isinstance(model, dict):
+        return f"@{name}"
+    else:
+        if isinstance(model, collections.Iterable):  # TODO: Case of 0d Numpy as array
             return " ".join(map(str, init_value))
         else:
-            return str(init_value)
-    else:
-        return f"@{name}"
+            return str(model)
 
 
 def get_rate_prior_tag(clock_model, params):
     if clock_model == "strict":
-        return None
+        if isinstance(params["clock_rate"], dict):
+            return get_prior_tag("clock_rate", params["clock_rate"])
+        else:
+            return ""
     elif clock_model == "relaxed_lognormal":
         tag_name, params_attrib = dist_functions["lognormal"](
             1.0, resolve_param_value("rate_sd", params["rate_sd"], 1.0)
@@ -206,36 +208,51 @@ def get_tree_prior_tag(tree_model, params, init_values):
         dist_tag = ET.Element("distribution", spec="Coalescent")
         dist_tag.insert(0, population_tag)
         dist_tag.insert(1, intervals_tag)
-        return x2s(dist_tag)
+    elif tree_model == "yule":
+        dist_tag = ET.Element(
+            "distribution",
+            spec="beast.evolution.speciation.YuleModel",
+            tree="@tree",
+            birthDiffRate=resolve_param_value(
+                "birth_rate", params["birth_rate"], init_values["birth_rate"]
+            ),
+        )
+        intervals_tag = ET.Element("treeIntervals", spec="TreeIntervals", tree="@tree")
     else:
         raise ValueError(f"Unknown tree model: {tree_model}")
+    return x2s(dist_tag)
 
 
-subst_model_specs = dict(hky="HKY")
+subst_model_specs = dict(hky="HKY", jc="JukesCantor")
 
 
 def get_subst_model_tag(subst_model, params, init_values):
-    frequencies_tag = ET.Element(
-        "frequencies",
-        spec="Frequencies",
-        frequencies=resolve_param_value(
-            "frequencies", params["frequencies"], init_values["frequencies"]
-        ),
-    )
     try:
         spec = subst_model_specs[subst_model]
     except KeyError:
         raise ValueError(f"Unknown substitution model {subst_model}")
-    subst_tag = ET.Element(
-        "substModel",
-        attrib={
+    if subst_model == "jc":
+        attrib = {}
+    else:
+        attrib = {
             param: resolve_param_value(param, model, init_values[param])
             for param, model in params.items()
             if param != "frequencies"
-        },
+        }
+    subst_tag = ET.Element(
+        "substModel",
+        attrib=attrib,
         spec=spec,
     )
-    subst_tag.insert(0, frequencies_tag)
+    if subst_model != "jc":
+        frequencies_tag = ET.Element(
+            "frequencies",
+            spec="Frequencies",
+            frequencies=resolve_param_value(
+                "frequencies", params["frequencies"], init_values["frequencies"]
+            ),
+        )
+        subst_tag.insert(0, frequencies_tag)
     return subst_tag
 
 
@@ -249,11 +266,30 @@ def get_site_model_tag(site_model, params, init_values, subst_model_tag):
             proportionInvariant=str(0.0),
         )
         site_tag.insert(0, subst_model_tag)
-        return x2s(site_tag)
+    elif site_model == "discrete_gamma":
+        site_tag = ET.Element(
+            "siteModel",
+            spec="SiteModel",
+            mutationRate=str(1.0),
+            shape=resolve_param_value(
+                "site_gamma_shape",
+                params["site_gamma_shape"],
+                init_values["site_gamma_shape"],
+            ),
+            gammaCategoryCount=str(params["category_count"]),
+            proportionInvariant=str(0.0),
+        )
+        site_tag.insert(0, subst_model_tag)
     else:
         raise ValueError(f"Unknown site model: {site_model}")
+    return x2s(site_tag)
 
 
+# <siteModel id="SiteModel.s:dengue" spec="SiteModel" gammaCategoryCount="4" shape="@gammaShape.s:dengue">
+#                     <parameter id="mutationRate.s:dengue" spec="parameter.RealParameter" estimate="false" name="mutationRate">1.0</parameter>
+#                     <parameter id="proportionInvariant.s:dengue" spec="parameter.RealParameter" estimate="false" lower="0.0" name="proportionInvariant" upper="1.0">0.0</parameter>
+#                     <substModel id="JC69.s:dengue" spec="JukesCantor"/>
+#                 </siteModel>
 def get_branch_rate_model_tag(clock_model, params, init_values):
     attrib = {
         "id": "branch_rate_model",
@@ -298,10 +334,9 @@ op_functions = dict(
 def get_operator_tag(
     name, dist_dict, weight=3.0, **op_kwargs
 ):  # TODO: Deal with special
+
     dist_name, params = next(iter(dist_dict.items()))
-    support = treeflow.model.distribution_class_supports[
-        treeflow_pipeline.model.dists[dist_name_mapping.get(dist_name, dist_name)]
-    ]
+    support = DISTRIBUTION_SUPPORTS[dist_name_mapping.get(dist_name, dist_name)]
     try:
         attribs = op_functions[support](**op_kwargs)
     except KeyError:
@@ -316,22 +351,19 @@ def get_operator_tag(
 
 def get_clock_operator_tags(clock_model, params):
     ops = []
-    if "clock_rate" in params:
-        clock_rate_dist = next(iter(params["clock_rate"]))
-
-        if clock_rate_dist != "fixed":
-            ops.append(
-                x2s(
-                    ET.Element(
-                        "operator",
-                        spec="UpDownOperator",
-                        scaleFactor=str(0.75),
-                        weight=str(3.0),
-                        up="@clock_rate",
-                        down="@tree",
-                    )
+    if "clock_rate" in params and isinstance(params["clock_rate"], dict):
+        ops.append(
+            x2s(
+                ET.Element(
+                    "operator",
+                    spec="UpDownOperator",
+                    scaleFactor=str(0.75),
+                    weight=str(3.0),
+                    up="@clock_rate",
+                    down="@tree",
                 )
             )
+        )
 
         # TODO: Relaxed clock rate operators
     return ops

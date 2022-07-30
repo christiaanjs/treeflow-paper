@@ -136,7 +136,7 @@ def infer_topology_raxml(
 def get_starting_values_raxml(raxml_info_file, subst_model):
     estimate_frequencies = subst_model != "jc"
     raxml_info = parse_raxml_info(raxml_info_file, estimate_frequencies=estimate_frequencies)
-    res = dict()
+    res = dict(site_gamma_shape=raxml_info["alpha"])
     if estimate_frequencies:
         res["frequencies"] = raxml_info["frequencies"]
     if subst_model == "hky":
