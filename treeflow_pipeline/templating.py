@@ -4,7 +4,7 @@ import pathlib
 import treeflow_pipeline.model
 import treeflow_pipeline.topology_inference
 import xml.etree.ElementTree as ET
-import collections
+import typing
 
 template_env = jinja2.Environment(
     loader=jinja2.PackageLoader("treeflow_pipeline", "templates")
@@ -157,7 +157,7 @@ def resolve_param_value(name, model, init_value):
     if isinstance(model, dict):
         return f"@{name}"
     else:
-        if isinstance(model, collections.Iterable):  # TODO: Case of 0d Numpy as array
+        if isinstance(model, typing.Iterable):  # TODO: Case of 0d Numpy as array
             return " ".join(map(str, init_value))
         else:
             return str(model)
@@ -381,11 +381,15 @@ def build_beast_analysis(
     beast_config,
     out_file,
     estimate_topology=False,
+    dated=False,
 ):
     out_path = pathlib.Path(out_file)
     template = template_env.get_template("beast-analysis.j2.xml")
-    date_dict = treeflow_pipeline.topology_inference.parse_dates(sequence_dict)
-    date_trait_string = build_date_string(date_dict)
+    if dated:
+        date_dict = treeflow_pipeline.topology_inference.parse_dates(sequence_dict)
+        date_trait_string = build_date_string(date_dict)
+    else:
+        date_trait_string = None
 
     free_params = model.free_params()
 

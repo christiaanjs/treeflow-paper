@@ -21,11 +21,13 @@
 <run id="mcmc" spec="MCMC" chainLength="{{ chain_length }}">
     <state id="state" storeEvery="5000">
         <tree id="tree" name="stateNode">
+            <taxonset id="TaxonSet.Treeflow" spec="TaxonSet" alignment="@alignment"/>
+            {% if date_trait_string is not none %}
             <trait id="date_trait" spec="beast.evolution.tree.TraitSet" traitname="date">
                     {{ date_trait_string }}
-                <taxa id="TaxonSet.Treeflow" spec="TaxonSet" alignment="@alignment"/>
+                <taxa idref="TaxonSet.Treeflow"/>
             </trait>
-            <taxonset idref="TaxonSet.Treeflow"/>
+            {% endif %}
         </tree>
         {% for state_tag in state_tags %}{{ state_tag }}
         {% endfor %}

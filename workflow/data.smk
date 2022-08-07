@@ -19,8 +19,9 @@ default_out_dir = pathlib.Path("out")
 
 rule data:
     input:
-        wd / "dengue" / "marginals.png",
-        wd / "dengue_coal" / "marginals.png"
+        wd / "dengue" / "beast.log",
+        wd / "dengue_coal" / "beast.log",
+        #wd / "dengue_coal" / "marginals.png"
         #wd / "dengue" / "beast.log",
         #wd / "dengue" / "variational-trace.png",
         #default_out_dir / "carnivores-beast2.log",
@@ -90,7 +91,8 @@ rule beast_xml:
             yaml_input(input.starting_values),
             models[wildcards.dataset],
             yaml_input(input.beast_config),
-            output[0]
+            output[0],
+            dated=all_models[wildcards.dataset]["dates"]
         ), output[0])
 
 rule beast_run:
