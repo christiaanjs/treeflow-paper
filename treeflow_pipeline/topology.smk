@@ -78,14 +78,15 @@ rule starting_values_lsd:
 rule starting_values_lsd_dates:
     input:
         date_tree = rules.root_topology_lsd_dates.output.date_tree,
-        distance_tree = rules.root_topology_lsd.output.distance_tree
+        distance_tree = rules.root_topology_lsd_dates.output.distance_tree
     output:
         wd / "starting-values-lsd-dates.yaml"
     run:
         yaml_output(top.get_starting_values_lsd(
             input.date_tree,
             input.distance_tree,
-            lsd_output_format
+            lsd_output_format,
+            config["tree_model"]
         ), output[0])
 
 rule starting_values:

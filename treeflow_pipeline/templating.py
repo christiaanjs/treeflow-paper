@@ -196,7 +196,7 @@ def get_rate_prior_tag(clock_model, params):
 
 
 def get_tree_prior_tag(tree_model, params, init_values):
-    if tree_model == "coalescent_constant":
+    if tree_model == "coalescent":
         population_tag = ET.Element(
             "populationModel",
             spec="ConstantPopulation",

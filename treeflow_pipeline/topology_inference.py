@@ -56,7 +56,13 @@ def build_raxml_command(
         pass
     else:
         raise ValueError("Unsupported site model for RAxML: {0}".format(site_model))
-    kwargs = dict(p=seed, n="raxml", s=alignment_file, w=working_directory, m="GTRCAT" if subst_model == "jc" else "GTRCATX")
+    kwargs = dict(
+        p=seed,
+        n="raxml",
+        s=alignment_file,
+        w=working_directory,
+        m="GTRCAT" if subst_model == "jc" else "GTRCATX",
+    )
     return util.build_shell_command("raxmlHPC", args, kwargs)
 
 
@@ -135,7 +141,9 @@ def infer_topology_raxml(
 
 def get_starting_values_raxml(raxml_info_file, subst_model):
     estimate_frequencies = subst_model != "jc"
-    raxml_info = parse_raxml_info(raxml_info_file, estimate_frequencies=estimate_frequencies)
+    raxml_info = parse_raxml_info(
+        raxml_info_file, estimate_frequencies=estimate_frequencies
+    )
     res = dict(site_gamma_shape=raxml_info["alpha"])
     if estimate_frequencies:
         res["frequencies"] = raxml_info["frequencies"]
@@ -226,14 +234,16 @@ def estimate_pop_size(tree_file, tree_format):
     leaf_depths = [depths[leaf] for leaf in tree.get_terminals()]
     return min(leaf_depths) * 2.0
 
+
 def estimate_birth_rate(tree_file, tree_format):
-    # Kendal-Moran estimator of the speciation rate 
+    # Kendal-Moran estimator of the speciation rate
     with open(tree_file) as f:
         tree = next(Bio.Phylo.parse(f, tree_format))
 
     n = tree.count_terminals()
     branch_sum = tree.total_branch_length()
     return (n - 2) / branch_sum
+
 
 def get_taxon_count(tree_file, tree_format):
     with open(tree_file) as f:
@@ -242,7 +252,9 @@ def get_taxon_count(tree_file, tree_format):
     return tree.count_terminals()
 
 
-def get_starting_values_lsd(date_tree_file, distance_tree_file, lsd_output_format, tree_model):
+def get_starting_values_lsd(
+    date_tree_file, distance_tree_file, lsd_output_format, tree_model
+):
     res = dict(
         clock_rate=estimate_rate(
             date_tree_file,
@@ -251,13 +263,14 @@ def get_starting_values_lsd(date_tree_file, distance_tree_file, lsd_output_forma
             distance_tree_format=lsd_output_format,
         ),
     )
-    if tree_model == "constant_coalescent":
+    if tree_model == "coalescent":
         res["pop_size"] = estimate_pop_size(date_tree_file, lsd_output_format)
     elif tree_model == "yule":
         res["birth_rate"] = estimate_birth_rate(date_tree_file, lsd_output_format)
     else:
         raise ValueError(f"Unknown tree model: {tree_model}")
     return res
+
 
 def finalise_starting_values(
     tree_starting_values, rooting_starting_values, clock_model

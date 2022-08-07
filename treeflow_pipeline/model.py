@@ -64,7 +64,7 @@ def get_phylo_prior(sampling_times, model):
         model_dict["clock_rate"] = get_dist(model.clock_params["clock_rate"])
         model_dict["rate_sd"] = get_dist(model.clock_params["rate_sd"])
         model_dict["rates"] = lambda rate_sd: tfd.Sample(
-            tfd.LogNormal(loc=-(rate_sd ** 2.0) / 2, scale=rate_sd),
+            tfd.LogNormal(loc=-(rate_sd**2.0) / 2, scale=rate_sd),
             sample_shape=2 * taxon_count - 2,
         )
     elif model.clock_model == "relaxed_lognormal_conjugate":
@@ -321,3 +321,17 @@ def reconstruct_approx(
         q_dict["rates"] = q_rates
 
     return tfp.distributions.JointDistributionNamed(q_dict)
+
+
+def build_init_values_string(init_values_dict):
+    return ",".join([f"{key}={value}" for key, value in init_values_dict.items()])
+
+
+def plot_variational_trace(trace, output_file):
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    plt.plot(trace.loss.numpy())
+    plt.savefig(output_file)
