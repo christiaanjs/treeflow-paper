@@ -92,16 +92,24 @@ def x2s(x):
 
 dist_name_mapping = dict(normal_gamma_normal="normal")
 
-DISTRIBUTION_SUPPORTS = dict(lognormal="nonnegative", gamma="nonnegative")
+DISTRIBUTION_SUPPORTS = dict(
+    lognormal="nonnegative", gamma="nonnegative", dirichlet="simplex"
+)
 
 
 def get_state_tag(name, dist_dict, init_value):
     dist_name, params = next(iter(dist_dict.items()))
     support = DISTRIBUTION_SUPPORTS[dist_name]
     element = ET.Element("parameter", attrib=dict(name="stateNode", id=name))
-    element.text = str(init_value)
+    if isinstance(init_value, list):
+        element.text = " ".join([str(x) for x in init_value])
+    else:
+        element.text = str(init_value)
     if support == "nonnegative":
         element.set("lower", str(0.0))
+    elif support == "simplex":
+        element.set("lower", str(0.0))
+        element.set("upper", str(1.0))
     elif support != "real":
         raise ValueError(
             f"Support {support} not implemented for distribution {dist_name}"
@@ -118,6 +126,10 @@ dist_functions = dict(
     normal_gamma_normal=lambda loc, precision, precision_scale: (
         "NormalGammaNormal",
         dict(mean=str(loc), tau=str(precision), tauScale=str(precision_scale)),
+    ),
+    dirichlet=lambda concentration: (
+        "Dirichlet",
+        dict(alpha=" ".join([str(x) for x in concentration])),
     ),
 )
 
@@ -321,6 +333,9 @@ scale_operator_func = lambda scale_factor: dict(
 random_walk_operator_func = lambda window_size: dict(
     spec="RealRandomWalkOperator", windowSize=str(window_size)
 )
+delta_exchange_operator_func = lambda delta: dict(
+    spec="DeltaExchangeOperator", delta=str(delta)
+)
 
 op_functions = dict(
     nonnegative=lambda scale_factor=0.75: [scale_operator_func(scale_factor)],
@@ -328,6 +343,7 @@ op_functions = dict(
         scale_operator_func(scale_factor),
         random_walk_operator_func(window_size),
     ],
+    simplex=lambda delta=0.01: [delta_exchange_operator_func(delta)],
 )
 
 

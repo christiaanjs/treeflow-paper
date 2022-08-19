@@ -323,8 +323,20 @@ def reconstruct_approx(
     return tfp.distributions.JointDistributionNamed(q_dict)
 
 
+def build_init_value_string(init_value) -> str:
+    if isinstance(init_value, list):
+        return "|".join([str(x) for x in init_value])
+    else:
+        return str(init_value)
+
+
 def build_init_values_string(init_values_dict):
-    return ",".join([f"{key}={value}" for key, value in init_values_dict.items()])
+    return ",".join(
+        [
+            f"{key}={build_init_value_string(value)}"
+            for key, value in init_values_dict.items()
+        ]
+    )
 
 
 def plot_variational_trace(trace, output_file):

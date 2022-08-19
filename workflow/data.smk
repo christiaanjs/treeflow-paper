@@ -19,8 +19,14 @@ default_out_dir = pathlib.Path("out")
 
 rule data:
     input:
-        wd / "dengue" / "beast.log",
-        wd / "dengue_coal" / "beast.log",
+        wd / "primates_easy" / "marginals.png",
+        wd / "dengue_coal_easy" / "marginals.png",
+        wd / "primates" / "marginals.png",
+        wd / "dengue_coal" / "marginals.png",
+        wd / "dengue" / "marginals.png",
+        # wd / "dengue" / "variational-trace.png",
+        # wd / "dengue_coal" / "variational-trace.png",
+        # wd / "primates" / "variational-trace.png",
         #wd / "dengue_coal" / "marginals.png"
         #wd / "dengue" / "beast.log",
         #wd / "dengue" / "variational-trace.png",
@@ -117,17 +123,44 @@ rule variational_fit:
         samples = wd / dataset_dir / "variational-samples.csv",
         tree_samples = wd / dataset_dir / "variational-tree-samples.nexus"
     shell:
-        """
+        '''
         treeflow_vi -s {config[seed]} \
             -i {input.fasta} \
             -m {input.model_file} \
             -t {input.topology} \
-            -n 10000 \
-            --init-values {params.starting_values_string} \
+            -n 40000 \
+            --learning-rate 0.01 \
+            --init-values "{params.starting_values_string}" \
             --trace-output {output.trace} \
             --samples-output {output.samples} \
             --tree-samples-output {output.tree_samples}
-        """
+        '''
+
+rule ml_fit:
+    input:
+        fasta = lambda wildcards: all_models[wildcards.dataset]["alignment"],
+        topology = wd / dataset_dir / "topology.nwk",
+        starting_values = wd / dataset_dir / "starting-values.yaml",
+        model_file = wd / dataset_dir / "model.yaml"
+    params:
+        starting_values_string = lambda wildcards, input: build_init_values_string(yaml_input(input.starting_values))
+    output:
+        trace = wd / dataset_dir / "ml-trace.pickle",
+        variables = wd / dataset_dir / "ml-variables.csv",
+        tree = wd / dataset_dir / "ml-tree.nexus"
+    shell:
+        '''
+        treeflow_ml \
+            -i {input.fasta} \
+            -m {input.model_file} \
+            -t {input.topology} \
+            -n 10000 \
+            --learning-rate 0.01 \
+            --init-values "{params.starting_values_string}" \
+            --trace-output {output.trace} \
+            --variables-output {output.variables} \
+            --tree-output {output.tree}
+        '''
 
 rule variational_trace_plot:
     input:
@@ -140,7 +173,8 @@ rule variational_trace_plot:
 rule marginals_plot:
     input:
         vi_samples = rules.variational_fit.output.samples,
-        beast_samples = rules.beast_run.output.trace
+        beast_samples = rules.beast_run.output.trace,
+        ml_variables = rules.ml_fit.output.variables
     output:
         wd / dataset_dir / "marginals.png"
     script:
