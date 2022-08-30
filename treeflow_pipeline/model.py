@@ -8,8 +8,13 @@ from treeflow.model.phylo_model import (
     parse_model,
     RELAXED_CLOCK_MODELS,
     prior_distribution_classes as dists,
+    phylo_model_to_joint_distribution,
 )
-from treeflow_pipeline.optimization import RobustOptimizer
+from treeflow.vi.util import VIResults
+from treeflow.evolution.seqio import Alignment
+from treeflow.tree.rooted.tensorflow_rooted_tree import convert_tree_to_tensor
+from treeflow.tree.io import parse_newick
+from treeflow.model.approximation import get_fixed_topology_mean_field_approximation
 
 
 APPROX_MODELS = [
@@ -95,14 +100,7 @@ def get_phylo_prior(sampling_times, model):
     return tfd.JointDistributionNamed(model_dict)
 
 
-optimizers_base = dict(adam=tf.optimizers.Adam, sgd=tf.optimizers.SGD)
-optimizers = {
-    **optimizers_base,
-    **{
-        f"robust_{key}": lambda **kwargs: RobustOptimizer(optimizer(**kwargs))
-        for key, optimizer in optimizers_base.items()
-    },
-}
+optimizers = dict(adam=tf.optimizers.Adam, sgd=tf.optimizers.SGD)
 
 
 def fit_surrogate_posterior(
@@ -339,11 +337,19 @@ def build_init_values_string(init_values_dict):
     )
 
 
-def plot_variational_trace(trace, output_file):
-    import matplotlib
-
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-
-    plt.plot(trace.loss.numpy())
-    plt.savefig(output_file)
+def compute_trace_log_likelihoods(
+    trace: VIResults,
+    model: Model,
+    tree_file,
+    alignment_file,
+):
+    tree = convert_tree_to_tensor(parse_newick(tree_file))
+    alignment = Alignment(alignment_file).get_compressed_alignment()
+    encoded_sequences = alignment.get_encoded_sequence_tensor(tree.taxon_set)
+    pattern_counts = alignment.get_weights_tensor()
+    dist = phylo_model_to_joint_distribution(model, tree, alignment, pattern_counts)
+    pinned_model = dist.experimental_pin(alignment=encoded_sequences)
+    base_dict = trace.parameters
+    approximation, variables_dict = get_fixed_topology_mean_field_approximation(
+        model, topology_pins=dict(tree=tree.topology)
+    )

@@ -1,8 +1,9 @@
 from treeflow_pipeline.util import yaml_input, yaml_output, text_input, text_output, sequence_input, pickle_input
 from treeflow.model.phylo_model import PhyloModel
 import treeflow_pipeline.templating as tem
-from treeflow_pipeline.model import build_init_values_string, plot_variational_trace
+from treeflow_pipeline.model import build_init_values_string
 from treeflow_pipeline.simulation import convert_simulated_sequences
+from treeflow_pipeline.results import extract_trace_plot_data
 import pathlib
 
 configfile: "config/data-config.yaml"
@@ -23,6 +24,7 @@ rule data:
         wd / "dengue_coal_easy" / "marginals.png",
         wd / "primates" / "marginals.png",
         wd / "dengue_coal" / "marginals.png",
+        wd / "dengue_coal_easy" / "trace-plot-data.csv",
         wd / "dengue" / "marginals.png",
         # wd / "dengue" / "variational-trace.png",
         # wd / "dengue_coal" / "variational-trace.png",
@@ -154,7 +156,7 @@ rule ml_fit:
             -i {input.fasta} \
             -m {input.model_file} \
             -t {input.topology} \
-            -n 10000 \
+            -n 20000 \
             --learning-rate 0.01 \
             --init-values "{params.starting_values_string}" \
             --trace-output {output.trace} \
@@ -162,13 +164,18 @@ rule ml_fit:
             --tree-output {output.tree}
         '''
 
-rule variational_trace_plot:
+rule trace_plot_data:
     input:
-        rules.variational_fit.output.trace
+        variational_trace = rules.variational_fit.output.trace,
+        ml_trace = rules.ml_fit.output.trace
     output:
-        wd / dataset_dir / "variational-trace.png"
+        wd / dataset_dir / "trace-plot-data.csv"
     run:
-        plot_variational_trace(pickle_input(input[0]), output[0])
+        extract_trace_plot_data(
+            pickle_input(input.variational_trace),
+            pickle_input(input.ml_trace),
+            output[0]
+        )
 
 rule marginals_plot:
     input:

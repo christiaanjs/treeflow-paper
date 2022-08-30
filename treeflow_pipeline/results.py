@@ -1,6 +1,10 @@
+import typing as tp
 import dendropy
 import numpy as np
 from treeflow.tree.io import parse_newick, write_tensor_trees
+from treeflow.model.ml import MLResults
+from treeflow.vi.util import VIResults
+from treeflow.model.io import flatten_samples_to_dict
 import treeflow_pipeline.model
 import pandas as pd
 import io
@@ -264,3 +268,113 @@ def build_method_coverage_plot_table(method, coverage_stat_dict, output_file):
 def aggregate_coverage_plot_tables(coverage_tables, output_file):
     df = pd.concat([pd.read_csv(file) for file in coverage_tables])
     df.to_csv(output_file, index=False)
+
+
+def process_variational_key(key: str):
+    splits = key.split("_")
+    variational_param = splits[-1].split(":")[0]
+    var = "_".join(splits[:-1])
+    return var, variational_param
+
+
+def get_formatted_variational_trace(variational_trace):
+    flat_variational_trace, variational_key_mapping = flatten_samples_to_dict(
+        variational_trace.parameters,
+    )
+    variational_params_mapping = {
+        key: process_variational_key(key) for key in variational_trace.parameters.keys()
+    }
+    flat_var_name_mapping = pd.DataFrame(
+        [
+            (
+                i,
+                flat_varname,
+                varname,
+            )
+            for varname, flat_varnames in variational_key_mapping.items()
+            for i, flat_varname in enumerate(flat_varnames)
+        ],
+        columns=["var_index", "flat_var_name", "var_name"],
+    )
+    var_type_mapping = pd.DataFrame(
+        [
+            (flat_var_name, var_name, var_type)
+            for (
+                flat_var_name,
+                (var_name, var_type),
+            ) in variational_params_mapping.items()
+        ],
+        columns=["var_name", "model_var_name", "var_type"],
+    )
+    var_metadata = flat_var_name_mapping.merge(var_type_mapping)
+    variational_vars_df = pd.DataFrame(
+        {key: tensor.numpy() for key, tensor in flat_variational_trace.items()}
+    )
+    variational_vars_melted = variational_vars_df.reset_index().melt(
+        id_vars=("index",), var_name="flat_var_name"
+    )
+    variational_vars_with_metadata = variational_vars_melted.merge(var_metadata)
+    elbo = -variational_trace.loss.numpy()
+    elbo_df = (
+        pd.DataFrame(dict(value=elbo))
+        .reset_index()
+        .assign(var_type="loss", model_var_name="elbo", var_index=0)
+    )
+    return pd.concat(
+        [variational_vars_with_metadata[list(elbo_df.columns)], elbo_df]
+    ).assign(method="VI")
+
+
+def get_formatted_ml_trace(ml_trace):
+    ml_vars_dict, ml_params_mapping = flatten_samples_to_dict(ml_trace.parameters)
+    flat_var_name_mapping = pd.DataFrame(
+        [
+            (
+                i,
+                flat_varname,
+                varname,
+            )
+            for varname, flat_varnames in ml_params_mapping.items()
+            for i, flat_varname in enumerate(flat_varnames)
+        ],
+        columns=["var_index", "flat_var_name", "model_var_name"],
+    )
+    ml_vars_df = pd.DataFrame(
+        {key: tensor.numpy() for key, tensor in ml_vars_dict.items()}
+    )
+    ml_vars_melted = ml_vars_df.reset_index().melt(
+        id_vars=("index",), var_name="flat_var_name"
+    )
+    ml_vars_with_metadata = ml_vars_melted.merge(flat_var_name_mapping).assign(
+        var_type="variable"
+    )
+    ll = ml_trace.log_likelihood.numpy()
+    ll_df = (
+        pd.DataFrame(dict(value=ll))
+        .reset_index()
+        .assign(var_type="loss", model_var_name="log_likelihood", var_index=0)
+    )
+    return pd.concat([ml_vars_with_metadata[list(ll_df.columns)], ll_df]).assign(
+        method="ML"
+    )
+
+
+def extract_trace_plot_data(
+    variational_trace: VIResults, ml_trace: MLResults, output_file: str
+):
+
+    variational_df = get_formatted_variational_trace(variational_trace)
+    ml_df = get_formatted_ml_trace(ml_trace)
+
+    res = pd.concat([variational_df, ml_df])
+    res.to_csv(output_file, index=False)
+
+
+# def plot_variational_trace(trace, output_file):
+#     import matplotlib
+
+#     matplotlib.use("Agg")
+#     import matplotlib.pyplot as plt
+
+#     plt.plot(trace.loss.numpy())
+#     plt.savefig(output_file)
