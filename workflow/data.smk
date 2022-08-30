@@ -24,7 +24,7 @@ rule data:
         wd / "dengue_coal_easy" / "marginals.png",
         wd / "primates" / "marginals.png",
         wd / "dengue_coal" / "marginals.png",
-        wd / "dengue_coal_easy" / "trace-plot-data.csv",
+        wd / "dengue_coal_easy" / "traces.png",
         wd / "dengue" / "marginals.png",
         # wd / "dengue" / "variational-trace.png",
         # wd / "dengue_coal" / "variational-trace.png",
@@ -176,6 +176,14 @@ rule trace_plot_data:
             pickle_input(input.ml_trace),
             output[0]
         )
+
+rule trace_plot:
+    input:
+        rules.trace_plot_data.output[0]
+    output:
+        wd / dataset_dir / "traces.png"
+    script:
+        "../scripts/trace-plot.R"
 
 rule marginals_plot:
     input:
