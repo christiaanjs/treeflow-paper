@@ -2,6 +2,7 @@ import typing as tp
 import dendropy
 import numpy as np
 from treeflow.tree.io import parse_newick, write_tensor_trees
+from treeflow.evolution.seqio import parse_fasta
 from treeflow.model.ml import MLResults
 from treeflow.vi.util import VIResults
 from treeflow.model.io import flatten_samples_to_dict
@@ -368,6 +369,29 @@ def extract_trace_plot_data(
 
     res = pd.concat([variational_df, ml_df])
     res.to_csv(output_file, index=False)
+
+
+def compute_empirical_nucleotide_frequencies(fasta_file: str, output_file: str):
+    from treeflow.evolution.substitution.nucleotide.alphabet import A, C, G, T
+
+    frequencies_index_mapping = dict(A=A, C=C, G=G, T=T)
+
+    sequence_dict = parse_fasta(fasta_file)
+    sequence_df = pd.DataFrame(
+        {taxon: list(sequence) for taxon, sequence in sequence_dict.items()}
+    )
+    sequences_melted = sequence_df.melt()
+    nucleotide_counts = sequences_melted["value"][
+        sequences_melted["value"].isin(list(frequencies_index_mapping.keys()))
+    ].value_counts()
+    empirical_frequencies = nucleotide_counts / nucleotide_counts.sum()
+    frequencies_df = pd.DataFrame(
+        {
+            f"frequencies_{i}": [empirical_frequencies[base]]
+            for base, i in frequencies_index_mapping.items()
+        }
+    )
+    frequencies_df.to_csv(output_file, index=False)
 
 
 # def plot_variational_trace(trace, output_file):

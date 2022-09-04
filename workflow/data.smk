@@ -3,7 +3,7 @@ from treeflow.model.phylo_model import PhyloModel
 import treeflow_pipeline.templating as tem
 from treeflow_pipeline.model import build_init_values_string
 from treeflow_pipeline.simulation import convert_simulated_sequences
-from treeflow_pipeline.results import extract_trace_plot_data
+from treeflow_pipeline.results import extract_trace_plot_data, compute_empirical_nucleotide_frequencies
 import pathlib
 
 configfile: "config/data-config.yaml"
@@ -22,10 +22,10 @@ rule data:
     input:
         wd / "primates_easy" / "marginals.png",
         wd / "dengue_coal_easy" / "marginals.png",
-        wd / "primates" / "marginals.png",
-        wd / "dengue_coal" / "marginals.png",
-        wd / "dengue_coal_easy" / "traces.png",
-        wd / "dengue" / "marginals.png",
+        # wd / "primates" / "marginals.png",
+        # wd / "dengue_coal" / "marginals.png",
+        # wd / "dengue_coal_easy" / "traces.png",
+        # wd / "dengue" / "marginals.png",
         # wd / "dengue" / "variational-trace.png",
         # wd / "dengue_coal" / "variational-trace.png",
         # wd / "primates" / "variational-trace.png",
@@ -185,11 +185,21 @@ rule trace_plot:
     script:
         "../scripts/trace-plot.R"
 
+rule empirical_frequencies:
+    input:
+        lambda wildcards: all_models[wildcards.dataset]["alignment"]
+    output:
+        csv = wd / dataset_dir / "empirical-frequencies.csv"
+    run:
+        compute_empirical_nucleotide_frequencies(input[0], output.csv)
+
+
 rule marginals_plot:
     input:
         vi_samples = rules.variational_fit.output.samples,
         beast_samples = rules.beast_run.output.trace,
-        ml_variables = rules.ml_fit.output.variables
+        ml_variables = rules.ml_fit.output.variables,
+        empirical_frequencies = rules.empirical_frequencies.output.csv
     output:
         wd / dataset_dir / "marginals.png"
     script:

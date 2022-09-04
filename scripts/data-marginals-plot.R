@@ -25,15 +25,24 @@ dfs <- list(
   `Beast 2` = readBeastTrace(snakemake@input["beast_samples"], colnames(viTrace)),
   `Treeflow VI` = viTrace
 )
+
 stacked <- dplyr::bind_rows(dfs, .id = "Method")
 pivoted <- tidyr::pivot_longer(stacked, !Method, names_to = "variable")
 mlPivoted <- dplyr::mutate(mlTrace, Method = "Treeflow ML") %>%
   tidyr::pivot_longer(!Method, names_to = "variable")
+pointPivoted <- if ("frequencies_0" %in% colnames(viTrace)) {
+  freqsDf <- readr::read_csv(snakemake@input["empirical_frequencies"])
+  freqsPivoted <- dplyr::mutate(freqsDf, Method = "Empirical") %>%
+    tidyr::pivot_longer(!Method, names_to = "variable")
+  dplyr::bind_rows(mlPivoted, freqsPivoted)
+} else {
+  mlPivoted
+}
 
 alpha <- 0.05
 fl <- purrr::partial(signif, digits = 3)
 
-mlSummaryTable <- dplyr::transmute(mlPivoted, Method, variable, summaryString = as.character(value))
+pointSummaryTable <- dplyr::transmute(pointPivoted, Method, variable, summaryString = as.character(fl(value)))
 summaryTable <- dplyr::group_by(pivoted, Method, variable) %>%
   dplyr::summarise(
     mean = mean(value),
@@ -42,7 +51,7 @@ summaryTable <- dplyr::group_by(pivoted, Method, variable) %>%
   ) %>%
   dplyr::mutate(summaryString = glue::glue("{fl(mean)} ({fl(lower)}, {fl(upper)})")) %>%
   dplyr::select(Method, variable, summaryString) %>%
-  dplyr::bind_rows(mlSummaryTable) %>%
+  dplyr::bind_rows(pointSummaryTable) %>%
   tidyr::pivot_wider(names_from = Method, values_from = summaryString)
 
 print(summaryTable)
@@ -51,7 +60,7 @@ tableGrob <- gridExtra::tableGrob(summaryTable)
 # pairPlot <- GGally::ggpairs(stacked, ggplot2::aes(color = Method)) %>% GGally::ggmatrix_gtable()
 fig <- ggplot2::ggplot(pivoted) +
   ggplot2::geom_density(ggplot2::aes(value, colour = Method)) +
-  ggplot2::geom_vline(ggplot2::aes(xintercept = value, colour = Method), data = mlPivoted) +
+  ggplot2::geom_vline(ggplot2::aes(xintercept = value, colour = Method), data = pointPivoted) +
   ggplot2::facet_wrap(~variable, scales = "free")
 
 # composite <- gridExtra::grid.arrange(fig, pairPlot, tableGrob, heights = c(3, 5, 2), nrow = 3)
