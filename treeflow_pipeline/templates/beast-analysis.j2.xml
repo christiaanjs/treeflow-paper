@@ -16,6 +16,7 @@
 <map name="prior" >beast.math.distributions.Prior</map>
 <map name="InverseGamma" >beast.math.distributions.InverseGamma</map>
 <map name="OneOnX" >beast.math.distributions.OneOnX</map>
+<map name="Dirichlet" >beast.math.distributions.Dirichlet</map>
 
 
 <run id="mcmc" spec="MCMC" chainLength="{{ chain_length }}">
