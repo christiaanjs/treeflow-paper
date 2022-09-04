@@ -20,20 +20,8 @@ default_out_dir = pathlib.Path("out")
 
 rule data:
     input:
-        wd / "primates_easy" / "marginals.png",
-        wd / "dengue_coal_easy" / "marginals.png",
-        # wd / "primates" / "marginals.png",
-        # wd / "dengue_coal" / "marginals.png",
-        # wd / "dengue_coal_easy" / "traces.png",
-        # wd / "dengue" / "marginals.png",
-        # wd / "dengue" / "variational-trace.png",
-        # wd / "dengue_coal" / "variational-trace.png",
-        # wd / "primates" / "variational-trace.png",
-        #wd / "dengue_coal" / "marginals.png"
-        #wd / "dengue" / "beast.log",
-        #wd / "dengue" / "variational-trace.png",
-        #default_out_dir / "carnivores-beast2.log",
-        #wd / "dengue" / "topology.nwk"
+        expand(wd / dataset_dir / "marginals.png", dataset=datasets),
+        expand(wd / dataset_dir / "traces.png", dataset=datasets)
 
 rule carnivores_data_xml:
     output:

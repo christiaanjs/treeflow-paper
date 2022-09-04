@@ -353,3 +353,58 @@ def compute_trace_log_likelihoods(
     approximation, variables_dict = get_fixed_topology_mean_field_approximation(
         model, topology_pins=dict(tree=tree.topology)
     )
+
+
+def get_model_name(model):
+    if isinstance(model, dict):
+        return next(iter(model.keys()))
+    else:
+        return model
+
+
+def generate_models_grid(models_grid_dict):
+
+    datasets = models_grid_dict["datasets"]
+    raw_tree_models = models_grid_dict["models"]["tree"]
+    clock_models = models_grid_dict["models"]["clock"]
+    subst_models = models_grid_dict["models"]["substitution"]
+    site_models = models_grid_dict["models"]["site"]
+
+    dated_tree_models = []
+    undated_tree_models = []
+    for tree_model_dict in raw_tree_models:
+        tree_model_name, inner_tree_model_dict = next(iter(tree_model_dict.items()))
+        model_dated = inner_tree_model_dict.pop("dates_possible")
+        if model_dated:
+            dated_tree_models.append(tree_model_dict)
+        else:
+            undated_tree_models.append(tree_model_dict)
+
+    models_output = dict()
+    for dataset_name, dataset_dict in datasets.items():
+        dataset_dated = dataset_dict
+        if dataset_dated:
+            tree_models = dated_tree_models
+        else:
+            tree_models = dated_tree_models + undated_tree_models
+        for tree_model in tree_models:
+            tree_model_name = get_model_name(tree_model)
+            for clock_model in clock_models:
+                clock_model_name = get_model_name(clock_model)
+                for subst_model in subst_models:
+                    subst_model_name = get_model_name(subst_model)
+                    for site_model in site_models:
+                        site_model_name = get_model_name(site_model)
+                        if site_model_name == "none":
+                            site_model_name = "nosite"
+                        grid_dataset_name = f"{dataset_name}-{tree_model_name}-{clock_model_name}-{subst_model_name}-{site_model_name}"
+                        models_output[grid_dataset_name] = dict(
+                            dataset_dict,
+                            model=dict(
+                                tree=tree_model,
+                                clock=clock_model,
+                                substitution=subst_model,
+                                site=site_model,
+                            ),
+                        )
+    return models_output
