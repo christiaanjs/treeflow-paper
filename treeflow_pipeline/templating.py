@@ -292,6 +292,19 @@ def get_site_model_tag(site_model, params, init_values, subst_model_tag):
             proportionInvariant=str(0.0),
         )
         site_tag.insert(0, subst_model_tag)
+    elif site_model == "discrete_weibull":
+        site_tag = ET.Element(
+            "siteModel",
+            spec="beast.evolution.sitemodel.WeibullSiteModel",
+            mutationRate=str(1.0),
+            shape=resolve_param_value(
+                "site_weibull_concentration",
+                params["site_weibull_concentration"],
+                init_values["site_weibull_concentration"],
+            ),
+            gammaCategoryCount=str(params["category_count"]),
+            proportionInvariant=str(0.0),
+        )
     else:
         raise ValueError(f"Unknown site model: {site_model}")
     return x2s(site_tag)
