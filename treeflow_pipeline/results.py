@@ -5,7 +5,7 @@ from treeflow.tree.io import parse_newick, write_tensor_trees
 from treeflow.evolution.seqio import parse_fasta
 from treeflow.model.ml import MLResults
 from treeflow.vi.util import VIResults
-from treeflow.model.io import flatten_samples_to_dict
+from treeflow.model.io import flatten_samples_to_dict, calculate_tree_stats
 import treeflow_pipeline.model
 import pandas as pd
 import io
@@ -279,11 +279,15 @@ def process_variational_key(key: str):
 
 
 def get_formatted_variational_trace(variational_trace):
+    parameters = variational_trace.parameters
+    for tree_var in ["tree_loc:0", "tree_scale:0"]:
+        value = parameters.pop(tree_var)
+        parameters[tree_var] = value[:, -1]
     flat_variational_trace, variational_key_mapping = flatten_samples_to_dict(
-        variational_trace.parameters,
+        parameters,
     )
     variational_params_mapping = {
-        key: process_variational_key(key) for key in variational_trace.parameters.keys()
+        key: process_variational_key(key) for key in parameters.keys()
     }
     flat_var_name_mapping = pd.DataFrame(
         [
@@ -327,7 +331,12 @@ def get_formatted_variational_trace(variational_trace):
 
 
 def get_formatted_ml_trace(ml_trace):
-    ml_vars_dict, ml_params_mapping = flatten_samples_to_dict(ml_trace.parameters)
+    parameters = dict(ml_trace.parameters)
+    tree_trace = parameters.pop("tree")
+    ml_vars_dict, ml_params_mapping = flatten_samples_to_dict(parameters)
+    raw_tree_stats = calculate_tree_stats("tree", tree_trace)
+    tree_stats = dict(tree=raw_tree_stats["tree_height"])
+    ml_vars_dict.update(tree_stats)
     flat_var_name_mapping = pd.DataFrame(
         [
             (
@@ -337,7 +346,8 @@ def get_formatted_ml_trace(ml_trace):
             )
             for varname, flat_varnames in ml_params_mapping.items()
             for i, flat_varname in enumerate(flat_varnames)
-        ],
+        ]
+        + [(0, key, key) for key in tree_stats],
         columns=["var_index", "flat_var_name", "model_var_name"],
     )
     ml_vars_df = pd.DataFrame(
