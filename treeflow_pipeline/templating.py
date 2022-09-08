@@ -277,7 +277,6 @@ def get_site_model_tag(site_model, params, init_values, subst_model_tag):
             shape=str(1.0),
             proportionInvariant=str(0.0),
         )
-        site_tag.insert(0, subst_model_tag)
     elif site_model == "discrete_gamma":
         site_tag = ET.Element(
             "siteModel",
@@ -291,7 +290,6 @@ def get_site_model_tag(site_model, params, init_values, subst_model_tag):
             gammaCategoryCount=str(params["category_count"]),
             proportionInvariant=str(0.0),
         )
-        site_tag.insert(0, subst_model_tag)
     elif site_model == "discrete_weibull":
         site_tag = ET.Element(
             "siteModel",
@@ -300,13 +298,15 @@ def get_site_model_tag(site_model, params, init_values, subst_model_tag):
             shape=resolve_param_value(
                 "site_weibull_concentration",
                 params["site_weibull_concentration"],
-                init_values["site_weibull_concentration"],
+                init_values.get("site_weibull_concentration")
+                or DEFAULT_INIT_VALUES.get("site_weibull_concentration"),
             ),
             gammaCategoryCount=str(params["category_count"]),
             proportionInvariant=str(0.0),
         )
     else:
         raise ValueError(f"Unknown site model: {site_model}")
+    site_tag.insert(0, subst_model_tag)
     return x2s(site_tag)
 
 
@@ -402,10 +402,13 @@ def get_log_tag(name):
     return x2s(ET.Element("log", idref=name))
 
 
+DEFAULT_INIT_VALUES = dict(site_weibull_concentration=1.0)
+
+
 def build_beast_analysis(
     sequence_dict,
     newick_string,
-    init_values,
+    init_values: dict,
     model: treeflow_pipeline.model.Model,
     beast_config,
     out_file,
@@ -433,7 +436,9 @@ def build_beast_analysis(
     # TODO: Handle case when init_values missing
     # TODO: Starting value for rates?
     state_tags = [
-        get_state_tag(name, dist_dict, init_values[name])
+        get_state_tag(
+            name, dist_dict, init_values.get(name) or DEFAULT_INIT_VALUES.get(name)
+        )
         for name, dist_dict in free_params.items()
     ]
 

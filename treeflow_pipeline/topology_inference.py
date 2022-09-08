@@ -52,7 +52,7 @@ def build_raxml_command(
         )
     if site_model == "none":
         args.append("-V")
-    elif site_model == "discrete_gamma":
+    elif site_model == "discrete_gamma" or site_model == "discrete_weibull":
         pass
     else:
         raise ValueError("Unsupported site model for RAxML: {0}".format(site_model))
