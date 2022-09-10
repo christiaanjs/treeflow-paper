@@ -391,6 +391,10 @@ def generate_models_grid(models_grid_dict):
             tree_model_name = get_model_name(tree_model)
             for clock_model in clock_models:
                 clock_model_name = get_model_name(clock_model)
+                if clock_model_name == "strictfixed":
+                    final_clock_model = dict(strict=clock_model["strictfixed"])
+                else:
+                    final_clock_model = clock_model
                 for subst_model in subst_models:
                     subst_model_name = get_model_name(subst_model)
                     for site_model in site_models:
@@ -402,7 +406,7 @@ def generate_models_grid(models_grid_dict):
                             dataset_dict,
                             model=dict(
                                 tree=tree_model,
-                                clock=clock_model,
+                                clock=final_clock_model,
                                 substitution=subst_model,
                                 site=site_model,
                             ),

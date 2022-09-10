@@ -80,6 +80,7 @@ def infer_topology(
             ),
             targets=["tree", "starting_values"],
             lock=False,
+            forceall=True,
         )
     if not success:
         raise click.UsageError(

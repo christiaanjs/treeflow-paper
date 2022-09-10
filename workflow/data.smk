@@ -4,6 +4,7 @@ import treeflow_pipeline.templating as tem
 from treeflow_pipeline.model import build_init_values_string
 from treeflow_pipeline.simulation import convert_simulated_sequences
 from treeflow_pipeline.results import extract_trace_plot_data, compute_empirical_nucleotide_frequencies
+from treeflow_pipeline.data import convert_dates_to_numeric
 import pathlib
 
 configfile: "config/data-config.yaml"
@@ -20,8 +21,15 @@ default_out_dir = pathlib.Path("out")
 
 rule data:
     input:
-        expand(wd / dataset_dir / "marginals.png", dataset=datasets),
-        expand(wd / dataset_dir / "traces.png", dataset=datasets)
+        wd / "dengue-coalescent-strictfixed-jc-nosite/marginals.png",
+        wd / "dengue-coalescent-strictfixed-jc-nosite/traces.png"
+        # wd / "fludated-coalescent-strict-jc-nosite/marginals.png",
+        # wd / "denguedated-coalescent-strict-jc-nosite/marginals.png",
+        # wd / "denguedated-coalescent-strict-jc-nosite/traces.png",
+        # wd / "denguedated-coalescent-strictfixed-jc-nosite/marginals.png",
+        # wd / "denguedated-coalescent-strictfixed-jc-nosite/traces.png",
+        # expand(wd / dataset_dir / "marginals.png", dataset=datasets),
+        # expand(wd / dataset_dir / "traces.png", dataset=datasets)
 
 rule carnivores_data_xml:
     output:
@@ -37,6 +45,13 @@ rule xml_to_fasta:
     run:
         convert_simulated_sequences(input[0], output[0], "fasta", reformat_taxon_name=True)
 
+rule flu_fasta:
+    input:
+        data_dir / "InfluenzaAH3N2_HAgene_2009_California_heterochronous.nexus"
+    output:
+        data_dir / "InfluenzaAH3N2_HAgene_2009_California_heterochronous.fasta"
+    run:
+        convert_dates_to_numeric(input[0], "nexus", output[0], "fasta")
 
 rule carnivores_beast_run:
     input:
@@ -100,6 +115,33 @@ rule beast_run:
     shell:
         "beast -seed {config[seed]} {input}"
 
+# rule variational_fit:
+#     input:
+#         fasta = lambda wildcards: all_models[wildcards.dataset]["alignment"],
+#         topology = wd / dataset_dir / "topology.nwk",
+#         starting_values = wd / dataset_dir / "starting-values.yaml",
+#         model_file = wd / dataset_dir / "model.yaml"
+#     params:
+#         starting_values_string = lambda wildcards, input: build_init_values_string(yaml_input(input.starting_values))
+#     output:
+#         trace = wd / dataset_dir / "variational-trace.pickle",
+#         samples = wd / dataset_dir / "variational-samples.csv",
+#         tree_samples = wd / dataset_dir / "variational-tree-samples.nexus"
+#     shell:
+#         '''
+#         treeflow_vi -s {config[seed]} \
+#             -i {input.fasta} \
+#             -m {input.model_file} \
+#             -t {input.topology} \
+#             -n 40000 \
+#             --learning-rate 0.01 \
+#             --init-values "{params.starting_values_string}" \
+#             --trace-output {output.trace} \
+#             --samples-output {output.samples} \
+#             --tree-samples-output {output.tree_samples}
+#         '''
+
+from treeflow_pipeline.vi import fit_vi_alternate
 rule variational_fit:
     input:
         fasta = lambda wildcards: all_models[wildcards.dataset]["alignment"],
@@ -112,19 +154,20 @@ rule variational_fit:
         trace = wd / dataset_dir / "variational-trace.pickle",
         samples = wd / dataset_dir / "variational-samples.csv",
         tree_samples = wd / dataset_dir / "variational-tree-samples.nexus"
-    shell:
-        '''
-        treeflow_vi -s {config[seed]} \
-            -i {input.fasta} \
-            -m {input.model_file} \
-            -t {input.topology} \
-            -n 40000 \
-            --learning-rate 0.01 \
-            --init-values "{params.starting_values_string}" \
-            --trace-output {output.trace} \
-            --samples-output {output.samples} \
-            --tree-samples-output {output.tree_samples}
-        '''
+    run:
+        fit_vi_alternate(
+            input.fasta,
+            input.topology,
+            40000,
+            input.model_file,
+            seed=config["seed"],
+            init_values=params.starting_values_string,
+            trace_output=output.trace,
+            samples_output=output.samples,
+            tree_samples_output=output.tree_samples,
+            learning_rate=0.01
+        )
+
 
 rule ml_fit:
     input:

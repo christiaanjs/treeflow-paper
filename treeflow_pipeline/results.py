@@ -281,8 +281,9 @@ def process_variational_key(key: str):
 def get_formatted_variational_trace(variational_trace):
     parameters = variational_trace.parameters
     for tree_var in ["tree_loc:0", "tree_scale:0"]:
-        value = parameters.pop(tree_var)
-        parameters[tree_var] = value[:, -1]
+        if tree_var in parameters:
+            value = parameters.pop(tree_var)
+            parameters[tree_var] = value[:, -1]
     flat_variational_trace, variational_key_mapping = flatten_samples_to_dict(
         parameters,
     )
