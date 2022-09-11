@@ -8,11 +8,11 @@ from tensorflow_probability.python.distributions import (
     Distribution,
     Independent,
     Normal,
-    Deterministic,
     JointDistributionNamed,
     TransformedDistribution,
 )
 from tensorflow_probability.python.vi import fit_surrogate_posterior
+from tensorflow_probability.python.math.minimize import minimize
 from treeflow import DEFAULT_FLOAT_DTYPE_TF
 from treeflow.tree.rooted.tensorflow_rooted_tree import convert_tree_to_tensor
 from treeflow.tree.io import parse_newick
@@ -51,18 +51,14 @@ def build_base_approx_for_var(
         else init_loc,
         name=loc_name,
     )
-    # scale_name = f"{name}_scale"
-    # scale = tf.Variable(
-    #     tf.zeros(event_shape, dtype=DEFAULT_FLOAT_DTYPE_TF), name=scale_name
-    # )
-    # return Independent(
-    #     Normal(loc, DeferredTensor(scale, _stable_grad_softplus)),
-    #     reinterpreted_batch_ndims=tf.shape(event_shape)[0],
-    # ), {loc.name: loc, scale.name: scale}
+    scale_name = f"{name}_scale"
+    scale = tf.Variable(
+        tf.zeros(event_shape, dtype=DEFAULT_FLOAT_DTYPE_TF), name=scale_name
+    )
     return Independent(
-        Deterministic(loc),
+        Normal(loc, DeferredTensor(scale, _stable_grad_softplus)),
         reinterpreted_batch_ndims=tf.shape(event_shape)[0],
-    ), {loc.name: loc}
+    ), {loc.name: loc, scale.name: scale}
 
 
 def fit_vi_alternate(
@@ -151,14 +147,22 @@ def fit_vi_alternate(
         convergence_criterion_instance = None
 
     approx = TransformedDistribution(base_dist, bijector)
+
+    def loss():
+        approx_sample = approx.sample()
+        return approx.log_prob(approx_sample) - pinned_model.unnormalized_log_prob(
+            approx_sample
+        )
+
     print(f"Running VI for {num_steps} iterations...")
-    trace = fit_surrogate_posterior(
-        pinned_model.unnormalized_log_prob,
-        approx,
-        optimizer,
-        num_steps,
-        trace_fn=trace_fn,
-    )
+    # trace = fit_surrogate_posterior(
+    #     pinned_model.unnormalized_log_prob,
+    #     approx,
+    #     optimizer,
+    #     num_steps,
+    #     trace_fn=trace_fn,
+    # )
+    trace = minimize(loss, num_steps, optimizer, trace_fn=trace_fn)
     print("Inference complete")
 
     inference_steps = trace.loss.shape[0]

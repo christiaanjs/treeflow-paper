@@ -1,0 +1,66 @@
+datasets:
+  carnivores:
+    alignment: data/carnivores.fasta
+    dates: False
+  dengue:
+    alignment: data/dengue.fasta
+    dates: False
+  denguedated:
+    alignment: data/dengue.fasta
+    dates: True
+  flu:
+    alignment: data/InfluenzaAH3N2_HAgene_2009_California_heterochronous.fasta
+    dates: False
+  fludated:
+    alignment: data/InfluenzaAH3N2_HAgene_2009_California_heterochronous.fasta
+    dates: True
+  primates:
+    alignment: data/primates-mtDNA.fasta
+    dates: False
+models:
+  tree:
+    - yule:
+        dates_possible: False
+        birth_rate:
+          lognormal:
+            loc:  1.0
+            scale: 1.5
+    - coalescent:
+        dates_possible: True
+        pop_size:
+          lognormal:
+            loc:  1.0
+            scale: 1.5
+  clock:
+    - strictfixed:
+        clock_rate:
+          1.0
+    - strict:
+        clock_rate:
+          lognormal:
+            loc: -2.0
+            scale: 2.0
+  substitution:
+    - hky:
+        kappa:
+          lognormal:
+            loc: 0.0
+            scale: 2.0
+        frequencies:
+          dirichlet:
+            concentration: [2.0, 2.0, 2.0, 2.0]
+    - jc
+  site:
+    - discrete_gamma:
+        category_count: 4
+        site_gamma_shape:
+          lognormal:
+            loc: 0.0
+            scale: 1.0
+    - discrete_weibull:
+        category_count: 4
+        site_weibull_concentration:
+          lognormal:
+            loc: 0.0
+            scale: 1.0
+    - none

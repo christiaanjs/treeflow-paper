@@ -57,13 +57,14 @@ summaryTable <- dplyr::group_by(pivoted, Method, variable) %>%
 print(summaryTable)
 
 tableGrob <- gridExtra::tableGrob(summaryTable)
-# pairPlot <- GGally::ggpairs(stacked, ggplot2::aes(color = Method)) %>% GGally::ggmatrix_gtable()
+# pairPlotData <- dplyr::select(stacked, !tidyselect::starts_with("frequencies"))
+# pairPlot <- GGally::ggpairs(pairPlotData, ggplot2::aes(color = Method)) %>% GGally::ggmatrix_gtable()
 fig <- ggplot2::ggplot(pivoted) +
   ggplot2::geom_density(ggplot2::aes(value, colour = Method)) +
   ggplot2::geom_vline(ggplot2::aes(xintercept = value, colour = Method), data = pointPivoted) +
   ggplot2::facet_wrap(~variable, scales = "free")
 
-# composite <- gridExtra::grid.arrange(fig, pairPlot, tableGrob, heights = c(3, 5, 2), nrow = 3)
+# composite <- gridExtra::grid.arrange(fig, pairPlot, tableGrob, heights = c(3, 5, 3), nrow = 3)
 composite <- gridExtra::grid.arrange(fig, tableGrob, heights = c(3, 2), nrow = 2)
 
 ggplot2::ggsave(snakemake@output[[1]], composite, width = 8, height = 8)

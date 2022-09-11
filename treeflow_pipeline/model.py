@@ -382,7 +382,7 @@ def generate_models_grid(models_grid_dict):
 
     models_output = dict()
     for dataset_name, dataset_dict in datasets.items():
-        dataset_dated = dataset_dict
+        dataset_dated = dataset_dict["dates"]
         if dataset_dated:
             tree_models = dated_tree_models
         else:
