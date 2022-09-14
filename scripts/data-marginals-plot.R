@@ -20,7 +20,20 @@ readViTrace <- function(filename) {
 }
 
 viTrace <- readViTrace(snakemake@input["vi_samples"])
-mlTrace <- readViTrace(snakemake@input["ml_variables"])
+
+includeMl <- snakemake@config[["include_ml_plot"]]
+includeEmp <- snakemake@config[["include_empirical_plot"]]
+includePointEsts <- includeMl || includeEmp
+
+mlPivoted <- if (includeMl) {
+  mlTrace <- readViTrace(snakemake@input["ml_variables"])
+  dplyr::mutate(mlTrace, Method = "Treeflow ML") %>%
+    tidyr::pivot_longer(!Method, names_to = "variable")
+} else {
+  NULL
+}
+
+
 dfs <- list(
   `Beast 2` = readBeastTrace(snakemake@input["beast_samples"], colnames(viTrace)),
   `Treeflow VI` = viTrace
@@ -28,9 +41,7 @@ dfs <- list(
 
 stacked <- dplyr::bind_rows(dfs, .id = "Method")
 pivoted <- tidyr::pivot_longer(stacked, !Method, names_to = "variable")
-mlPivoted <- dplyr::mutate(mlTrace, Method = "Treeflow ML") %>%
-  tidyr::pivot_longer(!Method, names_to = "variable")
-pointPivoted <- if ("frequencies_0" %in% colnames(viTrace)) {
+pointPivoted <- if (includeEmp && ("frequencies_0" %in% colnames(viTrace))) {
   freqsDf <- readr::read_csv(snakemake@input["empirical_frequencies"])
   freqsPivoted <- dplyr::mutate(freqsDf, Method = "Empirical") %>%
     tidyr::pivot_longer(!Method, names_to = "variable")
@@ -42,27 +53,37 @@ pointPivoted <- if ("frequencies_0" %in% colnames(viTrace)) {
 alpha <- 0.05
 fl <- purrr::partial(signif, digits = 3)
 
-pointSummaryTable <- dplyr::transmute(pointPivoted, Method, variable, summaryString = as.character(fl(value)))
-summaryTable <- dplyr::group_by(pivoted, Method, variable) %>%
+postSummaryTableNarrow <- dplyr::group_by(pivoted, Method, variable) %>%
   dplyr::summarise(
     mean = mean(value),
     lower = quantile(value, alpha / 2.0),
     upper = quantile(value, 1.0 - alpha / 2.0)
   ) %>%
   dplyr::mutate(summaryString = glue::glue("{fl(mean)} ({fl(lower)}, {fl(upper)})")) %>%
-  dplyr::select(Method, variable, summaryString) %>%
-  dplyr::bind_rows(pointSummaryTable) %>%
-  tidyr::pivot_wider(names_from = Method, values_from = summaryString)
+  dplyr::select(Method, variable, summaryString)
+
+summaryTableNarrow <- if (includePointEsts) {
+  pointSummaryTableNarrow <- dplyr::transmute(pointPivoted, Method, variable, summaryString = as.character(fl(value)))
+  dplyr::bind_rows(postSummaryTableNarrow, pointSummaryTableNarrow)
+} else {
+  postSummaryTableNarrow
+}
+
+summaryTable <- tidyr::pivot_wider(summaryTableNarrow, names_from = Method, values_from = summaryString)
 
 print(summaryTable)
 
 tableGrob <- gridExtra::tableGrob(summaryTable)
 # pairPlotData <- dplyr::select(stacked, !tidyselect::starts_with("frequencies"))
 # pairPlot <- GGally::ggpairs(pairPlotData, ggplot2::aes(color = Method)) %>% GGally::ggmatrix_gtable()
-fig <- ggplot2::ggplot(pivoted) +
-  ggplot2::geom_density(ggplot2::aes(value, colour = Method)) +
-  ggplot2::geom_vline(ggplot2::aes(xintercept = value, colour = Method), data = pointPivoted) +
-  ggplot2::facet_wrap(~variable, scales = "free")
+postFig <- ggplot2::ggplot(pivoted) +
+  ggplot2::geom_density(ggplot2::aes(value, colour = Method))
+unfacetedFig <- if (includePointEsts) {
+  postFig + ggplot2::geom_vline(ggplot2::aes(xintercept = value, colour = Method), data = pointPivoted)
+} else {
+  postFig
+}
+fig <- unfacetedFig + ggplot2::facet_wrap(~variable, scales = "free")
 
 # composite <- gridExtra::grid.arrange(fig, pairPlot, tableGrob, heights = c(3, 5, 3), nrow = 3)
 composite <- gridExtra::grid.arrange(fig, tableGrob, heights = c(3, 2), nrow = 2)
