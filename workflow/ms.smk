@@ -79,22 +79,15 @@ rule template_relaxed_clock_ms:
             output[0]
         )
 
-rule benchmark_fit_table:
-    input:
-        treeflow_benchmarks_dir / "out" / "fit-table.csv"
-    output:
-        manuscript_dir / "tables" / "benchmark-table.tex"
-    run:
-        treeflow_pipeline.manuscript.benchmark_fit_table(input[0], output[0])
 
-rule carnivores_marginals_plot:
-    params:
-        beast_trace = out_dir / "carnivores-beast2.log",
-        vi_trace = treeflow_dir / "examples" / "demo-out" / "carnivores-base-samples.csv"
+rule benchmark_summary_table:
+    input:
+        plot_data = treeflow_benchmarks_dir / "out" / "plot-data.csv",
+        fit_table = treeflow_benchmarks_dir / "out" / "fit-table.csv"
     output:
-        manuscript_dir / "figures" / "carnivores-marginals.png"
-    script:
-        "../scripts/carnivores-marginals-plot.R"
+        tex = manuscript_dir / "tables" / "benchmark-table.tex"
+    run:
+        treeflow_pipeline.manuscript.benchmark_summary_table(input.plot_data, input.fit_table, output.tex)
 
 
 rule template_treeflow_ms:
@@ -105,8 +98,8 @@ rule template_treeflow_ms:
         body_template = manuscript_dir / "tex" / "treeflow.j2.tex",
         treeflow_benchmarks_config = treeflow_benchmarks_dir / "config.yaml",
         benchmark_plot = treeflow_benchmarks_dir / "out" / "log-scale-plot.png",
-        benchmark_fit_table = rules.benchmark_fit_table.output[0],
-        carnivores_marginals_plot = rules.carnivores_marginals_plot.output[0]
+        benchmark_summary_table = rules.benchmark_summary_table.output[0],
+        carnivores_marginals_plot = out_dir / "carnivores" / "marginals.png"
     output:
         manuscript_dir / "out" / "treeflow.tex"
     run:
@@ -115,7 +108,7 @@ rule template_treeflow_ms:
                 input.template,
                 input.body_template,
                 figures_dict=dict(benchmark=input.benchmark_plot, carnivores_marginals=input.carnivores_marginals_plot),
-                tables_dict=dict(benchmark_fit=input.benchmark_fit_table),
+                tables_dict=dict(benchmark_summary=input.benchmark_summary_table),
                 vars=treeflow_pipeline.manuscript.get_treeflow_manuscript_vars(yaml_input(input.treeflow_benchmarks_config)),
                 submission=config["submission"]
             ),

@@ -133,9 +133,70 @@ def coverage_table(coverage_table_file, stats, output):
     (renamed * 100).to_latex(output, float_format="%.0f%%")
 
 
-def benchmark_fit_table(benchmark_table_file, output):
-    df = pd.read_csv(benchmark_table_file)
-    df.to_latex(output)
+colname_mapping = {
+    "method": "Method",
+    "computation": "Computation",
+    "model": "Model",
+    "slope": "log-log slope",
+}
+inverse_colname_mapping = {value: key for key, value in colname_mapping.items()}
+
+model_mapping = {"jc": "JC", "full": "GTR/Weibull"}
+method_mapping = {
+    "treeflow": "TreeFlow",
+    "jax": "JAX",
+    "beagle_bito_direct": "bito/BEAGLE",
+}
+computation_mapping = {
+    "likelihood_time": "Likelihood",
+    "phylo_gradients_time": "Gradients",
+}
+index_columns = ["method", "model", "computation"]
+
+computation_ordering = ["Likelihood", "Gradients"]
+model_ordering = ["JC", "GTR/Weibull"]
+method_ordering = ["TreeFlow", "bito/BEAGLE", "JAX"]
+
+orderings_dict = dict(
+    Method=method_ordering, Computation=computation_ordering, Model=model_ordering
+)
+sort_key_dict = {
+    colname: {value: i for i, value in enumerate(ordering)}
+    for colname, ordering in orderings_dict.items()
+}
+
+
+def benchmark_summary_table(
+    plot_data_path, fit_table_path, output_path, taxon_counts=(512,)
+):
+    fit_table = pd.read_csv(fit_table_path)
+    plot_data = pd.read_csv(plot_data_path)
+
+    time_summaries = (
+        plot_data[plot_data.taxon_count.isin(taxon_counts)]
+        .groupby(index_columns + ["taxon_count"])["time"]
+        .mean()
+        .to_frame()
+        .reset_index()
+    )
+    times_pivoted = time_summaries.pivot(index=index_columns, columns="taxon_count")
+
+    times_pivoted_renamed = times_pivoted.set_axis(
+        times_pivoted.columns.to_flat_index().map(
+            lambda var_name: f"Mean time ({var_name[1]} taxa)"
+        ),
+        axis=1,
+    ).reset_index()
+    merged = times_pivoted_renamed.merge(fit_table[list(colname_mapping.keys())])
+    improved = merged.replace(
+        dict(
+            method=method_mapping, model=model_mapping, computation=computation_mapping
+        )
+    ).rename(columns=colname_mapping)
+    indexed = improved.set_index(
+        [colname_mapping[x] for x in index_columns]
+    ).sort_index(key=lambda x: x.to_series().replace(sort_key_dict[x.name]))
+    indexed.to_latex(output_path, float_format="%.3f")
 
 
 latex_jinja_env = jinja2.Environment(
