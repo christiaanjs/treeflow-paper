@@ -1,4 +1,5 @@
 import pathlib
+import sys
 import pandas as pd
 import treeflow_pipeline.model
 from treeflow_pipeline.util import yaml_input, text_input, text_output
@@ -89,6 +90,15 @@ rule benchmark_summary_table:
     run:
         treeflow_pipeline.manuscript.benchmark_summary_table(input.plot_data, input.fit_table, output.tex)
 
+rule benchmark_plot:
+    input:
+        plot_data = treeflow_benchmarks_dir / "out" / "plot-data.csv",
+    output:
+        plot = manuscript_dir / "figures" / "benchmark-log-scale-plot.png"
+    params:
+        python_executable = sys.executable
+    script:
+        "../scripts/improved-benchmark-plot.R"
 
 rule template_treeflow_ms:
     input:
@@ -97,7 +107,7 @@ rule template_treeflow_ms:
         template = tex_template,
         body_template = manuscript_dir / "tex" / "treeflow.j2.tex",
         treeflow_benchmarks_config = treeflow_benchmarks_dir / "config.yaml",
-        benchmark_plot = treeflow_benchmarks_dir / "out" / "log-scale-plot.png",
+        benchmark_plot = rules.benchmark_plot.output.plot,
         benchmark_summary_table = rules.benchmark_summary_table.output[0],
         carnivores_marginals_plot = out_dir / "carnivores" / "marginals.png"
     output:

@@ -1,3 +1,5 @@
+from functools import reduce
+import typing as tp
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -151,6 +153,11 @@ computation_mapping = {
     "likelihood_time": "Likelihood",
     "phylo_gradients_time": "Gradients",
 }
+value_mappings = dict(
+    method=method_mapping,
+    model=model_mapping,
+    computation=computation_mapping,
+)
 index_columns = ["method", "model", "computation"]
 
 computation_ordering = ["Likelihood", "Gradients"]
@@ -164,6 +171,53 @@ sort_key_dict = {
     colname: {value: i for i, value in enumerate(ordering)}
     for colname, ordering in orderings_dict.items()
 }
+
+benchmark_plot_colname_mapping = dict(
+    colname_mapping, colour="Task", taxon_count="Taxon count", time="Time (s)"
+)
+
+
+def build_col_mapping_df(mapping_dict, ordering, colname, reverse_order=False):
+    return pd.DataFrame(
+        list(mapping_dict.items()), columns=[colname, colname_mapping[colname]]
+    ).merge(
+        pd.DataFrame(
+            list(enumerate(ordering[::-1] if reverse_order else ordering)),
+            columns=[f"{colname}_index", colname_mapping[colname]],
+        )
+    )
+
+
+def get_benchmark_colname(colname: tp.Union[tp.List[str], str]):
+    if isinstance(colname, str):
+        return benchmark_plot_colname_mapping.get(colname, colname)
+    else:
+        return [get_benchmark_colname(x) for x in colname]
+
+
+def remap_and_sort_benchmark_df(
+    df: pd.DataFrame, reverse_order=False
+):  # columns method, computation, model, taxon_count, seed
+    mapping_dfs = [
+        build_col_mapping_df(
+            value_mappings[colname],
+            orderings_dict[colname_mapping[colname]],
+            colname,
+            reverse_order=reverse_order,
+        )
+        for colname in index_columns
+    ]
+    merged = reduce(pd.DataFrame.merge, mapping_dfs, df)
+    sorted = merged.sort_values([f"{colname}_index" for colname in index_columns])
+
+    index_columns_set = set(index_columns)
+    renamed = sorted[
+        [
+            (get_benchmark_colname(col) if (col in index_columns_set) else col)
+            for col in df.columns
+        ]
+    ].rename(columns=inverse_colname_mapping)
+    return renamed
 
 
 def benchmark_summary_table(
