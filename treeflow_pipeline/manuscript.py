@@ -24,10 +24,13 @@ param_name_mapping = {
     "rate_sd": "Rate prior scale",
     "rate_stats.mean": "Rate mean",
     "rate_stats.coefficientOfVariation": "Rate CoV",
-    "tree.height": "Tree height",
-    "tree.treeLength": "Tree length",
+    "tree_height": "Tree height",
+    "tree_length": "Tree length",
     "height": "Node heights",
     "rate": "Rates",
+    "site_gamma_shape": "Site rate shape",
+    "birth_rate": "Birth rate",
+    **{f"frequencies_{i}": f"Frequencies ({char})" for i, char in enumerate("ACGT")},
 }
 
 method_name_mapping = {
@@ -218,6 +221,10 @@ def remap_and_sort_benchmark_df(
         ]
     ].rename(columns=inverse_colname_mapping)
     return renamed
+
+
+def rename_marginal_df(df: pd.DataFrame):
+    return df.rename(columns=param_name_mapping)
 
 
 def benchmark_summary_table(

@@ -100,6 +100,17 @@ rule benchmark_plot:
     script:
         "../scripts/improved-benchmark-plot.R"
 
+rule data_marginals_plot:
+    input:
+        vi_samples = out_dir / "{dataset}" / "variational-samples.csv",
+        beast_samples = out_dir / "{dataset}" / "beast.log"
+    output:
+        plot = manuscript_dir / "figures" / "{dataset}-marginals.png"
+    params:
+        python_executable = sys.executable
+    script:
+        "../scripts/improved-marginals-plot.R"
+
 rule template_treeflow_ms:
     input:
         coverage_table = rules.coverage_table.output[0],
@@ -109,7 +120,7 @@ rule template_treeflow_ms:
         treeflow_benchmarks_config = treeflow_benchmarks_dir / "config.yaml",
         benchmark_plot = rules.benchmark_plot.output.plot,
         benchmark_summary_table = rules.benchmark_summary_table.output[0],
-        carnivores_marginals_plot = out_dir / "carnivores" / "marginals.png"
+        carnivores_marginals_plot = manuscript_dir / "figures" / "carnivores-marginals.png"
     output:
         manuscript_dir / "out" / "treeflow.tex"
     run:
