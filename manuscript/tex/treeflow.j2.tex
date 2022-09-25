@@ -100,6 +100,14 @@ This problem could be approached by means of Bayesian model comparison; a lack o
 
 We then altered this model to estimate a separate ratio for every lineage on the tree; the implementation of this was simple and scalable as a result of TensorFlow's vectorization and broadcasting functionality. We compare the models using estimates of the marginal likelihood \cite{mackay2003information}. The \textit{marginal likelihood}, or \textit{evidence}, the integral of the likelihood of the data over model parameters, is typically analytically intractable and challenging to compute using Markov Chain Monte Carlo methods \cite{xie2011improving}. The closed-form approximation to the posterior distribution provided by variational inference means we can easily estimate the marginal likelihood using importance sampling, a utility provided by TreeFlow.
 
+\begin{figure}
+    \centering
+    \VAR{ figures("carnivores_kappa", "[width=\\linewidth]") }
+    \caption{Time vs estimated transition/tranversion ratio (Kappa) for carnivores dataset}
+    \label{fig:carnivoreskappa}
+\end{figure}
+
+
 The marginal likelihood for the transition-transversion ratio variation across lineages versus the base model was higher. This means that, under the other components of this model, the data supports variation in the ratio. This does not necessarily imply that transition-transversion ratio in the true generative process of the data varies in the same way, but could be a useful consideration in designing more sophisticated models of nucleotide substitution.
 % TODO: Include code
 % TODO: Plots

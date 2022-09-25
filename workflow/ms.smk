@@ -80,7 +80,6 @@ rule template_relaxed_clock_ms:
             output[0]
         )
 
-
 rule benchmark_summary_table:
     input:
         plot_data = treeflow_benchmarks_dir / "out" / "plot-data.csv",
@@ -111,6 +110,15 @@ rule data_marginals_plot:
     script:
         "../scripts/improved-marginals-plot.R"
 
+rule carnivores_kappa_plot:
+    input:
+        tree_samples = treeflow_dir / "examples" / "demo-out" / "carnivores-alt-trees.nexus"
+    output:
+        manuscript_dir / "figures" / "carnivores-kappa.png"
+    script:
+        "../scripts/carnivores-kappa-plot.R"
+
+
 rule template_treeflow_ms:
     input:
         coverage_table = rules.coverage_table.output[0],
@@ -120,7 +128,8 @@ rule template_treeflow_ms:
         treeflow_benchmarks_config = treeflow_benchmarks_dir / "config.yaml",
         benchmark_plot = rules.benchmark_plot.output.plot,
         benchmark_summary_table = rules.benchmark_summary_table.output[0],
-        carnivores_marginals_plot = manuscript_dir / "figures" / "carnivores-marginals.png"
+        carnivores_marginals_plot = manuscript_dir / "figures" / "carnivores-marginals.png",
+        carnivores_kappa_plot = rules.carnivores_kappa_plot.output[0]
     output:
         manuscript_dir / "out" / "treeflow.tex"
     run:
@@ -128,7 +137,11 @@ rule template_treeflow_ms:
             treeflow_pipeline.manuscript.build_manuscript(
                 input.template,
                 input.body_template,
-                figures_dict=dict(benchmark=input.benchmark_plot, carnivores_marginals=input.carnivores_marginals_plot),
+                figures_dict=dict(
+                    benchmark=input.benchmark_plot,
+                    carnivores_marginals=input.carnivores_marginals_plot,
+                    carnivores_kappa=input.carnivores_kappa_plot
+                ),
                 tables_dict=dict(benchmark_summary=input.benchmark_summary_table),
                 vars=treeflow_pipeline.manuscript.get_treeflow_manuscript_vars(yaml_input(input.treeflow_benchmarks_config)),
                 submission=config["submission"]
