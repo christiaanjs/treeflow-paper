@@ -30,9 +30,9 @@ plotDf <- withMid %>%
     group_by(node) %>%
     filter(!is.na(kappa)) %>%
     summarise(across(c(midHeight, kappa), summaryFuncs)) %>%
-    rename(Depth = midHeight_mean, Kappa = kappa_mean)
+    rename(Age = midHeight_mean, Kappa = kappa_mean)
 
-fig <- ggplot(plotDf, aes(x = Depth, y = Kappa)) +
+fig <- ggplot(plotDf, aes(x = Age, y = Kappa)) +
     geom_errorbar(aes(ymin = kappa_lo, ymax = kappa_up), alpha = 0.5) +
     geom_errorbarh(aes(xmin = midHeight_lo, xmax = midHeight_up), alpha = 0.5) +
     geom_point(color = "navy")

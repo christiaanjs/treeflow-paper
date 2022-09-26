@@ -118,6 +118,14 @@ rule carnivores_kappa_plot:
     script:
         "../scripts/carnivores-kappa-plot.R"
 
+rule carnivores_tree_plot:
+    input:
+        alt_tree_samples = treeflow_dir / "examples" / "demo-out" / "carnivores-alt-trees.nexus",
+        base_tree_samples = treeflow_dir / "examples" / "demo-out" / "carnivores-base-trees.nexus"
+    output:
+        manuscript_dir / "figures" / "carnivores-trees.png"
+    script:
+        "../scripts/carnivores-tree-plot.R"
 
 rule template_treeflow_ms:
     input:
@@ -129,7 +137,8 @@ rule template_treeflow_ms:
         benchmark_plot = rules.benchmark_plot.output.plot,
         benchmark_summary_table = rules.benchmark_summary_table.output[0],
         carnivores_marginals_plot = manuscript_dir / "figures" / "carnivores-marginals.png",
-        carnivores_kappa_plot = rules.carnivores_kappa_plot.output[0]
+        carnivores_kappa_plot = rules.carnivores_kappa_plot.output[0],
+        carnivores_tree_plot = rules.carnivores_tree_plot.output[0]
     output:
         manuscript_dir / "out" / "treeflow.tex"
     run:
@@ -140,7 +149,8 @@ rule template_treeflow_ms:
                 figures_dict=dict(
                     benchmark=input.benchmark_plot,
                     carnivores_marginals=input.carnivores_marginals_plot,
-                    carnivores_kappa=input.carnivores_kappa_plot
+                    carnivores_kappa=input.carnivores_kappa_plot,
+                    carnivores_tree=input.carnivores_tree_plot
                 ),
                 tables_dict=dict(benchmark_summary=input.benchmark_summary_table),
                 vars=treeflow_pipeline.manuscript.get_treeflow_manuscript_vars(yaml_input(input.treeflow_benchmarks_config)),
