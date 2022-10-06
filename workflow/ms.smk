@@ -141,6 +141,8 @@ rule template_treeflow_ms:
         carnivores_tree_plot = rules.carnivores_tree_plot.output[0]
     output:
         manuscript_dir / "out" / "treeflow.tex"
+    params:
+        output_dir =  lambda _, output: pathlib.Path(output[0]).parents[0],
     run:
         text_output(
             treeflow_pipeline.manuscript.build_manuscript(
@@ -153,7 +155,10 @@ rule template_treeflow_ms:
                     carnivores_tree=input.carnivores_tree_plot
                 ),
                 tables_dict=dict(benchmark_summary=input.benchmark_summary_table),
-                vars=treeflow_pipeline.manuscript.get_treeflow_manuscript_vars(yaml_input(input.treeflow_benchmarks_config)),
+                vars=dict(
+                    treeflow_pipeline.manuscript.get_treeflow_manuscript_vars(yaml_input(input.treeflow_benchmarks_config)),
+                    output_dir = params.output_dir
+                ),
                 submission=config["submission"]
             ),
             output[0]
@@ -175,12 +180,12 @@ rule compile_ms:
         bst_dir = lambda _, input: pathlib.Path(input.bst).parents[0]
     shell:
         """
-        pdflatex -output-directory={params.output_dir} {input.main}
+        pdflatex --shell-escape -output-directory={params.output_dir} {input.main}
         export BIBINPUTS={params.bib_dir}
         export BSTINPUTS={params.bst_dir}
         bibtex {params.aux_file}
-        pdflatex -output-directory={params.output_dir} {input.main}
-        pdflatex -output-directory={params.output_dir} {input.main}
+        pdflatex --shell-escape -output-directory={params.output_dir} {input.main}
+        pdflatex --shell-escape -output-directory={params.output_dir} {input.main}
         """
 
 

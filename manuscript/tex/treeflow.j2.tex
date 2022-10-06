@@ -2,6 +2,7 @@
 
 \BLOCK{block preamble}
 \usepackage{booktabs}
+\usepackage[outputdir=\VAR{output_dir}]{minted}
 \BLOCK{endblock}
 
 \BLOCK{block abstract}
@@ -95,6 +96,61 @@ In the carnivores dataset, we demonstrate the flexibility of probabilistic progr
 \end{figure}
 
 This problem could be approached by means of Bayesian model comparison; a lack of preference for a model allowing between-lineage variation of the ratio could indicate that the substitution model lacks the power to separate variation `signal' from saturation `noise'. Firstly, we construct a standard phylogenetic model with a HKY substitution model with a single transition-transversion ratio parameter (\textit{kappa}). We fit this model using ADVI, and also using MCMC as implemented in BEAST 2 \cite{bouckaert2019beast}. Figure \ref{fig:carnivoresmarginals} compares the marginal parameter estimates obtained from TreeFlow and BEAST 2. The discrepancies in distribution, apparent in the estimates of the frequencies and tree height, can be attributed to the approximation error introduced by ADVI. Most importantly, the estimate of the parameter of interest, kappa, appears reasonable.
+
+\begin{figure}
+    \begin{minted}[highlightlines={19-22,41-44}]{py}
+site_category_count = 4
+pattern_counts = alignment.get_weights_tensor()
+subst_model = HKY()
+
+def build_sequence_dist(tree, kappa, frequencies, site_gamma_shape):
+    unrooted_tree = tree.get_unrooted_tree()
+    site_rate_distribution = DiscretizedDistribution(
+        category_count=site_category_count,
+        distribution=Gamma(
+            concentration=site_gamma_shape,
+            rate=site_gamma_shape
+        ),
+    )
+    transition_probs_tree = get_transition_probabilities_tree(
+        unrooted_tree,
+        subst_model,
+        rate_categories=site_rate_distribution.normalised_support,
+        frequencies=frequencies,
+        frequencies=tf.broadcast_to(
+            tf.expand_dims(frequencies, -2),
+            kappa.shape + (4,)
+        ),
+        kappa=kappa
+    )
+    return SampleWeighted(
+        DiscreteParameterMixture(
+            site_rate_distribution,
+            LeafCTMC(
+                transition_probs_tree,
+                expand_dims(frequencies, -2),
+            ),
+        ),
+        sample_shape=alignment.site_count,
+        weights=pattern_counts
+    )
+
+model = JointDistributionNamed(dict(
+    birth_rate=LogNormal(c(1.0), c(1.5)),
+    tree=lambda birth_rate: Yule(tree.taxon_count, birth_rate),
+    kappa=LogNormal(c(0.0), c(2.0)),
+    kappa=Sample(
+        LogNormal(c(0.0), c(2.0)),
+        tree.branch_lengths.shape
+    ),
+    site_gamma_shape=LogNormal(c(0.0), c(1.0)),
+    frequencies=Dirichlet(c([2.0, 2.0, 2.0, 2.0])),
+    sequences=build_sequence_dist
+))
+    \end{minted}
+    \label{fig:carnivorescode}
+    \caption{Code to specify models for carnivores analysis. Highlighted lines show changes (from previous line) to add kappa variation across lineages.}
+\end{figure}
 
 We then altered this model to estimate a separate ratio for every lineage on the tree; the implementation of this was simple and scalable as a result of TensorFlow's vectorization and broadcasting functionality. We compare the models using estimates of the marginal likelihood \cite{mackay2003information}. The \textit{marginal likelihood}, or \textit{evidence}, the integral of the likelihood of the data over model parameters, is typically analytically intractable and challenging to compute using Markov Chain Monte Carlo methods \cite{xie2011improving}. The closed-form approximation to the posterior distribution provided by variational inference means we can easily estimate the marginal likelihood using importance sampling, a utility provided by TreeFlow. This corrects for some of the posterior approximation error described above.
 
