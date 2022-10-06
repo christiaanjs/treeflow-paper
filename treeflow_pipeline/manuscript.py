@@ -161,7 +161,7 @@ value_mappings = dict(
     model=model_mapping,
     computation=computation_mapping,
 )
-index_columns = ["method", "model", "computation"]
+index_columns = ["model", "computation", "method"]
 
 computation_ordering = ["Likelihood", "Gradients"]
 model_ordering = ["JC", "GTR/Weibull"]
@@ -257,7 +257,21 @@ def benchmark_summary_table(
     indexed = improved.set_index(
         [colname_mapping[x] for x in index_columns]
     ).sort_index(key=lambda x: x.to_series().replace(sort_key_dict[x.name]))
-    indexed.to_latex(output_path, float_format="%.3f")
+
+    model_index = index_columns.index("model")
+    comp_index = index_columns.index("computation")
+
+    def style_func(row):
+        if (
+            row.name[model_index] == model_mapping["full"]
+            and row.name[comp_index] == computation_mapping["phylo_gradients_time"]
+        ):
+            return ["font-weight: bold;" for x in row]
+        else:
+            return ["" for x in row]
+
+    styled = indexed.style.apply(style_func, axis=1).format(precision=2)
+    styled.to_latex(output_path, convert_css=True, multirow_align="t", hrules=True)
 
 
 latex_jinja_env = jinja2.Environment(
