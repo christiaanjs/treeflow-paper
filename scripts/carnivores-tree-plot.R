@@ -45,19 +45,24 @@ summaryDf <- heightsDf %>%
         up = quantile(parentHeight, probs = upP),
         Age = mean(parentHeight)
     )
-
+maxAge <- max(summaryDf$up)
 plotDf <- tidyr::pivot_wider(
     summaryDf,
     names_from = model,
     values_from = c(lo, up, Age),
     names_sep = " "
-)
+) %>%
+    dplyr::rename(
+        `Age in base model` = `Age Base`,
+        `Age in kappa variation model` = `Age Kappa variation`
+    )
 
-fig <- ggplot(plotDf, aes(x = `Age Base`, y = `Age Kappa variation`)) +
+fig <- ggplot(plotDf, aes(x = `Age in base model`, y = `Age in kappa variation model`)) +
     geom_point(color = "navy") +
     geom_errorbar(aes(ymin = `lo Kappa variation`, ymax = `up Kappa variation`), alpha = 0.5) +
     geom_errorbarh(aes(xmin = `lo Base`, xmax = `up Base`), alpha = 0.5) +
-    geom_abline(slope = 1, intercept = 0, linetype = "dotted")
+    geom_abline(slope = 1, intercept = 0, linetype = "dotted") +
+    expand_limits(x = maxAge, y = maxAge)
 
 
-ggplot2::ggsave(snakemake@output[[1]], fig, width = 8, height = 6)
+ggplot2::ggsave(snakemake@output[[1]], fig, width = 7, height = 6)
