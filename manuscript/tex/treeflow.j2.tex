@@ -50,6 +50,8 @@ TensorFlow Probability distributions can be composed into a \textit{probabilisti
 % Inference
 One form of statistical inference for which the gradient computation is essential is variational Bayesian inference \cite{jordan1999introduction}. The goal of Bayesian inference is to characterise a \textit{posterior distribution} which represents uncertainty over model parameters. Variational Bayesian inference achieves this by optimizing an approximation to the posterior distribution which has more convenient analytical properties. One concrete implementation of variational inference is \textit{automatic differentiation variational inference} (ADVI) \cite{kucukelbir2017automatic}. ADVI can perform inference on a wide range of probabilistic graphical models composed of continuous variables. It automatically constructs an approximation to the posterior by transforming a convenient base distribution to respect the domains of the model's component distributions. It then optimizes this approximation using stochastic gradient methods \cite{robbins1951stochastic, bottou2010large}. TreeFlow implements ADVI using TensorFlow Probability's bijector framework to transform a base distribution and leverages the stochastic gradient optimizers already implemented in TensorFlow. Tree variables are estimated by fixing the topology. The base distribution for the divergence times on the tree is transformed into a distribution on ratios using a logit transformation, and then into a valid set of divergence times using the ratio transformation described above \cite{yang2007paml}. ADVI opens the door to using TensorFlow's neural network framework to implement deep-learning-based variants such as variational inference with \textit{normalizing flows} \cite{rezende2015variational}, which transform the base distribution through invertible trainable neural network layers to better approximate complex posterior distributions.
 
+As well as a library for probabilistic programming with TensorFlow Probability, TreeFlow provides command line interfaces for fixed-topology inference. These allow inference on standard phylogenetic models such as those performed by specialist software. For inputs, they take a nucleotide sequence alignment in the FASTA format, a tree topology in Newick format, and a model specification in a specially structued YAML file. These allow specification of the models described above for speciation and nucleotide substitution, as well as parameter priors from a range of standard probability distributions. Command line interfaces are provided for both automatic differentiation variational inference and maximum a posteriori inference.
+
 \section{Benchmarks}
 
 The phylogenetic likelihood is the computation that dominates the computational cost of model-based phylogenetic inference. We benchmark the performance of our TensorFlow-based likelihood implementation against specialized libraries. Since gradient computations are of equal importance to likelihood evaluations in modern automatic inference regimes, we also benchmark computation of derivatives of the phylogenetic likelihood, with respect to both the continuous elements of the tree and the parameters of the substitution model. A clear difference emerges in the implementation of derivatives; TreeFlow's are based on automatic differentiation while bespoke libraries need analytically-derived gradients. Therefore, we do not necessarily expect our implementation to be as fast as bespoke software, but it does not rely on analytical derivation of gradient expressions for every model and therefore automatically supports a wider range of models.
@@ -98,7 +100,7 @@ In the carnivores dataset, we demonstrate the flexibility of probabilistic progr
     \label{fig:carnivoresmarginals}
 \end{figure}
 
-This problem could be approached by means of Bayesian model comparison; a lack of preference for a model allowing between-lineage variation of the ratio could indicate that the substitution model lacks the power to separate variation `signal' from saturation `noise'. Firstly, we construct a standard phylogenetic model with a HKY substitution model with a single transition-transversion ratio parameter (\textit{kappa}). We fit this model using ADVI, and also using MCMC as implemented in BEAST 2 \cite{bouckaert2019beast}. Figure \ref{fig:carnivoresmarginals} compares the marginal parameter estimates obtained from TreeFlow and BEAST 2. The discrepancies in distribution, apparent in the estimates of the frequencies and tree height, can be attributed to the approximation error introduced by ADVI. Most importantly, the estimate of the parameter of interest, kappa, appears reasonable.
+This problem could be approached by means of Bayesian model comparison; a lack of preference for a model allowing between-lineage variation of the ratio could indicate that the substitution model lacks the power to separate variation `signal' from saturation `noise'. Firstly, we construct a standard phylogenetic model with a HKY substitution model with a single transition-transversion ratio parameter (\textit{kappa}). We perform inference using ADVI, and also using MCMC as implemented in BEAST 2 \cite{bouckaert2019beast}. Since this model is of the form of a standard phylogenetic analysis, it could be fit using TreeFlow's command line interface. Figure \ref{fig:carnivoresmarginals} compares the marginal parameter estimates obtained from TreeFlow and BEAST 2. The discrepancies in distribution, apparent in the estimates of the frequencies and tree height, can be attributed to the approximation error introduced by ADVI. Most importantly, the estimate of the parameter of interest, kappa, appears reasonable.
 
 \begin{figure}
     \begin{minted}[highlightlines={19-22,41-44}]{py}
@@ -180,5 +182,13 @@ The estimated per-lineage kappa parameters are shown in Figure \ref{fig:carnivor
 % In the second dataset, we demonstrate the scalability of variational inference.
 
 % TODO: Second dataset
+
+\section{Conclusion}
+
+
+
+\section{Software Availability}
+
+TreeFlow is an open-source Python package. Instructions for installing TreeFlow and using it as a library and command line application can be found at \url{https://github.com/christiaanjs/treeflow}.
 
 \BLOCK{endblock}
