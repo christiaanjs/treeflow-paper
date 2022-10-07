@@ -73,11 +73,13 @@ We benchmark 4 distinct computations on these datasets. Firstly, for each replic
 \begin{table}
     \centering
     \VAR{ tables["benchmark_summary"] }
-    \caption{Log-log linear fit to benchmark times}
+    \caption{Results of phylogenetic likelihood benchmark}
     \label{tab:benchmarkfit}
 \end{table}
 
 Figure \ref{fig:benchmark} shows the results of the benchmarks with a log scale on both axes. For likelihood computation with both models and branch gradient computation with the simple model \texttt{bito}/BEAGLE are at least an order of magnitude faster than TreeFlow. This is expected as BEAGLE is a highly optimized special-purpose library written in native code. The performance gap grows much smaller for computing the gradients of the more complex substitution model. \texttt{bito} performs at least 2 likelihood evaluations for each additional parameter when calculating the gradient with respect to substitution model parameters, while the overhead for substitution model parameters with automatic differentiation is minimal. We expect TreeFlow to surpass \texttt{bito}/BEAGLE for substitution models with even more parameters (e.g. codon models \cite{goldman1994codon}), or those where the number of parameters grows with the number of sequences, as in the example below.
+
+For typical real-world phylogenetic analyses, a model with many parameters such as the GTR/Weibull model in this benchmark is used. For modern Bayesian inference methods such as variational inference and Hamiltonian Monte Carlo, the gradient is the primary computation performed at each iteration. We observe that TreeFlow's times for this combination of model and computation are within an order of magnitude of \texttt{bito}/BEAGLE's, around 2-3 times slower. Therefore for applied analyses the automatic differentiation-based computations of TreeFlow presents a reasonable alternative to specialized software while similtaneously offering greater flexibility.
 
 We also observe that the runtimes for TreeFlow are roughly an order of magnitude less than those of the JAX-based implementation. These indicate that the control flow constructs and execution model of TensorFlow are a good choice for implementing tree-based computations compared to the eager execution model of JAX.
 
