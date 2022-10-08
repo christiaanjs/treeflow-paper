@@ -57,7 +57,12 @@ rule coverage_plot:
             output[0]
         )
 
-tex_template = manuscript_dir / "tex" / ("plos-template.j2.tex" if config["submission"] else "plain-template.j2.tex")
+tex_templates = dict(
+    plain="plain-template.j2.tex",
+    plos="plos-template.j2.tex",
+    systematic_biology="samplebibtex_sse.j2.tex"
+)
+tex_template = manuscript_dir / "tex" / tex_templates[config["tex_template"]]
 
 rule template_relaxed_clock_ms:
     input:
@@ -170,19 +175,22 @@ rule compile_ms:
     input:
         main = manuscript_dir / "out" / "{manuscript}.tex",
         bib = manuscript_dir / "tex" / "main.bib",
-        bst = manuscript_dir / "tex" / "plos2015.bst"
+        bst = manuscript_dir / "tex" / "plos2015.bst",
+
     output:
         manuscript_dir / "out" / "{manuscript}.pdf"
     params:
         output_dir =  lambda _, output: pathlib.Path(output[0]).parents[0],
         aux_file = lambda _, output: pathlib.Path(output[0]).with_suffix(".aux"),
         bib_dir = lambda _, input: pathlib.Path(input.bib).parents[0],
-        bst_dir = lambda _, input: pathlib.Path(input.bst).parents[0]
+        bst_dir = lambda _, input: pathlib.Path(input.bst).parents[0],
+        tex_inputs = manuscript_dir / "tex"
     shell:
         """
-        pdflatex --shell-escape -output-directory={params.output_dir} {input.main}
+        export TEXINPUTS=.:{params.tex_inputs}:
         export BIBINPUTS={params.bib_dir}
-        export BSTINPUTS={params.bst_dir}
+        export BSTINPUTS=.:{params.bst_dir}:
+        pdflatex --shell-escape -output-directory={params.output_dir} {input.main}
         bibtex {params.aux_file}
         pdflatex --shell-escape -output-directory={params.output_dir} {input.main}
         pdflatex --shell-escape -output-directory={params.output_dir} {input.main}
