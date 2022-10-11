@@ -5,6 +5,7 @@ import treeflow_pipeline.model as mod
 import treeflow_pipeline.topology_inference as top
 import treeflow_pipeline.results as res
 import treeflow_pipeline.priors as priors
+from treeflow_pipeline.data import extract_xml_sequences
 import pathlib
 
 configfile: "config/sim-config.yaml"
@@ -200,7 +201,7 @@ rule fasta_sim:
         "{wd}/sequences.fasta"
     group: "sim"
     run:
-        sim.convert_simulated_sequences(input[0], output[0], 'fasta')
+        extract_xml_sequences(input[0], output[0], 'fasta')
 
 rule sim_starting_values:
     input:
