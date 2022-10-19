@@ -9,6 +9,8 @@ from treeflow.model.io import flatten_samples_to_dict, calculate_tree_stats
 import treeflow_pipeline.model
 import pandas as pd
 import io
+import arviz
+from treeflow_pipeline.util import pickle_input, beast_log_input
 
 
 def construct_precedes_map(
@@ -405,11 +407,62 @@ def compute_empirical_nucleotide_frequencies(fasta_file: str, output_file: str):
     frequencies_df.to_csv(output_file, index=False)
 
 
-# def plot_variational_trace(trace, output_file):
-#     import matplotlib
+def get_runtime_from_benchmark_file(benchmark_file):
+    return pd.read_table(benchmark_file).s[0]
 
-#     matplotlib.use("Agg")
-#     import matplotlib.pyplot as plt
 
-#     plt.plot(trace.loss.numpy())
-#     plt.savefig(output_file)
+def compute_beast_ess(beast_trace, burn_in=0.1):
+    burned_in = beast_trace.iloc[int(beast_trace.shape[0] * burn_in) :]
+    ess_array = arviz.ess(burned_in.drop(columns="Sample").to_dict(orient="series"))
+    return {key: array.values.item() for key, array in dict(ess_array).items()}
+
+
+def compute_variational_convergence(variational_trace, rtol=0.1, window_size=10):
+    loss_series = pd.Series(variational_trace.loss.numpy())
+    stds = loss_series.rolling(window=window_size).std()
+    final_std = stds.iloc[-1]
+    return np.argmax(np.abs((stds - final_std) / final_std) < rtol)
+
+
+def assemble_timing_data(
+    vi_benchmark_file,
+    vi_trace_file,
+    beast_benchmark_file,
+    beast_trace_file,
+    output_file,
+    beast_burn_in=0.1,
+    min_ess=200,
+):
+    beast_runtime = get_runtime_from_benchmark_file(beast_benchmark_file)
+    beast_trace = beast_log_input(beast_trace_file)
+    beast_iter = len(beast_trace)
+    beast_ess = compute_beast_ess(beast_trace, burn_in=beast_burn_in)
+    min_beast_ess = min(beast_ess.values())
+
+    vi_runtime = get_runtime_from_benchmark_file(vi_benchmark_file)
+    vi_trace = pickle_input(vi_trace_file)
+    vi_iter = len(vi_trace.loss)
+    vi_converged_iter = compute_variational_convergence(vi_trace)
+
+    base_vi_df = pd.DataFrame(
+        dict(iteration=[0, vi_converged_iter, vi_iter], value=[0.0, 1.0, 1.0])
+    )
+    vi_df = base_vi_df.assign(
+        time=vi_runtime * base_vi_df["iteration"] / vi_iter,
+        variable="converged",
+        method="vi",
+    )
+
+    base_beast_df = pd.DataFrame(
+        dict(
+            iteration=[0, int(beast_iter * min_ess / min_beast_ess), beast_iter],
+            value=[0.0, min_ess, min_beast_ess],
+        )
+    )
+    beast_df = base_beast_df.assign(
+        time=beast_runtime * base_beast_df["iteration"] / beast_iter,
+        variable="min_ess",
+        method="beast",
+    )
+    res = pd.concat([vi_df, beast_df], axis="rows")
+    res.to_csv(output_file)

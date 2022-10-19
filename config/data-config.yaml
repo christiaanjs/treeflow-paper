@@ -3,6 +3,8 @@ model_file: config/data-models.yaml
 working_directory: out/
 vi_config: config/vi-config.yaml
 carnivores_xml_url: https://raw.githubusercontent.com/beast-dev/beast-mcmc/v1.10.4/examples/Benchmarks/benchmark2.xml
+h3n2_fasta_url: https://raw.githubusercontent.com/neherlab/treetime_validation/master/resources/flu_H3N2/H3N2_HA_2011_2013.fasta
 lsd_output_format: newick
+n_variational_samples: 1000
 include_ml_plot: false
 include_empirical_plot: false

@@ -9,6 +9,8 @@ import re
 import os
 import glob
 
+from treeflow.evolution.substitution.nucleotide.gtr import GTR_RATE_ORDER
+
 
 def get_neighbor_joining_tree(msa):
     calculator = Bio.Phylo.TreeConstruction.DistanceCalculator("identity")
@@ -46,7 +48,7 @@ def build_raxml_command(
         args.append("--HKY85")
     elif subst_model == "jc":
         args.append("--JC69")
-    else:
+    elif subst_model not in {"gtr", "gtr_rel"}:
         raise ValueError(
             "Unsupported substitution model for RAxML: {0}".format(subst_model)
         )
@@ -149,6 +151,15 @@ def get_starting_values_raxml(raxml_info_file, subst_model):
         res["frequencies"] = raxml_info["frequencies"]
     if subst_model == "hky":
         res["kappa"] = raxml_info["rates"]["ag"]
+    elif subst_model == "gtr":
+        rate_sum = sum(raxml_info["rates"].values())
+        res["gtr_rates"] = [
+            raxml_info["rates"][rate] / rate_sum for rate in GTR_RATE_ORDER
+        ]
+    elif subst_model == "gtr_rel":
+        rate_ct = raxml_info["rates"]["ct"]
+        for pair in GTR_RATE_ORDER:
+            res[f"rate_{pair}"] = raxml_info["rates"][pair] / rate_ct
     elif subst_model != "jc":
         raise ValueError(
             "Unsupported substitution model for RAxML: {0}".format(subst_model)

@@ -55,9 +55,10 @@ DEFAULT_LSD_OUTPUT_FORMAT = "newick"
     type=click.Choice(["newick", "nexus"]),
     default=DEFAULT_LSD_OUTPUT_FORMAT,
 )
+@click.option("--force-all/--no-force-all", default=False)
 @click.pass_obj
 def infer_topology(
-    obj, working_directory, tree_method, rooting_method, lsd_output_format
+    obj, working_directory, tree_method, rooting_method, lsd_output_format, force_all
 ):
     if working_directory is None:
         working_directory = obj.output_path.parents[0]
@@ -80,7 +81,8 @@ def infer_topology(
             ),
             targets=["tree", "starting_values"],
             lock=False,
-            forceall=True,
+            forceall=force_all,
+            force_incomplete=True,
         )
     if not success:
         raise click.UsageError(

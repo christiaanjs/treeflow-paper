@@ -2,8 +2,12 @@ from treeflow_pipeline.util import yaml_input, yaml_output, text_input, text_out
 from treeflow.model.phylo_model import PhyloModel
 import treeflow_pipeline.templating as tem
 from treeflow_pipeline.model import build_init_values_string
-from treeflow_pipeline.results import extract_trace_plot_data, compute_empirical_nucleotide_frequencies
-from treeflow_pipeline.data import convert_dates_to_numeric, extract_xml_sequences
+from treeflow_pipeline.results import (
+    extract_trace_plot_data,
+    compute_empirical_nucleotide_frequencies,
+    assemble_timing_data
+)
+from treeflow_pipeline.data import convert_dates_to_numeric, extract_xml_sequences, remove_identical_sequences
 import pathlib
 
 configfile: "config/data-config.yaml"
@@ -20,8 +24,11 @@ default_out_dir = pathlib.Path("out")
 
 rule data:
     input:
-        expand(wd / dataset_dir / "marginals.png", dataset=datasets),
-        expand(wd / dataset_dir / "traces.png", dataset=datasets)
+        #expand(wd / dataset_dir / "marginals.png", dataset=datasets),
+        #expand(wd / dataset_dir / "traces.png", dataset=datasets)
+        wd / "h3n2" / "marginals.png",
+        wd / "h3n2" / "traces.png",
+        wd / "h3n2" / "timing-data.csv",
 
 rule carnivores_data_xml:
     output:
@@ -44,6 +51,44 @@ rule flu_fasta:
         data_dir / "h3n2.fasta"
     run:
         extract_xml_sequences(input[0], output[0], "fasta", date_from_trait_string=True)
+
+rule big_flu_download:
+    output:
+        data_dir / "H3N2_HA_2011_2013.fasta"
+    run:
+        "curl {config[h3n2_fasta_url]} -o {output}"
+
+rule big_flu_fasta:
+    input:
+        rules.big_flu_download.output[0]
+    output:
+        data_dir / "h3n2_big.fasta"
+    run:
+        convert_dates_to_numeric(
+            input[0],
+            "fasta",
+            output[0],
+            "fasta",
+            date_format="%m/%d/%Y",
+            split_char="|",
+            split_index=-2,
+            replace_old_date=False,
+            exclude_bad_dates=True
+        )
+
+rule big_flu_reduction:
+    input:
+        data_dir / "h3n2_big.fasta"
+    output:
+        data_dir / "h3n2_big_reduced.fasta"
+    run:
+        remove_identical_sequences(
+            input[0],
+            "fasta",
+            output[0],
+            "fasta"
+        )
+        
 
 rule carnivores_beast_run:
     input:
@@ -106,8 +151,10 @@ rule beast_run:
         trees = wd / dataset_dir / "beast.trees"
     benchmark:
         wd / dataset_dir / "beast-benchmark.txt"
+    log:
+        wd / dataset_dir / "beast-log.txt"
     shell:
-        "beast -seed {config[seed]} {input}"
+        "beast -seed {config[seed]} {input} 2>&1 | tee {log}"
 
 rule variational_fit:
     input:
@@ -123,6 +170,8 @@ rule variational_fit:
         tree_samples = wd / dataset_dir / "variational-tree-samples.nexus"
     benchmark:
         wd / dataset_dir / "variational-benchmark.txt"
+    log:
+        wd / dataset_dir / "variational-log.txt"
     shell:
         '''
         treeflow_vi -s {config[seed]} \
@@ -135,7 +184,8 @@ rule variational_fit:
             --trace-output {output.trace} \
             --samples-output {output.samples} \
             --tree-samples-output {output.tree_samples} \
-            --n-output-samples {config[n_variational_samples]}
+            --n-output-samples {config[n_variational_samples]} \
+            2>&1 | tee {log}
         '''
 
 
@@ -157,7 +207,7 @@ rule ml_fit:
             -i {input.fasta} \
             -m {input.model_file} \
             -t {input.topology} \
-            -n 20000 \
+            -n 100 \
             --learning-rate 0.01 \
             --init-values "{params.starting_values_string}" \
             --trace-output {output.trace} \
@@ -205,3 +255,21 @@ rule marginals_plot:
         wd / dataset_dir / "marginals.png"
     script:
         "../scripts/data-marginals-plot.R"
+
+rule timing_data:
+    input:
+        vi_benchmark = wd / dataset_dir / "variational-benchmark.txt",
+        vi_trace = wd / dataset_dir / "variational-trace.pickle",
+        beast_benchmark = wd / dataset_dir / "beast-benchmark.txt",
+        beast_trace = wd / dataset_dir / "beast.log"
+    output:
+        wd / dataset_dir / "timing-data.csv"
+    run:
+        assemble_timing_data(
+            input.vi_benchmark,
+            input.vi_trace,
+            input.beast_benchmark,
+            input.beast_trace,
+            output[0]
+        )
+        

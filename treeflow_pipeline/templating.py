@@ -235,7 +235,7 @@ def get_tree_prior_tag(tree_model, params, init_values):
     return x2s(dist_tag)
 
 
-subst_model_specs = dict(hky="HKY", jc="JukesCantor")
+subst_model_specs = dict(hky="HKY", jc="JukesCantor", gtr_rel="GTR")
 
 
 def get_subst_model_tag(subst_model, params, init_values):
@@ -245,6 +245,17 @@ def get_subst_model_tag(subst_model, params, init_values):
         raise ValueError(f"Unknown substitution model {subst_model}")
     if subst_model == "jc":
         attrib = {}
+    elif subst_model == "gtr_rel":
+        attrib = dict(
+            {
+                f"rate{param[-2:].upper()}": resolve_param_value(
+                    param, model, init_values[param]
+                )
+                for param, model in params.items()
+                if param != "frequencies"
+            },
+            rateCT=str(1.0),
+        )
     else:
         attrib = {
             param: resolve_param_value(param, model, init_values[param])
@@ -378,7 +389,7 @@ def get_operator_tag(
     ]
 
 
-def get_clock_operator_tags(clock_model, params):
+def get_clock_operator_tags(clock_model, params, tree_scale_operator_weight=10.0):
     ops = []
     if "clock_rate" in params and isinstance(params["clock_rate"], dict):
         ops.append(
@@ -387,7 +398,7 @@ def get_clock_operator_tags(clock_model, params):
                     "operator",
                     spec="UpDownOperator",
                     scaleFactor=str(0.75),
-                    weight=str(3.0),
+                    weight=str(tree_scale_operator_weight),
                     up="@clock_rate",
                     down="@tree",
                 )
@@ -415,6 +426,11 @@ def build_beast_analysis(
     estimate_topology=False,
     dated=False,
 ):
+    taxon_count = len(sequence_dict)
+    tree_operator_weight = 73.5 * taxon_count**0.6109
+    tree_scale_operator_weight = 16.44 * taxon_count**0.2614
+    param_scale_operator_weight = tree_scale_operator_weight
+    subst_and_site_param_scale_operator_weight = 1.0
     out_path = pathlib.Path(out_file)
     template = template_env.get_template("beast-analysis.j2.xml")
     if dated:
@@ -462,8 +478,20 @@ def build_beast_analysis(
     operator_tags = [
         operator_tag
         for name, dist_dict in free_params.items()
-        for operator_tag in get_operator_tag(name, dist_dict)
-    ] + get_clock_operator_tags(model.clock_model, model.clock_params)
+        for operator_tag in get_operator_tag(
+            name,
+            dist_dict,
+            weight=(
+                subst_and_site_param_scale_operator_weight
+                if ((name in model.subst_params) or (name in model.site_params))
+                else param_scale_operator_weight
+            ),
+        )
+    ] + get_clock_operator_tags(
+        model.clock_model,
+        model.clock_params,
+        tree_scale_operator_weight=tree_scale_operator_weight,
+    )
     log_tags = [get_log_tag(name) for name in free_params]
 
     return template.render(
@@ -482,5 +510,7 @@ def build_beast_analysis(
         branch_rate_model_tag=branch_rate_model_tag,
         operator_tags=operator_tags,
         log_tags=log_tags,
+        tree_operator_weight=tree_operator_weight,
+        tree_scale_operator_weight=tree_scale_operator_weight,
         **beast_config,
     )

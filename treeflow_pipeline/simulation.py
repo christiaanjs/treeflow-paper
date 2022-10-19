@@ -1,9 +1,6 @@
 import numpy as np
 import treeflow_pipeline.model
-import xml.etree.ElementTree
 import pandas as pd
-import Bio.Seq
-import Bio.SeqIO
 from treeflow.tree.io import parse_newick
 
 
@@ -60,51 +57,6 @@ def aggregate_sim_traces(sim_trace_files, out_file):
 
 def parse_branch_rates(df):
     return df.iloc[0, 1:].tolist()
-
-
-def parse_sequence_value(tag):
-    if "value" in tag.attrib:
-        return tag.attrib["value"]
-    else:
-        text = tag.text.strip()
-        children = list(tag)
-        i = 0
-        n = len(children)
-        while not text and i < n:
-            text = children[i].tail
-            i += 1
-        return "".join(text.split())
-
-
-def parse_taxon_name(tag, reformat=False):
-    if "taxon" in tag.attrib:
-        raw_taxon_name: str = tag.attrib["taxon"]
-    else:
-        taxon_tag = tag.find("./taxon")
-        if "idref" in taxon_tag.attrib:
-            raw_taxon_name: str = taxon_tag.attrib["idref"]
-        else:
-            raise ValueError("Can't find taxon in sequence tag")
-    if reformat:
-        return raw_taxon_name.replace(" ", "_")
-    else:
-        return raw_taxon_name
-
-
-def convert_simulated_sequences(
-    input_file, output_file, output_format, reformat_taxon_name=False
-):
-    seq_xml_root = xml.etree.ElementTree.parse(input_file)
-    records = [
-        Bio.SeqIO.SeqRecord(
-            Bio.Seq.Seq(parse_sequence_value(tag)),
-            parse_taxon_name(tag, reformat=reformat_taxon_name),
-            description="",
-        )
-        for tag in seq_xml_root.findall(".//sequence")
-    ]
-    with open(output_file, "w") as f:
-        Bio.SeqIO.write(records, f, output_format)
 
 
 import dendropy
