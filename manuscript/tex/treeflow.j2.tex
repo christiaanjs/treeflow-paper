@@ -33,6 +33,7 @@ $^{11}$School of Biological Sciences, The University of Auckland, Auckland, New 
 \usepackage[outputdir=\VAR{output_dir}]{minted}
 \usepackage{multirow}
 \usepackage{setspace}
+\usepackage[T1]{fontenc}
 \BLOCK{endblock}
 
 \BLOCK{block abstract}
@@ -217,7 +218,7 @@ The estimated per-lineage kappa parameters are shown in Figure \ref{fig:carnivor
 \end{figure}
 
 
-In the analysis of the \VAR{ flu_taxon_count } taxon influenza dataset, we demonstrate the scalability of variational inference. We performed variational inference using TreeFlow's command line interface. The model used for inference included a coalescent prior with a constant population size on the tree, a strict molecular clock, a discretized Gamma model of site rate variation and a GTR substitution model. The YAML model definition code for this model, including parameter priors, is shown in Figure \ref{fig:fluyaml}. This parameterization of the GTR substitution model (here named \texttt{gtr_rel}), with independent priors on five of the relative rates and one held fixed to 1, is used to allow comparison of parameter estimates with beast. It is also possible to use a six-rate GTR parameterisation with a Dirichlet prior in TreeFlow.
+In the analysis of the \VAR{ flu_taxon_count } taxon influenza dataset, we demonstrate the scalability of variational inference. We performed variational inference using TreeFlow's command line interface. The model used for inference included a coalescent prior with a constant population size on the tree, a strict molecular clock, a discretized Gamma model of site rate variation and a GTR substitution model. The YAML model definition code for this model, including parameter priors, is shown in Figure \ref{fig:fluyaml}. This parameterization of the GTR substitution model (here named \texttt{gtr\_rel}), with independent priors on five of the relative rates and one held fixed to 1, is used to allow comparison of parameter estimates with beast. It is also possible to use a six-rate GTR parameterisation with a Dirichlet prior in TreeFlow.
 
 
 \section{Discussion}
