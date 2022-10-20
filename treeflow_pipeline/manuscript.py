@@ -1,4 +1,5 @@
 from functools import reduce
+import pathlib
 import typing as tp
 import numpy as np
 import pandas as pd
@@ -8,6 +9,7 @@ matplotlib.use("AGG")
 import matplotlib.pyplot as plt
 import os
 import jinja2
+from treeflow import parse_newick
 import treeflow_pipeline.results
 from treeflow_pipeline.util import text_input
 import treeflow_pipeline.model
@@ -289,13 +291,18 @@ latex_jinja_env = jinja2.Environment(
 )
 
 
-def get_treeflow_manuscript_vars(treeflow_benchmarks_config):
+def get_treeflow_manuscript_vars(treeflow_benchmarks_config, flu_dataset, out_dir):
+    out_dir = pathlib.Path(out_dir)
+    flu_dir = out_dir / flu_dataset
+    flu_tree = parse_newick(str(flu_dir / "topology.nwk"))
     return dict(
         min_sequence_count=min(treeflow_benchmarks_config["full_taxon_counts"]),
         max_sequence_count=max(treeflow_benchmarks_config["full_taxon_counts"]),
         sequence_length=treeflow_benchmarks_config["sequence_length"],
         replicate_count=treeflow_benchmarks_config["replicates"],
         sample_count=treeflow_benchmarks_config["sample_count"],
+        flu_yaml_file=str(flu_dir / "model.yaml"),
+        flu_taxon_count=flu_tree.taxon_count,
     )
 
 

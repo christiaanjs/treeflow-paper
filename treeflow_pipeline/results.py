@@ -417,7 +417,7 @@ def compute_beast_ess(beast_trace, burn_in=0.1):
     return {key: array.values.item() for key, array in dict(ess_array).items()}
 
 
-def compute_variational_convergence(variational_trace, rtol=0.1, window_size=10):
+def compute_variational_convergence(variational_trace, rtol=0.1, window_size=100):
     loss_series = pd.Series(variational_trace.loss.numpy())
     stds = loss_series.rolling(window=window_size).std()
     final_std = stds.iloc[-1]

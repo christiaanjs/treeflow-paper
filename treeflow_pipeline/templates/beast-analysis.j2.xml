@@ -53,9 +53,9 @@
         </distribution>
     </distribution>
 
-    <operator id="CoalescentConstantTreeScaler.t:Treeflow" spec="ScaleOperator" scaleFactor="0.5" tree="@tree" weight="3.0"/>
+    <operator id="CoalescentConstantTreeScaler.t:Treeflow" spec="ScaleOperator" scaleFactor="0.5" tree="@tree" weight="{{ tree_scale_operator_weight }}"/>
     <operator id="CoalescentConstantTreeRootScaler.t:Treeflow" spec="ScaleOperator" rootOnly="true" scaleFactor="0.5" tree="@tree" weight="3.0"/>
-    <operator id="CoalescentConstantUniformOperator.t:Treeflow" spec="Uniform" tree="@tree" weight="30.0"/>
+    <operator id="CoalescentConstantUniformOperator.t:Treeflow" spec="Uniform" tree="@tree" weight="{{ tree_operator_weight }}"/>
     
     {% if estimate_topology %}
     <operator id="CoalescentConstantSubtreeSlide.t:Treeflow" spec="SubtreeSlide" tree="@tree" weight="15.0"/>

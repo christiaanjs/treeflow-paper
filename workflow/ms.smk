@@ -161,8 +161,12 @@ rule template_treeflow_ms:
                 ),
                 tables_dict=dict(benchmark_summary=input.benchmark_summary_table),
                 vars=dict(
-                    treeflow_pipeline.manuscript.get_treeflow_manuscript_vars(yaml_input(input.treeflow_benchmarks_config)),
-                    output_dir = params.output_dir
+                    treeflow_pipeline.manuscript.get_treeflow_manuscript_vars(
+                        yaml_input(input.treeflow_benchmarks_config),
+                        flu_dataset=config["flu_dataset"],
+                        out_dir=out_dir
+                    ),
+                    output_dir = params.output_dir,
                 ),
                 submission=config["submission"]
             ),

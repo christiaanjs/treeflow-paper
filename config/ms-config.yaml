@@ -6,4 +6,4 @@ sequence_dir: 10000sites
 model_file: config/model.yaml
 submission: false
 tex_template: plain #systematic_biology
-flu_dataset: h3n2_big
+flu_dataset: h3n2

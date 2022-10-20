@@ -122,7 +122,7 @@ Table \ref{tab:benchmarkfit} shows the coefficients obtained from fitting a line
 
 \section{Biological examples}
 
-We used TreeFlow to perform fixed-topology phylogenetic analyses of two datasets. The first is an alignment of 62 mitochondrial DNA sequences from carnivores \cite{suchard2009many}. In both datasets maximum likelihood unrooted topologies are estimated using RAxML \cite{stamatakis2014raxml}. These topologies are rooted with Least Squares Dating \cite{to2016lsd}.
+We used TreeFlow to perform fixed-topology phylogenetic analyses of two datasets. The first is an alignment of 62 mitochondrial DNA sequences from carnivores \cite{suchard2009many}. The second is a dataset of 980 influenza sequences \cite{vaughan2014efficient}. In both datasets maximum likelihood unrooted topologies are estimated using RAxML \cite{stamatakis2014raxml}. These topologies are rooted with Least Squares Dating \cite{to2016lsd}.
 
 In the carnivores dataset, we demonstrate the flexibility of probabilistic programming with TreeFlow by investigating variation in the ratio of transitions to transversions in the nucleotide substitution process across lineages in the tree. Early maximum likelihood analyses of mitochondrial DNA in primates detected variation in this ratio, but without a biological basis, it was attributed to a saturation effect \cite{yang1999estimation}. A later simulation-based investigation showed that this was a reasonable explanation, which exposed the limitations of nucleotide substitution models for estimating the length of branches deep in the tree \cite{duchene2015declining}.
 
@@ -208,9 +208,17 @@ We then altered this model to estimate a separate ratio for every lineage on the
 
 The estimated per-lineage kappa parameters are shown in Figure \ref{fig:carnivoreskappa}. Kappa estimates decline with the age of the lineage, which agrees with the results of the previous studies. The marginal likelihood for the transition-transversion ratio variation across lineages versus the base model was higher. This means that, under the other components of this model, the data supports variation in the ratio. This does not necessarily imply that transition-transversion ratio in the true generative process of the data varies in the same way, but could be a useful consideration in designing more sophisticated models of nucleotide substitution. The growth in uncertainty in kappa estimates deeper in the tree supports previous conclusions that nucleotide substitution models are unable to effectively estimate the number of substitutions on older branches \cite{duchene2015declining}. Figure \ref{fig:carnivorestree} shows that the kappa variation model shortens older branches, leading to a substantially reduced overall tree height estimate, with proportionally similar uncertainty in node height estimates. This is not a proper dating analysis as it does not consider uncertainty in the mutation rate and is not time-calibrated, but it is clear that this model could significantly affect time estimates.
 
-% In the second dataset, we demonstrate the scalability of variational inference.
+\begin{figure}
 
-% TODO: Second dataset
+    \inputminted{yaml}{\VAR{ flu_yaml_file }}
+
+    \label{fig:fluyaml}
+    \caption{YAML model definition for the analysis of the influenza dataset}
+\end{figure}
+
+
+In the analysis of the \VAR{ flu_taxon_count } taxon influenza dataset, we demonstrate the scalability of variational inference. We performed variational inference using TreeFlow's command line interface. The model used for inference included a coalescent prior with a constant population size on the tree, a strict molecular clock, a discretized Gamma model of site rate variation and a GTR substitution model. The YAML model definition code for this model, including parameter priors, is shown in Figure \ref{fig:fluyaml}. This parameterization of the GTR substitution model (here named \texttt{gtr_rel}), with independent priors on five of the relative rates and one held fixed to 1, is used to allow comparison of parameter estimates with beast. It is also possible to use a six-rate GTR parameterisation with a Dirichlet prior in TreeFlow.
+
 
 \section{Discussion}
 
