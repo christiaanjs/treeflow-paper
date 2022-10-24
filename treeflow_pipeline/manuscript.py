@@ -4,6 +4,8 @@ import typing as tp
 import numpy as np
 import pandas as pd
 import matplotlib
+import datetime
+import humanfriendly
 
 matplotlib.use("AGG")
 import matplotlib.pyplot as plt
@@ -13,6 +15,7 @@ from treeflow import parse_newick
 import treeflow_pipeline.results
 from treeflow_pipeline.util import text_input
 import treeflow_pipeline.model
+from treeflow.evolution.substitution.nucleotide.gtr import GTR_RATE_ORDER
 
 DPI = 300
 MAX_WIDTH_PIXELS = 2250
@@ -33,6 +36,7 @@ param_name_mapping = {
     "site_gamma_shape": "Site rate shape",
     "birth_rate": "Birth rate",
     **{f"frequencies_{i}": f"Frequencies ({char})" for i, char in enumerate("ACGT")},
+    **{f"rate_{pair}": f"Relative rate ({pair.upper()})" for pair in GTR_RATE_ORDER},
 }
 
 method_name_mapping = {
@@ -291,7 +295,34 @@ latex_jinja_env = jinja2.Environment(
 )
 
 
-def get_treeflow_manuscript_vars(treeflow_benchmarks_config, flu_dataset, out_dir):
+def format_time(x):
+    return humanfriendly.format_timespan(
+        datetime.timedelta(seconds=int(x)), max_units=2
+    )
+
+
+def format_integer(x):
+    return humanfriendly.format_number(x, num_decimals=0)
+
+
+def get_treeflow_timing_vars(timing_csv_file):
+    timing_df = pd.read_csv(timing_csv_file).sort_values("iteration")
+    beast_data = timing_df[timing_df["method"] == "beast"]
+    final_beast_data = beast_data.iloc[-1]
+    vi_data = timing_df[timing_df["method"] == "vi"]
+    vi_converged_data = vi_data[vi_data["value"] == 1.0].iloc[0]
+    return dict(
+        flu_beast_iterations=format_integer(final_beast_data["iteration"]),
+        flu_min_ess=format_integer(final_beast_data["value"]),
+        flu_beast_time=format_time(final_beast_data["time"]),
+        flu_convergence_iterations=format_integer(vi_converged_data["iteration"]),
+        flu_vi_time=format_time(vi_converged_data["time"]),
+    )
+
+
+def get_treeflow_manuscript_vars(
+    treeflow_benchmarks_config, flu_dataset, out_dir, timing_csv_file
+):
     out_dir = pathlib.Path(out_dir)
     flu_dir = out_dir / flu_dataset
     flu_tree = parse_newick(str(flu_dir / "topology.nwk"))
@@ -303,6 +334,7 @@ def get_treeflow_manuscript_vars(treeflow_benchmarks_config, flu_dataset, out_di
         sample_count=treeflow_benchmarks_config["sample_count"],
         flu_yaml_file=str(flu_dir / "model.yaml"),
         flu_taxon_count=flu_tree.taxon_count,
+        **get_treeflow_timing_vars(timing_csv_file),
     )
 
 

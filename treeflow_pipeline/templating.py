@@ -389,7 +389,9 @@ def get_operator_tag(
     ]
 
 
-def get_clock_operator_tags(clock_model, params, tree_scale_operator_weight=10.0):
+def get_clock_operator_tags(
+    clock_model, params, tree_scale_operator_weight=10.0, tree_scale_factor=0.95
+):
     ops = []
     if "clock_rate" in params and isinstance(params["clock_rate"], dict):
         ops.append(
@@ -397,7 +399,7 @@ def get_clock_operator_tags(clock_model, params, tree_scale_operator_weight=10.0
                 ET.Element(
                     "operator",
                     spec="UpDownOperator",
-                    scaleFactor=str(0.75),
+                    scaleFactor=str(tree_scale_factor),
                     weight=str(tree_scale_operator_weight),
                     up="@clock_rate",
                     down="@tree",
@@ -425,10 +427,13 @@ def build_beast_analysis(
     out_file,
     estimate_topology=False,
     dated=False,
+    tree_scale_factor=0.95,
 ):
     taxon_count = len(sequence_dict)
-    tree_operator_weight = 73.5 * taxon_count**0.6109
-    tree_scale_operator_weight = 16.44 * taxon_count**0.2614
+    # tree_operator_weight = 73.5 * taxon_count**0.6109
+    # tree_scale_operator_weight = 16.44 * taxon_count**0.2614
+    tree_operator_weight = 73.5 / 4.0 * taxon_count**0.6109
+    tree_scale_operator_weight = 16.44 / 4.0 * taxon_count**0.2614
     param_scale_operator_weight = tree_scale_operator_weight
     subst_and_site_param_scale_operator_weight = 1.0
     out_path = pathlib.Path(out_file)
@@ -491,6 +496,7 @@ def build_beast_analysis(
         model.clock_model,
         model.clock_params,
         tree_scale_operator_weight=tree_scale_operator_weight,
+        tree_scale_factor=tree_scale_factor,
     )
     log_tags = [get_log_tag(name) for name in free_params]
 
@@ -512,5 +518,6 @@ def build_beast_analysis(
         log_tags=log_tags,
         tree_operator_weight=tree_operator_weight,
         tree_scale_operator_weight=tree_scale_operator_weight,
+        tree_scale_factor=tree_scale_factor,
         **beast_config,
     )

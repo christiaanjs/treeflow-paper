@@ -128,9 +128,18 @@ rule carnivores_tree_plot:
         alt_tree_samples = treeflow_dir / "examples" / "demo-out" / "carnivores-alt-trees.nexus",
         base_tree_samples = treeflow_dir / "examples" / "demo-out" / "carnivores-base-trees.nexus"
     output:
-        manuscript_dir / "figures" / "carnivores-trees.png"
+        manuscript_dir / "figures" / "carnivores-model-trees.png"
     script:
         "../scripts/carnivores-tree-plot.R"
+
+rule data_tree_plot:
+    input:
+        vi_tree_samples = out_dir / "{dataset}" / "variational-tree-samples.nexus",
+        beast_tree_samples = out_dir / "{dataset}" / "beast.trees"
+    output:
+        plot = manuscript_dir / "figures" / "{dataset}-trees.png"
+    script:
+        "../scripts/data-tree-plot.R"
 
 rule template_treeflow_ms:
     input:
@@ -143,7 +152,10 @@ rule template_treeflow_ms:
         benchmark_summary_table = rules.benchmark_summary_table.output[0],
         carnivores_marginals_plot = manuscript_dir / "figures" / "carnivores-marginals.png",
         carnivores_kappa_plot = rules.carnivores_kappa_plot.output[0],
-        carnivores_tree_plot = rules.carnivores_tree_plot.output[0]
+        carnivores_tree_plot = rules.carnivores_tree_plot.output[0],
+        flu_marginals_plot = manuscript_dir / "figures" / f"{config['flu_dataset']}-marginals.png",
+        flu_tree_plot = manuscript_dir / "figures" / f"{config['flu_dataset']}-trees.png",
+        flu_timing_csv = out_dir / config["flu_dataset"] / "timing-data.csv"
     output:
         manuscript_dir / "out" / "treeflow.tex"
     params:
@@ -157,14 +169,17 @@ rule template_treeflow_ms:
                     benchmark=input.benchmark_plot,
                     carnivores_marginals=input.carnivores_marginals_plot,
                     carnivores_kappa=input.carnivores_kappa_plot,
-                    carnivores_tree=input.carnivores_tree_plot
+                    carnivores_tree=input.carnivores_tree_plot,
+                    flu_marginals=input.flu_marginals_plot,
+                    flu_tree=input.flu_tree_plot
                 ),
                 tables_dict=dict(benchmark_summary=input.benchmark_summary_table),
                 vars=dict(
                     treeflow_pipeline.manuscript.get_treeflow_manuscript_vars(
                         yaml_input(input.treeflow_benchmarks_config),
                         flu_dataset=config["flu_dataset"],
-                        out_dir=out_dir
+                        out_dir=out_dir,
+                        timing_csv_file=input.flu_timing_csv
                     ),
                     output_dir = params.output_dir,
                 ),

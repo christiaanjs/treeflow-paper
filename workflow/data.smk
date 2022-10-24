@@ -29,6 +29,12 @@ rule data:
         wd / "h3n2" / "marginals.png",
         wd / "h3n2" / "traces.png",
         wd / "h3n2" / "timing-data.csv",
+        #wd / "h3n2_hky" / "marginals.png",
+        # wd / "h3n2_hky" / "traces.png",
+        #wd / "h3n2_hky" / "timing-data.csv",
+        # wd / "dengue" / "marginals.png",
+        # wd / "dengue" / "traces.png",
+        # wd / "dengue" / "timing-data.csv",
 
 rule carnivores_data_xml:
     output:
@@ -178,7 +184,7 @@ rule variational_fit:
             -i {input.fasta} \
             -m {input.model_file} \
             -t {input.topology} \
-            -n 40000 \
+            -n 30000 \
             --learning-rate 0.001 \
             --init-values "{params.starting_values_string}" \
             --trace-output {output.trace} \

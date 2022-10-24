@@ -130,7 +130,7 @@ In the carnivores dataset, we demonstrate the flexibility of probabilistic progr
 \begin{figure}
     \centering
     \VAR{ figures("carnivores_marginals", "[width=\\linewidth]") }
-    \caption{Carnivores base model marginal parameter estimates}
+    \caption{Carnivores base model posterior marginal parameter estimates}
     \label{fig:carnivoresmarginals}
 \end{figure}
 
@@ -217,8 +217,32 @@ The estimated per-lineage kappa parameters are shown in Figure \ref{fig:carnivor
     \caption{YAML model definition for the analysis of the influenza dataset}
 \end{figure}
 
+\begin{figure}
+    \centering
+    \VAR{ figures("flu_marginals", "[width=\\linewidth]") }
+    \caption{Influenza parameter marginal posterior distributions}
+    \label{fig:flumarginals}
+\end{figure}
 
-In the analysis of the \VAR{ flu_taxon_count } taxon influenza dataset, we demonstrate the scalability of variational inference. We performed variational inference using TreeFlow's command line interface. The model used for inference included a coalescent prior with a constant population size on the tree, a strict molecular clock, a discretized Gamma model of site rate variation and a GTR substitution model. The YAML model definition code for this model, including parameter priors, is shown in Figure \ref{fig:fluyaml}. This parameterization of the GTR substitution model (here named \texttt{gtr\_rel}), with independent priors on five of the relative rates and one held fixed to 1, is used to allow comparison of parameter estimates with beast. It is also possible to use a six-rate GTR parameterisation with a Dirichlet prior in TreeFlow.
+\begin{figure}
+    \centering
+    \VAR{ figures("flu_tree", "[width=\\linewidth]") }
+    \caption{Influenza node height posterior distribution statistics}
+    \label{fig:flutree}
+\end{figure}
+
+
+
+In the analysis of the \VAR{ flu_taxon_count } taxon influenza dataset, we demonstrate the scalability of variational inference. We performed variational inference using TreeFlow's command line interface. The model used for inference included a coalescent prior with a constant population size on the tree, a strict molecular clock, a discretized Gamma model of site rate variation and a GTR substitution model. The YAML model definition code for this model, including parameter priors, is shown in Figure \ref{fig:fluyaml}. This parameterization of the GTR substitution model (here named \texttt{gtr\_rel}), with independent priors on five of the relative rates and one held fixed to 1, is used to allow comparison of parameter estimates with BEAST. It is also possible to use a six-rate GTR parameterisation with a Dirichlet prior in TreeFlow.
+
+Figure \ref{fig:flumarginals} shows the marginals parameter estimates obtained from this dataset, compared to those obtained from a fixed-topology MCMC analysis using BEAST 2. The posterior distributions of most parameters are approximated with high fidelity by the mean field approximation. The uncertainty in the tree height, coalescent effective population size, and clock rate are slightly underestimated. This is a result of using an approximation that ignores the correlations between these parameters that are present in the posterior.
+
+Figure \ref{fig:flutree} summarises the node heights estimates.
+% TODO: Node height marginals
+
+BEAST 2 MCMC sampling was run for \VAR{ flu_beast_iterations } iterations. Convergence was checked using effective sample size, which was computed for all parameters using ArviZ \cite{kumar2019arviz}. Multiple runs were performed to tune MCMC operator weights to improve ESSs. Generally, the minimum acceptable ESS is 100, though 200 is preferred \cite{drummond2015bayesian}. The analysis resulted in a minimum effective sample size of \VAR{ flu_min_ess }. The wall clock runtime for the BEAST 2 analysis was \VAR{ flu_beast_time }. The TreeFlow analysis converged in \VAR{ flu_convergence_iterations } iterations which took \VAR{ flu_vi_time }. This shows that variational inference has favourable scaling for large phylogenetic datasets despite the more expensive gradient computations required, and that TreeFlow's slower phylogenetic likelihood implementation performs well enough to be useful in real-world inference scenarios.
+
+% Timing
 
 
 \section{Discussion}

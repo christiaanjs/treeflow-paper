@@ -417,11 +417,19 @@ def compute_beast_ess(beast_trace, burn_in=0.1):
     return {key: array.values.item() for key, array in dict(ess_array).items()}
 
 
-def compute_variational_convergence(variational_trace, rtol=0.1, window_size=100):
-    loss_series = pd.Series(variational_trace.loss.numpy())
+def round_up(x, to=1000):
+    return (int(x / to) + 1) * to
+
+
+def compute_variational_convergence(
+    variational_trace, rtol=0.1, window_size=100, round_up_to=1000
+):
+    raw_loss_series = pd.Series(variational_trace.loss.numpy())
+    loss_series = raw_loss_series[~raw_loss_series.isna()]
     stds = loss_series.rolling(window=window_size).std()
     final_std = stds.iloc[-1]
-    return np.argmax(np.abs((stds - final_std) / final_std) < rtol)
+    notna_index = np.argmax(np.abs((stds - final_std) / final_std) < rtol)
+    return round_up(loss_series.index[notna_index], to=round_up_to)
 
 
 def assemble_timing_data(
@@ -432,10 +440,11 @@ def assemble_timing_data(
     output_file,
     beast_burn_in=0.1,
     min_ess=200,
+    interpolate_ess=False,
 ):
     beast_runtime = get_runtime_from_benchmark_file(beast_benchmark_file)
     beast_trace = beast_log_input(beast_trace_file)
-    beast_iter = len(beast_trace)
+    beast_iter = beast_trace["Sample"].max()
     beast_ess = compute_beast_ess(beast_trace, burn_in=beast_burn_in)
     min_beast_ess = min(beast_ess.values())
 
@@ -453,16 +462,18 @@ def assemble_timing_data(
         method="vi",
     )
 
-    base_beast_df = pd.DataFrame(
-        dict(
-            iteration=[0, int(beast_iter * min_ess / min_beast_ess), beast_iter],
-            value=[0.0, min_ess, min_beast_ess],
-        )
+    beast_data_dict = dict(
+        iteration=[0, beast_iter],
+        value=[0.0, min_beast_ess],
     )
+    if interpolate_ess:
+        beast_data_dict["iteration"].append(int(beast_iter * min_ess / min_beast_ess))
+        beast_data_dict["value"].append(min_ess)
+    base_beast_df = pd.DataFrame(beast_data_dict)
     beast_df = base_beast_df.assign(
         time=beast_runtime * base_beast_df["iteration"] / beast_iter,
         variable="min_ess",
         method="beast",
     )
     res = pd.concat([vi_df, beast_df], axis="rows")
-    res.to_csv(output_file)
+    res.to_csv(output_file, index=False)

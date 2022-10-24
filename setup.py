@@ -16,7 +16,8 @@ setuptools.setup(
         "snakemake",
         "papermill",
         "biopython",
-        "matplotlib"
+        "matplotlib",
+        "humanfriendly",
     ],
     entry_points="""
         [console_scripts]

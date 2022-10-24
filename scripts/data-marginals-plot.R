@@ -5,7 +5,7 @@ readBeastTrace <- function(filename, columns, burnIn = 0.1) {
   raw <- readr::read_tsv(filename, comment = "#")
   burnedIn <- dplyr::filter(raw, dplyr::row_number() > nrow(raw) * burnIn)
   # dplyr::transmute(burnedIn, Kappa=kappa, `Birth rate`=birthRate, `Gamma shape`=gammaShape, `Tree height`=TreeHeight, )
-  renamed <- dplyr::rename(burnedIn, tree_height = `tree.height`) %>%
+  renamed <- dplyr::rename(burnedIn, tree_height = `tree.height`, tree_length = `tree.treeLength`) %>%
     dplyr::rename_with(
       ~ paste("frequencies", as.numeric(stringr::str_sub(.x, start = -1)) - 1, sep = "_"),
       tidyselect::starts_with("frequencies")
