@@ -389,8 +389,16 @@ def get_operator_tag(
     ]
 
 
+def bool_to_attrib(x: bool) -> str:
+    return "true" if x else "false"
+
+
 def get_clock_operator_tags(
-    clock_model, params, tree_scale_operator_weight=10.0, tree_scale_factor=0.95
+    clock_model,
+    params,
+    tree_scale_operator_weight=10.0,
+    tree_scale_factor=0.95,
+    optimise=False,
 ):
     ops = []
     if "clock_rate" in params and isinstance(params["clock_rate"], dict):
@@ -403,6 +411,7 @@ def get_clock_operator_tags(
                     weight=str(tree_scale_operator_weight),
                     up="@clock_rate",
                     down="@tree",
+                    optimise=bool_to_attrib(optimise),
                 )
             )
         )
@@ -428,10 +437,9 @@ def build_beast_analysis(
     estimate_topology=False,
     dated=False,
     tree_scale_factor=0.95,
+    optimise_tree_scale_operators=True,
 ):
     taxon_count = len(sequence_dict)
-    # tree_operator_weight = 73.5 * taxon_count**0.6109
-    # tree_scale_operator_weight = 16.44 * taxon_count**0.2614
     tree_operator_weight = 73.5 / 4.0 * taxon_count**0.6109
     tree_scale_operator_weight = 16.44 / 4.0 * taxon_count**0.2614
     param_scale_operator_weight = tree_scale_operator_weight
@@ -497,6 +505,7 @@ def build_beast_analysis(
         model.clock_params,
         tree_scale_operator_weight=tree_scale_operator_weight,
         tree_scale_factor=tree_scale_factor,
+        optimise=optimise_tree_scale_operators,
     )
     log_tags = [get_log_tag(name) for name in free_params]
 
@@ -519,5 +528,6 @@ def build_beast_analysis(
         tree_operator_weight=tree_operator_weight,
         tree_scale_operator_weight=tree_scale_operator_weight,
         tree_scale_factor=tree_scale_factor,
+        optimise_tree_scale_operators=bool_to_attrib(optimise_tree_scale_operators),
         **beast_config,
     )
