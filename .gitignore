@@ -283,3 +283,4 @@ __pycache__/
 *xml.state
 
 scratch/
+.vscode

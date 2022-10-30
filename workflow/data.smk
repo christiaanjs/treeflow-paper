@@ -24,17 +24,9 @@ default_out_dir = pathlib.Path("out")
 
 rule data:
     input:
-        #expand(wd / dataset_dir / "marginals.png", dataset=datasets),
-        #expand(wd / dataset_dir / "traces.png", dataset=datasets)
-        wd / "h3n2" / "marginals.png",
-        wd / "h3n2" / "traces.png",
-        wd / "h3n2" / "timing-data.csv",
-        #wd / "h3n2_hky" / "marginals.png",
-        # wd / "h3n2_hky" / "traces.png",
-        #wd / "h3n2_hky" / "timing-data.csv",
-        # wd / "dengue" / "marginals.png",
-        # wd / "dengue" / "traces.png",
-        # wd / "dengue" / "timing-data.csv",
+        expand(wd / dataset_dir / "marginals.png", dataset=datasets),
+        expand(wd / dataset_dir / "traces.png", dataset=datasets),
+        expand(wd / dataset_dir / "timing-data.csv", dataset=datasets),
 
 rule carnivores_data_xml:
     output:
