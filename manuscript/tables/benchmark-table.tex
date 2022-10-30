@@ -1,19 +1,19 @@
 \begin{tabular}{lllrr}
 \toprule
-    &             &           &  Mean time (512 taxa) &  log-log slope \\
-Method & Model & Computation &                       &                \\
+ &  &  & Mean time (512 taxa) & log-log slope \\
+Model & Computation & Method &  &  \\
 \midrule
-TreeFlow & JC & Likelihood &                 6.226 &          1.134 \\
-    &             & Gradients &                14.555 &          1.233 \\
-    & GTR/Weibull & Likelihood &                10.726 &          1.122 \\
-    &             & Gradients &                36.136 &          1.343 \\
-bito/BEAGLE & JC & Likelihood &                 0.162 &          1.271 \\
-    &             & Gradients &                 0.868 &          1.328 \\
-    & GTR/Weibull & Likelihood &                 0.582 &          1.401 \\
-    &             & Gradients &                14.736 &          1.414 \\
-JAX & JC & Likelihood &               168.787 &          1.145 \\
-    &             & Gradients &               644.224 &          1.192 \\
-    & GTR/Weibull & Likelihood &               908.236 &          1.584 \\
-    &             & Gradients &              2801.346 &          1.581 \\
+\multirow[t]{6}{*}{JC} & \multirow[t]{3}{*}{Likelihood} & TreeFlow & 6.23 & 1.13 \\
+ &  & bito/BEAGLE & 0.16 & 1.27 \\
+ &  & JAX & 168.79 & 1.15 \\
+ & \multirow[t]{3}{*}{Gradients} & TreeFlow & 14.55 & 1.23 \\
+ &  & bito/BEAGLE & 0.87 & 1.33 \\
+ &  & JAX & 644.22 & 1.19 \\
+\multirow[t]{6}{*}{GTR/Weibull} & \multirow[t]{3}{*}{Likelihood} & TreeFlow & 10.73 & 1.12 \\
+ &  & bito/BEAGLE & 0.58 & 1.40 \\
+ &  & JAX & 908.24 & 1.58 \\
+ & \multirow[t]{3}{*}{Gradients} & TreeFlow & \bfseries 36.14 & \bfseries 1.34 \\
+ &  & bito/BEAGLE & \bfseries 14.74 & \bfseries 1.41 \\
+ &  & JAX & \bfseries 2801.35 & \bfseries 1.58 \\
 \bottomrule
 \end{tabular}
