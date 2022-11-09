@@ -292,12 +292,6 @@ rule treeflow_submission_minted_cache:
         pdflatex --shell-escape {params.tex}
         """
 
-# rule treeflow_submission_minted_sty:
-#     output:
-#         submission_dir / "minted.sty"
-#     shell:
-#         "curl {config[minted_sty_url]} -o {output}"
-
 rule treeflow_submission_bbl:
     input:
         tex = submission_dir / "treeflow.tex",
@@ -320,7 +314,6 @@ rule treeflow_submission_zip:
     input:
         tex = submission_dir / "treeflow.tex",
         minted_cache = rules.treeflow_submission_minted_cache.output,
-        # minted_sty = rules.treeflow_submission_minted_sty.output,
         bbl = rules.treeflow_submission_bbl.output.bbl,
     output:
         zip = manuscript_dir / "out" / "submission.zip"
