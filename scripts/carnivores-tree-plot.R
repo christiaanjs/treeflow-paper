@@ -58,11 +58,16 @@ plotDf <- tidyr::pivot_wider(
     )
 
 fig <- ggplot(plotDf, aes(x = `Age in base model`, y = `Age in kappa variation model`)) +
-    geom_point(color = "navy") +
-    geom_errorbar(aes(ymin = `lo Kappa variation`, ymax = `up Kappa variation`), alpha = 0.5) +
-    geom_errorbarh(aes(xmin = `lo Base`, xmax = `up Base`), alpha = 0.5) +
+    geom_errorbar(aes(ymin = `lo Kappa variation`, ymax = `up Kappa variation`, color = "95% posterior quantile interval"), alpha = 0.5) +
+    geom_errorbarh(aes(xmin = `lo Base`, xmax = `up Base`, color = "95% posterior quantile interval"), alpha = 0.5) +
+    geom_point(aes(color = "Posterior mean")) +
     geom_abline(slope = 1, intercept = 0, linetype = "dotted") +
-    expand_limits(x = maxAge, y = maxAge)
+    expand_limits(x = maxAge, y = maxAge) +
+    scale_color_manual(name = "", values = c("black", "navy")) +
+    guides(colour = guide_legend(override.aes = list(
+        linetype = c("solid", "blank"),
+        shape = c(NA, 19)
+    )))
 
 
 ggplot2::ggsave(snakemake@output[[1]], fig, width = 7, height = 6)

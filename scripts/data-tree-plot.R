@@ -24,7 +24,7 @@ getHeightDf <- function(trees) {
     bind_rows(lapply(trees, addHeights), .id = "index")
 }
 
-heightsDf <- bind_rows(Beast = getHeightDf(beastTrees), `TreeFlow VI` = getHeightDf(variationalTrees), .id = "method")
+heightsDf <- bind_rows(`BEAST 2` = getHeightDf(beastTrees), `TreeFlow VI` = getHeightDf(variationalTrees), .id = "method")
 
 
 
@@ -50,7 +50,7 @@ plotDf <- longForm %>%
         values_from = value
     )
 
-fig <- ggplot(plotDf, aes(x = Beast, y = `TreeFlow VI`)) +
+fig <- ggplot(plotDf, aes(x = `BEAST 2`, y = `TreeFlow VI`)) +
     geom_abline(slope = 1, intercept = 0, linetype = "dotted") +
     geom_point() +
     geom_blank(data = limits, aes(x = value, y = value)) +

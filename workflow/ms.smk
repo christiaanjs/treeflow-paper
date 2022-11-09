@@ -141,10 +141,19 @@ rule data_tree_plot:
     script:
         "../scripts/data-tree-plot.R"
 
+rule nf_data_tree_plot:
+    input:
+        vi_tree_samples = out_dir / "{dataset}" / "nf-tree-samples.nexus",
+        beast_tree_samples = out_dir / "{dataset}" / "beast.trees"
+    output:
+        plot = manuscript_dir / "figures" / "{dataset}-nf-trees.png"
+    script:
+        "../scripts/data-tree-plot.R"
+
 rule template_treeflow_ms:
     input:
-        coverage_table = rules.coverage_table.output[0],
-        coverage_plot = rules.coverage_plot.output[0],
+        # coverage_table = rules.coverage_table.output[0],
+        # coverage_plot = rules.coverage_plot.output[0],
         template = tex_template,
         body_template = manuscript_dir / "tex" / "treeflow.j2.tex",
         treeflow_benchmarks_config = treeflow_benchmarks_dir / "config.yaml",

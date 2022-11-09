@@ -33,8 +33,13 @@ plotDf <- withMid %>%
     rename(Age = midHeight_mean, Kappa = kappa_mean)
 
 fig <- ggplot(plotDf, aes(x = Age, y = Kappa)) +
-    geom_errorbar(aes(ymin = kappa_lo, ymax = kappa_up), alpha = 0.5) +
-    geom_errorbarh(aes(xmin = midHeight_lo, xmax = midHeight_up), alpha = 0.5) +
-    geom_point(color = "navy")
+    geom_errorbar(aes(ymin = kappa_lo, ymax = kappa_up, color = "95% posterior quantile interval"), alpha = 0.5) +
+    geom_errorbarh(aes(xmin = midHeight_lo, xmax = midHeight_up, color = "95% posterior quantile interval"), alpha = 0.5) +
+    geom_point(aes(color = "Posterior mean")) +
+    scale_color_manual(name = "", values = c("black", "navy")) +
+    guides(colour = guide_legend(override.aes = list(
+        linetype = c("solid", "blank"),
+        shape = c(NA, 19)
+    )))
 
 ggplot2::ggsave(snakemake@output[[1]], fig, width = 8, height = 6)
