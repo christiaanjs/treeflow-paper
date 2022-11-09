@@ -321,19 +321,26 @@ def get_treeflow_timing_vars(timing_csv_file):
 
 
 def get_treeflow_manuscript_vars(
-    treeflow_benchmarks_config, flu_dataset, out_dir, timing_csv_file
+    treeflow_benchmarks_config,
+    timing_csv_file,
+    flu_model_file,
+    flu_tree_file,
+    minted_cache_dir,
+    bibliography_file,
+    frozen_minted_cache=False,
 ):
-    out_dir = pathlib.Path(out_dir)
-    flu_dir = out_dir / flu_dataset
-    flu_tree = parse_newick(str(flu_dir / "topology.nwk"))
+    flu_tree = parse_newick(str(flu_tree_file))
     return dict(
         min_sequence_count=min(treeflow_benchmarks_config["full_taxon_counts"]),
         max_sequence_count=max(treeflow_benchmarks_config["full_taxon_counts"]),
         sequence_length=treeflow_benchmarks_config["sequence_length"],
         replicate_count=treeflow_benchmarks_config["replicates"],
         sample_count=treeflow_benchmarks_config["sample_count"],
-        flu_yaml_file=str(flu_dir / "model.yaml"),
+        flu_yaml_file=flu_model_file,
         flu_taxon_count=flu_tree.taxon_count,
+        minted_cache_dir=minted_cache_dir,
+        minted_cache_option="frozencache" if frozen_minted_cache else "finalizecache",
+        bibliography=str(pathlib.Path(bibliography_file).stem),
         **get_treeflow_timing_vars(timing_csv_file),
     )
 

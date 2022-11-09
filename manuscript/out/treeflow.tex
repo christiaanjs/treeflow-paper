@@ -1,5 +1,5 @@
 \documentclass{article}
-%\usepackage[top=0.85in,left=2.75in,footskip=0.75in]{geometry}
+\pdfoutput=1
 
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
@@ -9,14 +9,14 @@
 \usepackage{nameref,hyperref}
 \usepackage[right]{lineno}
 \usepackage{array}
-\bibliographystyle{plos2015}
+\bibliographystyle{plain}
 
 \usepackage{setspace}
 \doublespacing
 
 % END MACROS SECTION
 \usepackage{booktabs}
-\usepackage[outputdir=manuscript/out]{minted}
+\usepackage[finalizecache,outputdir=manuscript/out,cachedir=manuscript/out/minted-cache]{minted}
 \usepackage{multirow}
 \usepackage{setspace}
 \usepackage[T1]{fontenc}
