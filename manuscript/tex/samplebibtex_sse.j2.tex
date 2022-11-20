@@ -13,6 +13,14 @@
 \let\cite\citep
 
 \BLOCK{block preamble}\BLOCK{endblock}
+
+
+\begin{document}
+
+% Title of paper
+
+% Identify the name, address, telephone/fax numbers, and e-mail address for the author who will receive proofs and be designated the "corresponding author" in text.
+
 \title{\BLOCK{block title}\BLOCK{endblock}}
 % Each important word in the title should begin with a capital letter
 
@@ -23,25 +31,20 @@
     % E-mail address for correspondence
     \textit{\BLOCK{block correspondence}\BLOCK{endblock}}}
 
-\begin{document}
-
-% Title of paper
-
-% Identify the name, address, telephone/fax numbers, and e-mail address for the author who will receive proofs and be designated the "corresponding author" in text.
 
 % Running headers of paper:
 \markboth%
 % First field is the short list of authors
-{Author short list}
+{\BLOCK{block authorshortlist}\BLOCK{endblock}}
 % Second field is the short title of the paper
-{Running head}
+{\BLOCK{block shorttitle}\BLOCK{endblock}}
 % This should be shortened version of the title and no greater than 50 characters
 
 \maketitle
 
 \begin{abstract}
     {\BLOCK{block abstract}\BLOCK{endblock}}
-    {Key words}
+    {\BLOCK{block keywords}\BLOCK{endblock}}
 \end{abstract}
 \newline
 

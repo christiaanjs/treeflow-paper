@@ -1,7 +1,7 @@
 \BLOCK{extends template}
 
 \BLOCK{block title}
-TreeFlow: probabilistic programming and automatic differentiation for phylogenetics
+TreeFlow: Probabilistic Programming and Automatic Differentiation for Phylogenetics
 \BLOCK{endblock}
 
 \BLOCK{block author}
@@ -33,6 +33,9 @@ Correspondence to be sent to: School of Computer Science, The University of Auck
 Email: cswa648@aucklanduni.ac.nz
 \BLOCK{endblock}
 
+\BLOCK{block authorshortlist}Swanepoel et al.\BLOCK{endblock}
+\BLOCK{block shorttitle}TreeFlow\BLOCK{endblock}
+
 \BLOCK{block preamble}
 \usepackage{booktabs}
 \usepackage[\VAR{minted_cache_option},outputdir=\VAR{output_dir},cachedir=\VAR{minted_cache_dir}]{minted}
@@ -46,6 +49,8 @@ Email: cswa648@aucklanduni.ac.nz
 \BLOCK{block abstract}
 Probabilistic programming frameworks are powerful tools for statistical modelling and inference. They are not immediately generalisable to phylogenetic problems due to the particular computational properties of the phylogenetic tree object. TreeFlow is a software library for probabilistic programming and automatic differentiation with phylogenetic trees. It implements inference algorithms for phylogenetic tree times and model parameters given a tree topology. We demonstrate how TreeFlow can be used to quickly implement and assess new models. We also show that it provides reasonable performance for gradient-based inference algorithms compared to specialized computational libraries for phylogenetics.
 \BLOCK{endblock}
+
+\BLOCK{block keywords}phylogenetics; Bayesian inference; probabilistic programming; variational inference\BLOCK{endblock}
 
 \BLOCK{block body}
 
@@ -68,7 +73,9 @@ Applying scalable inference methods to phylogenetics is a major challenge. \text
 
 One core computation that presents a challenge to automatic differentiation is the \textit{phylogenetic likelihood} \cite{felsenstein1981evolutionary}. This computes the probability function of a collection of sequences given a phylogenetic tree, integrating out the character states at ancestral nodes. This is most efficiently performed through dynamic programming, which requires sequential control flow or recursion, and thus can be non-trivial to implement in a functional automatic differentiation framework such as TensorFlow. Additionally, since the computational cost scales linearly with the number of sequences, naively computing the likelihood's gradient with respect to each branch of the tree yields a quadratic computational cost \cite{ji2020gradients}.
 
-\section{Description}
+\section{Software Description}
+
+\subsection{Trees and Tensors}
 
 TreeFlow is a library for probabilistic programming in Python. It is built on TensorFlow, a computational framework for machine learning. TreeFlow leverages TensorFlow's capabilities for accelerated numerical computation and automatic differentiation. It uses the existing probabilistic modelling infrastructure provided by TensorFlow Probability, which implements standard statistical distributions and inferential machinery \cite{dillon2017tensorflow}. TreeFlow provides a phylogenetic tree representation for TensorFlow and associated input and output methods, a range of widely used phylogenetic distributions and functions, and tools for applying modern statistical inference methods to phylogenetic models.
 % TODO: Flesh out this first paragraph
@@ -85,6 +92,8 @@ Another useful tool for phylogenetic inference implemented in TreeFlow is the \t
 
 TensorFlow Probability distributions can be composed into a \textit{probabilistic graphical model} using TensorFlow Probability's joint distribution functionality \cite{piponi2020joint}. The code to specify a joint distribution provides a concise representation of the model used in a data analysis. The ability to implement phylogenetic models in this framework means that automatic inference algorithms implemented in TensorFlow can be leveraged. The discrete topology element of phylogenetic trees is an obstacle in the usage of these algorithms, which are typically restricted to continuous latent variables. Often, the phylogenetic tree topology is not the latent variable of interest, and is not a significant source of uncertainty \cite{yang2000codon}. This can be the case when divergence times or other substitution or speciation model parameters are the focus. In this scenario, useful results can be obtained by performing inference with a fixed tree topology, such as one obtained from fast maximum likelihood methods. This is the approach taken by the NextStrain platform \cite{hadfield2018nextstrain}, which uses the scalability afforded by a fixed tree topology to allow large-scale rapid phylodynamic analysis of pathogen molecular sequence data.
 
+\subsection{Variational inference}
+
 % Inference
 One form of statistical inference for which the gradient computation is essential is variational Bayesian inference \cite{jordan1999introduction}. The goal of Bayesian inference is to characterise a \textit{posterior distribution} which represents uncertainty over model parameters. Variational Bayesian inference achieves this by optimizing an approximation to the posterior distribution which has more convenient analytical properties. Typically, the optimisation routine used in variational inference can scale to a larger number of model parameters than the random-walk sampling methods used by MCMC methods.
 
@@ -93,9 +102,12 @@ One concrete implementation of variational inference is \textit{automatic differ
 TreeFlow implements ADVI using TensorFlow Probability's bijector framework to transform a base distribution and leverages the stochastic gradient optimizers already implemented in TensorFlow. Tree variables are estimated by fixing the topology. The base distribution for the divergence times on the tree is transformed into a distribution on ratios using a logit transformation, and then into a valid set of divergence times using the ratio transformation described above \cite{yang2007paml}. ADVI opens the door to using TensorFlow's neural network framework to implement deep-learning-based variants such as variational inference with \textit{normalizing flows} \cite{rezende2015variational}, which transform the base distribution through invertible trainable neural network layers to better approximate complex posterior distributions.
 
 As well as a library for probabilistic programming with TensorFlow Probability, TreeFlow provides command line interfaces for fixed-topology inference. These allow inference on standard phylogenetic models such as those performed by specialized software. For inputs, they take a nucleotide sequence alignment in the FASTA format, a tree topology in Newick format, and a model specification in a specially structued YAML file. These allow specification of the models described above for speciation and nucleotide substitution, as well as parameter priors from a range of standard probability distributions. This specification differs from the files used by other phylogenetic inference software \cite{drummond2007beast, hohna2016revbayes} in that it does not include any description of inferential machinery and simply provides a terse description of the model. Command line interfaces are provided for both automatic differentiation variational inference and maximum a posteriori inference.
+
 \section{Biological examples}
 
 We used TreeFlow to perform fixed-topology phylogenetic analyses of two datasets. The first is an alignment of 62 mitochondrial DNA sequences from carnivores \cite{suchard2009many}. The second is a dataset of 980 influenza sequences \cite{vaughan2014efficient}. In both datasets maximum likelihood unrooted topologies are estimated using RAxML \cite{stamatakis2014raxml}. These topologies are rooted with Least Squares Dating \cite{to2016lsd}.
+
+\subsection{Probabilistic programming and model selection}
 
 In the carnivores dataset, we demonstrate the flexibility of probabilistic programming with TreeFlow by investigating variation in the ratio of transitions to transversions in the nucleotide substitution process across lineages in the tree. Early maximum likelihood analyses of mitochondrial DNA in primates detected variation in this ratio, but without a biological basis, it was attributed to a saturation effect \cite{yang1999estimation}. A later simulation-based investigation showed that this was a reasonable explanation, which exposed the limitations of nucleotide substitution models for estimating the length of branches deep in the tree \cite{duchene2015declining}.
 
@@ -203,7 +215,7 @@ The estimated per-lineage kappa parameters are shown in Figure \ref{fig:carnivor
     \label{fig:flutree}
 \end{figure}
 
-
+\subsection{Scalable inference}
 
 In the analysis of the \VAR{ flu_taxon_count }-taxon influenza dataset, we demonstrate the scalability of variational inference. We performed variational inference using TreeFlow's command line interface. The model used for inference included a coalescent prior with a constant population size on the tree, a strict molecular clock, a discretized Gamma model of site rate variation and a GTR substitution model. The YAML model definition code for this model, including parameter priors, is shown in Figure \ref{fig:fluyaml}. This parameterization of the GTR substitution model (here named \texttt{gtr\_rel}), with independent priors on five of the relative rates and one held fixed to 1, is used to allow comparison of parameter estimates with BEAST 2. It is also possible to use a six-rate GTR parameterisation with a Dirichlet prior in TreeFlow.
 
@@ -263,8 +275,12 @@ Finally, the most significant functionality for phylogenetic inference missing f
 
 TreeFlow is a software library that provides tools for statistical modelling and inference on phylogenetic problems. Probabilistic programming provides flexible model definition involving phylogenetic trees and molecular sequences, and automatic differentiation enables the application of modern scalable inference algorithms. TreeFlow's automatic differentiation-based implementations of core gradient computations provide reasonable performance compared to specialized phylogenetic libraries. These building blocks have the potential to be used in valuable phylogenetic analyses of large and complex genetic datasets.
 
-\section{Software Availability}
+\section{Availability}
 
 TreeFlow is an open-source Python package. Instructions for installing TreeFlow, and examples of using it as a library and command line application can be found at \url{https://github.com/christiaanjs/treeflow}.
+
+\section{Supplementary material}
+
+Datasets, model definitions, starting values, and BEAST 2 XML files used in the biological examples are available at \url{https://github.com/christiaanjs/treeflow-paper/releases/tag/v0.0.1}.
 
 \BLOCK{endblock}
