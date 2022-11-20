@@ -42,4 +42,4 @@ fig <- ggplot(plotDf, aes(x = Age, y = Kappa)) +
         shape = c(NA, 19)
     )))
 
-ggplot2::ggsave(snakemake@output[[1]], fig, width = 8, height = 6)
+ggplot2::ggsave(snakemake@output[[1]], fig, width = 8, height = 6 * 12.4 / 14.0)

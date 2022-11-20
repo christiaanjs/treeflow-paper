@@ -70,4 +70,4 @@ fig <- ggplot(plotDf, aes(x = `Age in base model`, y = `Age in kappa variation m
     )))
 
 
-ggplot2::ggsave(snakemake@output[[1]], fig, width = 7, height = 6)
+ggplot2::ggsave(snakemake@output[[1]], fig, width = 8, height = 6 * 16.3 / 18.3)

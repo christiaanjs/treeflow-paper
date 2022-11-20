@@ -58,4 +58,4 @@ fig <- ggplot(plotDf, aes(x = `BEAST 2`, y = `TreeFlow VI`)) +
 
 # outputFile <- "manuscript/figures/flu-tree-plot.png"
 outputFile <- snakemake@output[[1]]
-ggplot2::ggsave(outputFile, fig, width = 7, height = 4)
+ggplot2::ggsave(outputFile, fig, width = 7, height = (4 * 11.7 / 12.5))
