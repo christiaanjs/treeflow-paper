@@ -26,11 +26,15 @@ manuscript_dir = pathlib.Path("manuscript")
 out_dir = pathlib.Path("out")
 submission_dir = manuscript_dir / "submission"
 minted_cache_dir = "minted-cache"
+dataset_dir = "{dataset}"
+supplementary_data_dir = pathlib.Path("supplementary-data")
 
 rule ms:
     input:
-        manuscript_dir / "out" / "submission.zip",
-        manuscript_dir / "out" / "treeflow.pdf"
+        #manuscript_dir / "out" / "submission.zip",
+        manuscript_dir / "out" / "treeflow.pdf",
+        supplementary_data_dir / config["flu_dataset"] / "beast.xml",
+        supplementary_data_dir / "carnivores" / "beast.xml",
 
 APPROXES = ["mean_field", "scaled"] # TODO: Where to store these in common?
 methods = ["beast"] + expand("variational-samples-{approx}", approx=APPROXES)
@@ -351,3 +355,16 @@ rule compile_ms:
         """
 
 # export BSTINPUTS=.:{params.bst_dir}:
+
+rule supplementary_data:
+    input:
+        beast_xml = out_dir / dataset_dir / "beast.xml",
+        model_file = out_dir / dataset_dir / "model.yaml",
+        topology = out_dir / dataset_dir / "topology.nwk"
+    output:
+        beast_xml = supplementary_data_dir / dataset_dir / "beast.xml",
+        model_file = supplementary_data_dir / dataset_dir / "model.yaml",
+        topology = supplementary_data_dir / dataset_dir / "topology.nwk"
+    run:
+        for key in input.keys():
+            shell(f"cp {input[key]} {output[key]}")
