@@ -194,11 +194,11 @@ model = JointDistributionNamed(dict(
     sequences=build_sequence_dist
 ))
     \end{minted}
-    \label{fig:carnivorescode}
     \caption{Code to specify models for carnivores analysis. Highlighted lines show changes (from previous line) to add kappa variation across lineages.}
+    \label{fig:carnivorescode}
 \end{figure}
 
-We then altered this model to estimate a separate ratio for every lineage on the tree; the implementation of this was simple and scalable as a result of TensorFlow's vectorization and broadcasting functionality. We compare the models using estimates of the marginal likelihood \cite{mackay2003information}. The \textit{marginal likelihood}, or \textit{evidence}, the integral of the likelihood of the data over model parameters, is typically analytically intractable and challenging to compute using MCMC methods \cite{xie2011improving}. The closed-form approximation to the posterior distribution provided by variational inference means we can easily estimate the marginal likelihood using importance sampling, a utility provided by TreeFlow. This corrects for some of the posterior approximation error described above.
+We then altered this model to estimate a separate ratio for every lineage on the tree; the implementation of this was simple and scalable as a result of TensorFlow's vectorization and broadcasting functionality. Figure \ref{fig:carnivorescode} shows the model definition code for the base model, and the small changes required to model variation in the kappa parameter across lineages. We compared the models using estimates of the marginal likelihood \cite{mackay2003information}. The \textit{marginal likelihood}, or \textit{evidence}, the integral of the likelihood of the data over model parameters, is typically analytically intractable and challenging to compute using MCMC methods \cite{xie2011improving}. The closed-form approximation to the posterior distribution provided by variational inference means we could estimate the marginal likelihood using importance sampling, a utility provided by TreeFlow. This corrects for some of the posterior approximation error described above.
 
 \begin{figure}
     \centering
@@ -341,6 +341,7 @@ Datasets, model definitions, starting values, and BEAST 2 XML files used in the 
 % REFERENCES
 
 % The best way to enter references is to use BibTeX.
+
 \bibliography{main}
 
 % Alternatively you could enter them by hand, like this:
