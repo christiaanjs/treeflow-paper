@@ -42,6 +42,10 @@ Email: cswa648@aucklanduni.ac.nz
 \usepackage{multirow}
 \usepackage{setspace}
 \usepackage[T1]{fontenc}
+\usepackage{standalone}
+\usepackage{tikz}
+\usetikzlibrary{fit, positioning, arrows.meta, calc}
+
 \setcounter{secnumdepth}{0}
 \setminted{baselinestretch=0.9}
 \BLOCK{endblock}
@@ -74,6 +78,18 @@ Applying scalable inference methods to phylogenetics is a major challenge. \text
 One core computation that presents a challenge to automatic differentiation is the \textit{phylogenetic likelihood} \cite{felsenstein1981evolutionary}. This computes the probability function of a collection of sequences given a phylogenetic tree, integrating out the character states at ancestral nodes. This is most efficiently performed through dynamic programming, which requires sequential control flow or recursion based on the topology of the tree. When the tree topology is a dynamic variable the likelihood computation can be non-trivial to implement in a functional automatic differentiation framework such as TensorFlow. Additionally, naively computing the likelihood's gradient with respect to the branch lengths on the tree can yield poor computational scaling. Traversing the tree, as in a full likelihood evaluation, for the gradient computation for every branch would result in a quadratic computational complexity \cite{ji2020gradients, fourment2023automatic}.
 
 \section{Software Description}
+
+\newlength{\originalbaselineskip}
+\setlength{\originalbaselineskip}{\baselineskip}
+
+\begin{figure}
+    \centering
+    \includestandalone{architecture}
+    \caption{Diagram showing the architecture of the TreeFlow package}
+    \label{fig:architecture}
+\end{figure}
+
+\setlength{\baselineskip}{\originalbaselineskip}
 
 \subsection{Trees and Tensors}
 

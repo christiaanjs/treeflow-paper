@@ -1,0 +1,60 @@
+\documentclass{standalone}
+\usepackage{tikz}
+\usetikzlibrary{fit, positioning, arrows.meta, calc}
+
+\begin{document}
+\setlength{\baselineskip}{1.0em}
+
+\begin{tikzpicture}[
+        box/.style={draw, rounded corners, minimum width=6em, minimum height=1em, align=center, fill=white},
+        fitbox/.style={draw, rounded corners, dashed, inner sep=1em},
+        arrow/.style={-Stealth, thick},
+        % label/.style={font=\bfseries\large}
+    ]
+
+    % Nodes for Developer API
+    \node[box] (priors) {\texttt{treeflow.distributions.tree} \\ \small{Tree priors}};
+    \node[box, below=2em of priors] (evolution) {\texttt{treeflow.evolution} \\ \small{Substitution models}};
+    \node[box, right=1.3em of priors] (io) {\texttt{treeflow.tree.io} \\ \small{Tree reading and writing}};
+    \node[box, above=2em of io] (tree) {\texttt{treeflow.tree} \\ \small{Tree representation}};
+    \node[box, right=3em of tree] (traversal) {\texttt{treeflow.traversal} \\ \small{Tree traversals}};
+    \node[box, below=2em of traversal] (bijectors) {\texttt{treeflow.bijectors} \\ \small{Bijections on times on trees}};
+    \node[box, below=2em of bijectors] (approximation) {\texttt{treeflow.model.approximation} \\ \small{Tree posterior approximations}};
+    \node[box, below=2em of approximation] (vi) {\texttt{treeflow.vi} \\ \small{Fixed topology variational inference}};
+
+    % Fitting box for Developer API
+    \node[fitbox, fit=(priors)(tree)(evolution)(io)(traversal)(bijectors)(approximation)(vi)] (developerapi) {};
+    \node[label, above=0.5em of developerapi] {Developer API};
+
+    % Nodes for User Interface
+    \node[box, below=4em of developerapi, anchor=north] (phylomodel) {\texttt{treeflow.model.phylo\_model} \\ \small{Model specification}};
+    \node[box, right=2em of phylomodel] (cli) {\texttt{treeflow.cli} \\ \small{Inference command line interfaces}};
+
+    % Fitting box for User Interface
+    \node[fitbox, fit=(cli)(phylomodel)] (userinterface) {};
+    \node[label, above=0.5em of userinterface] {User interface};
+
+    % TensorFlow and TensorFlow Probability nodes
+    \node[box, above=2em of traversal] (tensorarray) {\texttt{tensorflow.TensorArray}};
+    \node[box, left=2em of phylomodel] (tfp) {\texttt{tensorflow\_probability.distributions} \\ \small{TensorFlow Probability Distributions}};
+
+    % Connections
+    \draw[arrow] (tree) -- (priors);
+    \draw[arrow] (priors) |- ($ (priors) !.5! (evolution) $) -| ([xshift=-3em]phylomodel.north);
+    \draw[arrow] (tree) -- (io);
+    \draw[arrow] (tree) -- (traversal);
+    \draw[arrow] (traversal) -- (bijectors);
+    \draw[arrow] (bijectors) -- (approximation);
+    \draw[arrow] (approximation) -- (vi);
+    \draw[arrow] (io) |- ([yshift=-0.5em,xshift=2em]developerapi.south) -| (cli);
+    \draw[arrow] (evolution) -- (phylomodel.north west);
+
+    \draw[arrow] ([xshift=3em]vi.south) -- ([xshift=3em]cli.north);
+    \draw[arrow] (phylomodel) -- (cli);
+
+    \draw[arrow] (tensorarray) -- (traversal);
+    \draw[arrow] (tfp) -- (phylomodel);
+
+\end{tikzpicture}
+
+\end{document}
