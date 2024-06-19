@@ -79,24 +79,33 @@ One core computation that presents a challenge to automatic differentiation is t
 
 \section{Software Description}
 
+TreeFlow is a Python library which provides modular tools for phylogenetic modelling and inference. It also provides a user interface which can be used for fixed-topology phylogenetic inference with models of a standard form. The architecture of the TreeFlow package is displayed in Figure \ref{fig:architecture}.
+
 \newlength{\originalbaselineskip}
 \setlength{\originalbaselineskip}{\baselineskip}
 
 \begin{figure}
     \centering
     \includestandalone{architecture}
-    \caption{Diagram showing the architecture of the TreeFlow package}
+    \caption{Diagram showing the architecture of the TreeFlow package. Nodes represent Python modules and the arrows between them denote major dependencies. The dashed rectangles separate the components based on their primary interfaces. Nodes outside the two interface groups denote major external dependencies.}
     \label{fig:architecture}
 \end{figure}
 
 \setlength{\baselineskip}{\originalbaselineskip}
 
-\subsection{Trees and Tensors}
+The TreeFlow Python library includes modules for phylogenetic tree representation, traversal, and reading and writing. There are modules implementing bijections for time trees, phylogenetic posterior approximations, and fixed-topology variational Bayesian inference. It also implements tree priors and models of sequence evolution. The user interface implements a model definition format for standard phylogenetic models and command line interfaces for variational Bayesian and maximum likelihood inference.
 
-TreeFlow is a library for probabilistic programming in Python. It is built on TensorFlow, a computational framework for machine learning. TreeFlow leverages TensorFlow's capabilities for accelerated numerical computation and automatic differentiation. It uses the existing probabilistic modelling infrastructure provided by TensorFlow Probability, which implements standard statistical distributions and inferential machinery \cite{dillon2017tensorflow}. TreeFlow provides a phylogenetic tree representation for TensorFlow and associated input and output methods, a range of widely used phylogenetic distributions and functions, and tools for applying modern statistical inference methods to phylogenetic models.
-% TODO: Flesh out this first paragraph
+It is important to note that the primary interface is intended to be the Python developer API, which allows users to implement new models and compose them with existing model components in a flexible structure, while leveraging the inferential machinery provided by TreeFlow. The user interface is provided to simplify testing and demonstration of TreeFlow, while also potentially making TreeFlow's scalable inference methods more accessible.
 
-TensorFlow's core computational object is the Tensor, a multi-dimensional array with a uniform data type. Phylogenetic trees are not immediately at home in a Tensor-centric universe, as they are a complex data structure, often defined recursively, with both continuous and discrete components. TreeFlow represents trees as a structure of Tensors; floating point Tensors representing the times and branch lengths, and integer Tensors representing the topology. The topological Tensors include indices of node parents, children, and for pre- and post-order traversals. TensorFlow has extensive support for `nested' structures of Tensors, including using them as arguments to compiled functions and defining distributions over complex objects. This means computations and models involving phylogenetic trees can be expressed naturally.
+\subsection{Tree representation}
+
+TreeFlow is built on TensorFlow, a computational framework for machine learning. TreeFlow leverages TensorFlow's capabilities for accelerated numerical computation and automatic differentiation. TensorFlow's core computational object is the Tensor, a multi-dimensional array with a uniform data type. Phylogenetic trees are not immediately at home in a Tensor-centric universe, as they are a complex data structure, often defined recursively, with both continuous and discrete components. TreeFlow represents trees as a structure of Tensors. This structure contains floating point Tensors representing the times and branch lengths, and integer Tensors representing the topology, all encapsulated in a Python object. The topological Tensors include indices of node parents, children, and for pre- and post-order traversals. TensorFlow has extensive support for structures of Tensors such as the TreeFlow tree class, including using them as arguments to compiled functions and defining probability distributions over complex objects. This means computations and models involving phylogenetic trees can be expressed naturally.
+
+\subsection{Tree distributions}
+
+\subsection{Model definition}
+TreeFlow uses the existing probabilistic modelling infrastructure provided by TensorFlow Probability, which implements standard statistical distributions and inferential machinery \cite{dillon2017tensorflow}
+
 
 A range of phylogenetic distributions and models are implemented in TreeFlow, primarily generative models for phylogenetic trees and models of molecular sequence evolution. The generative models for phylogenetic trees (\textit{tree priors}) currently implemented, Kingman's coalescent \cite{kuhner1995estimating} and the Birth-Death-Sampling speciation process \cite{stadler2009incomplete}, can be used to infer parameters related to population dynamics from genetic sequence data. The models of nucleotide sequence evolution currently implemented are the Jukes-Cantor \cite{jukes1969evolution}, HKY85 \cite{hasegawa1985dating}, and General Time Reversible (GTR) \cite{tavare1986some} models. TreeFlow includes a standard approach for dealing with heterogeneity in mutation rate across sites based on a marginalizing over a discretized site rate distribution \cite{yang1994maximum}. The probabilistic modelling framework, however, allows for the use of any appropriate distribution as the base site rate distribution rather than just the standard single-parameter Gamma distribution. For example, it is straightforward to replace the base Gamma distribution with a Weibull distribution, which has a quantile function that is much easier to compute \cite{fourment2019evaluating}. Thanks to TensorFlow's vectorized arithmetic operations, it is also natural to model variations in mutation rate over lineages by specifying parameters for multiple rates (possibly with a hierarchical prior) and multiplying by the branch lengths of the phylogenetic (time) tree. Models which can be naturally expressed this way include the log-Normal random local clock \cite{drummond2006relaxed} and auto-correlated relaxed clock models \cite{thorne1998estimating}.
 
