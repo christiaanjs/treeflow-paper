@@ -325,11 +325,13 @@ def get_treeflow_manuscript_vars(
     timing_csv_file,
     flu_model_file,
     flu_tree_file,
+    carnivores_marginal_likelihoods,
     minted_cache_dir,
     bibliography_file,
     frozen_minted_cache=False,
 ):
     flu_tree = parse_newick(str(flu_tree_file))
+
     return dict(
         min_sequence_count=min(treeflow_benchmarks_config["full_taxon_counts"]),
         max_sequence_count=max(treeflow_benchmarks_config["full_taxon_counts"]),
@@ -338,6 +340,12 @@ def get_treeflow_manuscript_vars(
         sample_count=treeflow_benchmarks_config["sample_count"],
         flu_yaml_file=flu_model_file,
         flu_taxon_count=flu_tree.taxon_count,
+        carnivores_base_log_marginal_likelihood=round(
+            float(carnivores_marginal_likelihoods["base"]), 1
+        ),
+        carnivores_lineage_variation_log_marginal_likelihood=round(
+            float(carnivores_marginal_likelihoods["lineage_variation"]), 1
+        ),
         minted_cache_dir=minted_cache_dir,
         minted_cache_option="frozencache" if frozen_minted_cache else "finalizecache",
         bibliography=str(pathlib.Path(bibliography_file).stem),

@@ -33,8 +33,8 @@ rule ms:
     input:
         #manuscript_dir / "out" / "submission.zip",
         manuscript_dir / "out" / "treeflow.pdf",
-        supplementary_data_dir / config["flu_dataset"] / "beast.xml",
-        supplementary_data_dir / "carnivores" / "beast.xml",
+        #supplementary_data_dir / config["flu_dataset"] / "beast.xml",
+        #supplementary_data_dir / "carnivores" / "beast.xml",
 
 APPROXES = ["mean_field", "scaled"] # TODO: Where to store these in common?
 methods = ["beast"] + expand("variational-samples-{approx}", approx=APPROXES)
@@ -167,6 +167,7 @@ rule template_treeflow_ms:
         carnivores_marginals_plot = manuscript_dir / "figures" / "carnivores-marginals.png",
         carnivores_kappa_plot = rules.carnivores_kappa_plot.output[0],
         carnivores_tree_plot = rules.carnivores_tree_plot.output[0],
+        carnivores_marginal_likelihoods = treeflow_dir / "examples" / "demo-out" / "carnivores-marginal-log-likelihoods.yaml",
         flu_marginals_plot = manuscript_dir / "figures" / f"{config['flu_dataset']}-marginals.png",
         flu_tree_plot = manuscript_dir / "figures" / f"{config['flu_dataset']}-trees.png",
         flu_timing_csv = out_dir / config["flu_dataset"] / "timing-data.csv",
@@ -197,6 +198,7 @@ rule template_treeflow_ms:
                         timing_csv_file=input.flu_timing_csv,
                         flu_model_file=input.flu_model_file,
                         flu_tree_file=input.flu_tree_file,
+                        carnivores_marginal_likelihoods=yaml_input(input.carnivores_marginal_likelihoods),
                         minted_cache_dir=params.output_dir / "minted-cache",
                         bibliography_file=input.bib
                     ),
@@ -217,6 +219,7 @@ rule treeflow_submission_dir:
         flu_tree_plot = manuscript_dir / "figures" / f"{config['flu_dataset']}-trees.png",
         flu_model_file = out_dir / config["flu_dataset"] / "model.yaml",
         bib = manuscript_dir / "tex" / "main.bib",
+        style = manuscript_dir / "tex" / "sysbio_sse.cls",
     output:
         benchmark_plot = submission_dir / "benchmark-plot.png",
         carnivores_marginals_plot = submission_dir / "carnivores-marginals.png",
@@ -226,6 +229,7 @@ rule treeflow_submission_dir:
         flu_tree_plot = submission_dir / "flu-trees.png",
         flu_model_file = submission_dir / "flu-model.yaml",
         bib = submission_dir / "treeflow.bib",
+        style = submission_dir / "sysbio_sse.cls",
     run:
         for key in input.keys():
             shell(f"cp {input[key]} {output[key]}")
@@ -328,7 +332,7 @@ rule treeflow_submission_zip:
     shell:
         """
         cd {params.submission_dir}
-        zip -r {params.output} . -x {params.minted_cache_prefix}*
+        zip -r {params.output} . -x {params.minted_cache_prefix}* *.pdf
         """
 
 rule compile_ms:
