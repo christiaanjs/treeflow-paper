@@ -351,6 +351,7 @@ rule compile_ms:
     shell:
         """
         export TEXINPUTS=.:{params.tex_inputs}:
+        export BSTINPUTS={params.bib_dir}
         export BIBINPUTS={params.bib_dir}
         pdflatex --shell-escape -output-directory={params.output_dir} {input.main}
         bibtex {params.aux_file}

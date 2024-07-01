@@ -363,10 +363,12 @@ def build_manuscript(
 ):
     if submission:
         figures = lambda x, args: None
+        figure_suffix = "[!p]"
     else:
         figures = (
             lambda x, args: f"\\includegraphics{args}{{{str(os.path.splitext(figures_dict[x])[0])}}}"
         )
+        figure_suffix = ""
     tables = {key: text_input(filename) for key, filename in tables_dict.items()}
     template = latex_jinja_env.get_template(content_template_file)
     return template.render(

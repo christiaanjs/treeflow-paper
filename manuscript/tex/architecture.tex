@@ -7,6 +7,7 @@
 
 \begin{tikzpicture}[
         box/.style={draw, rounded corners, minimum width=6em, minimum height=1em, align=center, fill=white, scale=0.7},
+        depbox/.style={draw, minimum width=6em, minimum height=1em, align=center, fill=white, scale=0.7},
         fitbox/.style={draw, rounded corners, dashed, inner sep=0.5em},
         arrow/.style={-Stealth, thick},
         % label/.style={font=\bfseries\large}
@@ -35,25 +36,27 @@
     \node[label, above=0.5em of userinterface] {User interface};
 
     % TensorFlow and TensorFlow Probability nodes
-    \node[box, above=1em of traversal.north, anchor=south] (tensorarray) {\texttt{tensorflow.TensorArray}};
-    \node[box, below=1em of phylomodel.south, anchor=north] (tfp) {\texttt{tensorflow\_probability.distributions} \\ \small{TensorFlow Probability Distributions}};
+    \node[depbox, above=1em of traversal.north, anchor=south] (tensorarray) {\texttt{tensorflow.TensorArray}};
+    \node[depbox, below=4.5em of evolution.south, anchor=north, xshift=-2em] (tfp) {\texttt{tensorflow\_probability.distributions}};
 
     % Connections
     \draw[arrow] (tree) -- (priors);
-    \draw[arrow] (priors) |- ($ (priors) !.5! (evolution) $) -| (phylomodel.north);
+    \draw[arrow] (priors) |- ($ (priors) !.5! (evolution) $) -| ([xshift=1.5em]phylomodel.north);
     \draw[arrow] (tree) -- (io);
     \draw[arrow] (tree) -- (traversal);
     \draw[arrow] (traversal) -- (bijectors);
     \draw[arrow] (bijectors) -- (approximation);
     \draw[arrow] (approximation) -- (vi);
     \draw[arrow] (io) |- ([yshift=-0.5em,xshift=2em]developerapi.south) -| (cli);
-    \draw[arrow] (evolution) -- ([xshift=-2em]phylomodel.north);
+    \draw[arrow] (evolution) |- ($ (evolution) !.5! (phylomodel) $) -|  ([xshift=0.5em]phylomodel.north);
 
-    \draw[arrow] ([xshift=3em]vi.south) -- ([xshift=3em]cli.north);
+    \draw[arrow] ([xshift=2.5em]vi.south) -- ([xshift=3em]cli.north);
     \draw[arrow] (phylomodel) -- (cli);
 
     \draw[arrow] (tensorarray) -- (traversal);
     \draw[arrow] (tfp) -- (phylomodel);
+    \draw[arrow] ([xshift=-2.9em]tfp.north) -- ([xshift=0.8em]priors.south west);
+    \draw[arrow] (tfp.north) -- ([xshift=-1.4em]evolution.south);
 
 \end{tikzpicture}
 

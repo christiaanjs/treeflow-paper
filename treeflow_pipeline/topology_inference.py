@@ -171,18 +171,18 @@ LSD_DATE_PATH = "distance-tree.dates"
 LSD_OUT_PATH = "lsd-tree"
 
 
-def parse_dates(names):
-    return {name: float(name.split("_")[-1]) for name in names}
+def parse_dates(names, date_index=-1):
+    return {name: float(name.split("_")[date_index]) for name in names}
 
 
-def parse_leaf_heights(names):
-    dates = parse_dates(names)
+def parse_leaf_heights(names, date_index=-1):
+    dates = parse_dates(names, date_index=date_index)
     max_date = max(dates.values())
     return {name: (max_date - date) for name, date in dates.items()}
 
 
-def build_lsd_date_file(sequence_dict, output_file):
-    date_trait_dict = parse_dates(sequence_dict)
+def build_lsd_date_file(sequence_dict, output_file, date_index=-1):
+    date_trait_dict = parse_dates(sequence_dict, date_index=date_index)
 
     with open(output_file, "w") as f:
         f.write("{0}\n".format(len(date_trait_dict)))
@@ -191,12 +191,14 @@ def build_lsd_date_file(sequence_dict, output_file):
 
 
 def build_lsd_inputs(
-    input_file, input_format, out_dir, tree_path
+    input_file, input_format, out_dir, tree_path, date_index=-1
 ):  # TODO: Remove input format
     out_path = pathlib.Path(out_dir)
 
     date_path = out_path / LSD_DATE_PATH
-    build_lsd_date_file(util.sequence_input(input_file, input_format), date_path)
+    build_lsd_date_file(
+        util.sequence_input(input_file, input_format), date_path, date_index=date_index
+    )
 
     lsd_args = ["-c"] + util.cmd_kwargs(
         r="a", i=tree_path, d=date_path, o=(out_path / LSD_OUT_PATH)
@@ -221,9 +223,11 @@ def estimate_rate(
 
 
 def root_topology(
-    input_file, input_format, out_dir, date_regex, tree_file
+    input_file, input_format, out_dir, date_regex, tree_file, date_index=-1
 ):  # TODO: Remove date_regex argument
-    lsd_args = build_lsd_inputs(input_file, input_format, out_dir, tree_file)
+    lsd_args = build_lsd_inputs(
+        input_file, input_format, out_dir, tree_file, date_index=date_index
+    )
     subprocess.run(["lsd"] + lsd_args)
 
     out_path = pathlib.Path(out_dir)
@@ -338,8 +342,10 @@ def get_node_heights(tree):
     return {node: max_distance - distance for node, distance in distances.items()}
 
 
-def fix_leaf_dates(tree):
-    leaf_heights = parse_leaf_heights([node.name for node in tree.get_terminals()])
+def fix_leaf_dates(tree, date_index=-1):
+    leaf_heights = parse_leaf_heights(
+        [node.name for node in tree.get_terminals()], date_index=date_index
+    )
     heights = get_node_heights(tree)
     for node in postorder_traversal(tree):
         if node.is_terminal():
@@ -361,6 +367,7 @@ def convert_tree(
     allow_zero_branches=True,
     fix_dates=False,
     epsilon=EPSILON,
+    date_index=-1,
 ):
     with open(input_file) as f:
         trees = list(Bio.Phylo.parse(input_file, input_format))
@@ -372,7 +379,7 @@ def convert_tree(
 
     if fix_dates:
         for tree in trees:
-            fix_leaf_dates(tree)
+            fix_leaf_dates(tree, date_index=date_index)
 
     if not allow_zero_branches:
         for tree in trees:

@@ -48,15 +48,20 @@
   year      = {2018}
 }
 
+
 @article{bouckaert2019beast,
-  title     = {{BEAST} 2.5: An advanced software platform for {B}ayesian evolutionary analysis},
-  author    = {Bouckaert, Remco and Vaughan, Timothy G and Barido-Sottani, Jo{\"e}lle and Duch{\^e}ne, Sebasti{\'a}n and Fourment, Mathieu and Gavryushkina, Alexandra and Heled, Joseph and Jones, Graham and K{\"u}hnert, Denise and De Maio, Nicola and others},
-  journal   = {PLoS computational biology},
-  volume    = {15},
-  number    = {4},
-  pages     = {e1006650},
+  doi       = {10.1371/journal.pcbi.1006650},
+  author    = {Bouckaert, Remco AND Vaughan, Timothy G. AND Barido-Sottani, Joëlle AND Duchêne, Sebastián AND Fourment, Mathieu AND Gavryushkina, Alexandra AND Heled, Joseph AND Jones, Graham AND Kühnert, Denise AND De Maio, Nicola AND Matschiner, Michael AND Mendes, Fábio K. AND Müller, Nicola F. AND Ogilvie, Huw A. AND du Plessis, Louis AND Popinga, Alex AND Rambaut, Andrew AND Rasmussen, David AND Siveroni, Igor AND Suchard, Marc A. AND Wu, Chieh-Hsi AND Xie, Dong AND Zhang, Chi AND Stadler, Tanja AND Drummond, Alexei J.},
+  journal   = {PLOS Computational Biology},
+  publisher = {Public Library of Science},
+  title     = {BEAST 2.5: An advanced software platform for Bayesian evolutionary analysis},
   year      = {2019},
-  publisher = {Public Library of Science}
+  month     = {04},
+  volume    = {15},
+  url       = {https://doi.org/10.1371/journal.pcbi.1006650},
+  pages     = {1-28},
+  abstract  = {Elaboration of Bayesian phylogenetic inference methods has continued at pace in recent years with major new advances in nearly all aspects of the joint modelling of evolutionary data. It is increasingly appreciated that some evolutionary questions can only be adequately answered by combining evidence from multiple independent sources of data, including genome sequences, sampling dates, phenotypic data, radiocarbon dates, fossil occurrences, and biogeographic range information among others. Including all relevant data into a single joint model is very challenging both conceptually and computationally. Advanced computational software packages that allow robust development of compatible (sub-)models which can be composed into a full model hierarchy have played a key role in these developments. Developing such software frameworks is increasingly a major scientific activity in its own right, and comes with specific challenges, from practical software design, development and engineering challenges to statistical and conceptual modelling challenges. BEAST 2 is one such computational software platform, and was first announced over 4 years ago. Here we describe a series of major new developments in the BEAST 2 core platform and model hierarchy that have occurred since the first release of the software, culminating in the recent 2.5 release.},
+  number    = {4}
 }
 
 @article{drummond2012bayesian,
@@ -83,20 +88,29 @@
 }
 
 @inproceedings{abadi2016tensorflow,
-  title     = {{TensorFlow}: A system for large-scale machine learning},
-  author    = {Abadi, Mart{\'\i}n and Barham, Paul and Chen, Jianmin and Chen, Zhifeng and Davis, Andy and Dean, Jeffrey and Devin, Matthieu and Ghemawat, Sanjay and Irving, Geoffrey and Isard, Michael and others},
-  booktitle = {12th {USENIX} symposium on operating systems design and implementation ({OSDI} 16)},
-  pages     = {265--283},
-  year      = {2016}
+  author    = {Abadi, Mart\'{\i}n and Barham, Paul and Chen, Jianmin and Chen, Zhifeng and Davis, Andy and Dean, Jeffrey and Devin, Matthieu and Ghemawat, Sanjay and Irving, Geoffrey and Isard, Michael and Kudlur, Manjunath and Levenberg, Josh and Monga, Rajat and Moore, Sherry and Murray, Derek G. and Steiner, Benoit and Tucker, Paul and Vasudevan, Vijay and Warden, Pete and Wicke, Martin and Yu, Yuan and Zheng, Xiaoqiang},
+  title     = {TensorFlow: a system for large-scale machine learning},
+  year      = {2016},
+  isbn      = {9781931971331},
+  publisher = {USENIX Association},
+  address   = {USA},
+  abstract  = {TensorFlow is a machine learning system that operates at large scale and in heterogeneous environments. Tensor-Flow uses dataflow graphs to represent computation, shared state, and the operations that mutate that state. It maps the nodes of a dataflow graph across many machines in a cluster, and within a machine across multiple computational devices, including multicore CPUs, general-purpose GPUs, and custom-designed ASICs known as Tensor Processing Units (TPUs). This architecture gives flexibility to the application developer: whereas in previous "parameter server" designs the management of shared state is built into the system, TensorFlow enables developers to experiment with novel optimizations and training algorithms. TensorFlow supports a variety of applications, with a focus on training and inference on deep neural networks. Several Google services use TensorFlow in production, we have released it as an open-source project, and it has become widely used for machine learning research. In this paper, we describe the TensorFlow dataflow model and demonstrate the compelling performance that TensorFlow achieves for several real-world applications.},
+  booktitle = {Proceedings of the 12th USENIX Conference on Operating Systems Design and Implementation},
+  pages     = {265–283},
+  numpages  = {19},
+  location  = {Savannah, GA, USA},
+  series    = {OSDI'16}
 }
 
-@article{dillon2017tensorflow,
-  title   = {{TensorFlow} Distributions},
-  author  = {Dillon, Joshua V and Langmore, Ian and Tran, Dustin and Brevdo, Eugene and Vasudevan, Srinivas and Moore, Dave and Patton, Brian and Alemi, Alex and Hoffman, Matt and Saurous, Rif A},
-  journal = {arXiv preprint arXiv:1711.10604},
-  year    = {2017}
-}
 
+
+@inproceedings{dillon2017tensorflow,
+  title     = {TensorFlow Distributions},
+  author    = {Josh Dillon and Ian Langmore and Dustin Tran and Eugene Brevdo and Srinivas Vasudevan and Dave Moore and Brian Patton and Alex Alemi and Matt Hoffman and Rif A. Saurous},
+  year      = {2017},
+  url       = {https://arxiv.org/abs/1711.10604},
+  booktitle = {Workshop on Probabilistic Programming Languages, Semantics, and Systems (PPS 2018)}
+}
 
 @article{piponi2020joint,
   title   = {Joint Distributions for {TensorFlow} {Probability}},
@@ -363,12 +377,22 @@
 }
 
 @inproceedings{yu2018dynamic,
+  author    = {Yu, Yuan and Abadi, Mart\'{\i}n and Barham, Paul and Brevdo, Eugene and Burrows, Mike and Davis, Andy and Dean, Jeff and Ghemawat, Sanjay and Harley, Tim and Hawkins, Peter and Isard, Michael and Kudlur, Manjunath and Monga, Rajat and Murray, Derek and Zheng, Xiaoqiang},
   title     = {Dynamic control flow in large-scale machine learning},
-  author    = {Yu, Yuan and Abadi, Mart{\'\i}n and Barham, Paul and Brevdo, Eugene and Burrows, Mike and Davis, Andy and Dean, Jeff and Ghemawat, Sanjay and Harley, Tim and Hawkins, Peter and others},
+  year      = {2018},
+  isbn      = {9781450355841},
+  publisher = {Association for Computing Machinery},
+  address   = {New York, NY, USA},
+  url       = {https://doi.org/10.1145/3190508.3190551},
+  doi       = {10.1145/3190508.3190551},
+  abstract  = {Many recent machine learning models rely on fine-grained dynamic control flow for training and inference. In particular, models based on recurrent neural networks and on reinforcement learning depend on recurrence relations, data-dependent conditional execution, and other features that call for dynamic control flow. These applications benefit from the ability to make rapid control-flow decisions across a set of computing devices in a distributed system. For performance, scalability, and expressiveness, a machine learning system must support dynamic control flow in distributed and heterogeneous environments.This paper presents a programming model for distributed machine learning that supports dynamic control flow. We describe the design of the programming model, and its implementation in TensorFlow, a distributed machine learning system. Our approach extends the use of dataflow graphs to represent machine learning models, offering several distinctive features. First, the branches of conditionals and bodies of loops can be partitioned across many machines to run on a set of heterogeneous devices, including CPUs, GPUs, and custom ASICs. Second, programs written in our model support automatic differentiation and distributed gradient computations, which are necessary for training machine learning models that use control flow. Third, our choice of non-strict semantics enables multiple loop iterations to execute in parallel across machines, and to overlap compute and I/O operations.We have done our work in the context of TensorFlow, and it has been used extensively in research and production. We evaluate it using several real-world applications, and demonstrate its performance and scalability.},
   booktitle = {Proceedings of the Thirteenth EuroSys Conference},
-  pages     = {1--15},
-  year      = {2018}
+  articleno = {18},
+  numpages  = {15},
+  location  = {Porto, Portugal},
+  series    = {EuroSys '18}
 }
+
 
 @article{felsenstein1981evolutionary,
   title     = {Evolutionary trees from {DNA} sequences: a maximum likelihood approach},
@@ -416,7 +440,7 @@
 
 @article{tavare1986some,
   title   = {Some probabilistic and statistical problems in the analysis of {DNA} sequences},
-  author  = {Tavar{\'e}, Simon and others},
+  author  = {Tavar{\'e}, Simon},
   journal = {Lectures on Mathematics in the Life Sciences},
   volume  = {17},
   number  = {2},
@@ -477,24 +501,29 @@
 
  @misc{bito,
   title  = {\texttt{bito}},
+  year   = {2023},
   url    = {https://github.com/phylovi/bito},
-  author = {Matsen, Erick and Rich, Dave H and Milanov, Ognian and Fourment, Mathieu and Jun, Seong-Hwan and Nassif, Hassan and Kooperberg, Anna and Kiami, Sho and Ganapathy, Tanvi and Yang, Lucy and et al.}
+  author = {Matsen, Erick and Rich, Dave H and Milanov, Ognian and Fourment, Mathieu and Jun, Seong-Hwan and Nassif, Hassan and Kooperberg, Anna and Kiami, Sho and Ganapathy, Tanvi and Yang, Lucy}
 } 
 
  @misc{phylojax,
   title  = {\texttt{phylojax}},
+  year   = {2023},
   url    = {https://github.com/christiaanjs/phylojax},
   author = {Swanepoel, Christiaan}
 } 
 
 
-
-@article{paszke2019pytorch,
-  title   = {Py{T}orch: An imperative style, high-performance deep learning library},
-  author  = {Paszke, Adam and Gross, Sam and Massa, Francisco and Lerer, Adam and Bradbury, James and Chanan, Gregory and Killeen, Trevor and Lin, Zeming and Gimelshein, Natalia and Antiga, Luca and others},
-  journal = {Advances in Neural Information Processing Systems},
-  volume  = {32},
-  year    = {2019}
+@inbook{paszke2019pytorch,
+  author    = {Paszke, Adam and Gross, Sam and Massa, Francisco and Lerer, Adam and Bradbury, James and Chanan, Gregory and Killeen, Trevor and Lin, Zeming and Gimelshein, Natalia and Antiga, Luca and Desmaison, Alban and K\"{o}pf, Andreas and Yang, Edward and DeVito, Zach and Raison, Martin and Tejani, Alykhan and Chilamkurthy, Sasank and Steiner, Benoit and Fang, Lu and Bai, Junjie and Chintala, Soumith},
+  title     = {PyTorch: an imperative style, high-performance deep learning library},
+  year      = {2019},
+  publisher = {Curran Associates Inc.},
+  address   = {Red Hook, NY, USA},
+  abstract  = {Deep learning frameworks have often focused on either usability or speed, but not both. PyTorch is a machine learning library that shows that these two goals are in fact compatible: it provides an imperative and Pythonic programming style that supports code as a model, makes debugging easy and is consistent with other popular scientific computing libraries, while remaining efficient and supporting hardware accelerators such as GPUs.In this paper, we detail the principles that drove the implementation of PyTorch and how they are reflected in its architecture. We emphasize that every aspect of PyTorch is a regular Python program under the full control of its user. We also explain how the careful and pragmatic implementation of the key components of its runtime enables them to work together to achieve compelling performance. We demonstrate the efficiency of individual subsystems, as well as the overall speed of PyTorch on several common benchmarks.},
+  booktitle = {Proceedings of the 33rd International Conference on Neural Information Processing Systems},
+  articleno = {721},
+  numpages  = {12}
 }
 
 @article{goldman1994codon,
@@ -565,9 +594,9 @@
 
 @book{mackay2003information,
   title     = {Information theory, inference and learning algorithms},
-  author    = {MacKay, David JC and others},
+  author    = {MacKay, David JC},
   year      = {2003},
-  publisher = {Cambridge University Press}
+  publisher = {Cambridge university press}
 }
 
 @article{xie2011improving,
@@ -591,12 +620,15 @@
 }
 
 
-
 @article{zhang2022variational,
-  title   = {A Variational Approach to {Bayesian} Phylogenetic Inference},
-  author  = {Zhang, Cheng and Matsen IV, Frederick A},
-  journal = {arXiv preprint arXiv:2204.07747},
-  year    = {2022}
+  author  = {Cheng Zhang and Frederick A. Matsen IV},
+  title   = {A Variational Approach to Bayesian Phylogenetic Inference},
+  journal = {Journal of Machine Learning Research},
+  year    = {2024},
+  volume  = {25},
+  number  = {145},
+  pages   = {1--56},
+  url     = {http://jmlr.org/papers/v25/22-0348.html}
 }
 
 @article{huelsenbeck2001mrbayes,
@@ -668,7 +700,7 @@
 
 @article{jukes1969evolution,
   title   = {Evolution of protein molecules},
-  author  = {Jukes, Thomas H and Cantor, Charles R and others},
+  author  = {Jukes, Thomas H and Cantor, Charles R},
   journal = {Mammalian protein metabolism},
   volume  = {3},
   pages   = {21--132},
@@ -677,7 +709,7 @@
 
 @article{drummond2005bayesian,
   title     = {Bayesian coalescent inference of past population dynamics from molecular sequences},
-  author    = {Drummond, Alexei J and Rambaut, Andrew and Shapiro, BETH and Pybus, Oliver G},
+  author    = {Drummond, Alexei J and Rambaut, Andrew and Shapiro, Beth and Pybus, Oliver G},
   journal   = {Molecular Biology and Evolution},
   volume    = {22},
   number    = {5},

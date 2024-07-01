@@ -56,9 +56,20 @@ DEFAULT_LSD_OUTPUT_FORMAT = "newick"
     default=DEFAULT_LSD_OUTPUT_FORMAT,
 )
 @click.option("--force-all/--no-force-all", default=False)
+@click.option("--date-index", type=int, default=-1)
+@click.option(
+    "--alignment-format", type=click.Choice(["fasta", "nexus"]), default="fasta"
+)
 @click.pass_obj
 def infer_topology(
-    obj, working_directory, tree_method, rooting_method, lsd_output_format, force_all
+    obj,
+    working_directory,
+    tree_method,
+    rooting_method,
+    lsd_output_format,
+    force_all,
+    date_index,
+    alignment_format,
 ):
     if working_directory is None:
         working_directory = obj.output_path.parents[0]
@@ -78,6 +89,8 @@ def infer_topology(
                 tree_model=obj.model.tree_model,
                 lsd_output_format=lsd_output_format,
                 seed=obj.seed,
+                date_index=date_index,
+                alignment_format=alignment_format,
             ),
             targets=["tree", "starting_values"],
             lock=False,

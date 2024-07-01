@@ -40,6 +40,7 @@ fig <- ggplot(plotDf, aes(x = Age, y = Kappa)) +
     guides(colour = guide_legend(override.aes = list(
         linetype = c("solid", "blank"),
         shape = c(NA, 19)
-    )))
+    ))) +
+    theme(legend.position = "bottom")
 
-ggplot2::ggsave(snakemake@output[[1]], fig, width = 8, height = 6 * 12.4 / 14.0)
+ggplot2::ggsave(snakemake@output[[1]], fig, width = 4.5, height = 5)

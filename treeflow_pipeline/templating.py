@@ -329,11 +329,13 @@ def get_site_model_tag(site_model, params, init_values, subst_model_tag):
 def get_branch_rate_model_tag(clock_model, params, init_values):
     attrib = {
         "id": "branch_rate_model",
-        "clock.rate": resolve_param_value(
-            "clock_rate", params["clock_rate"], init_values["clock_rate"]
-        )
-        if "clock_rate" in params
-        else str(1.0),
+        "clock.rate": (
+            resolve_param_value(
+                "clock_rate", params["clock_rate"], init_values["clock_rate"]
+            )
+            if "clock_rate" in params
+            else str(1.0)
+        ),
     }
     if clock_model == "strict":
         attrib["spec"] = "StrictClockModel"
