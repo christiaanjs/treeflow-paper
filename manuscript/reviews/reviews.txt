@@ -1,0 +1,479 @@
+31-Dec-2024
+
+Dear Mr. Swanepoel:
+
+Decision on USYB-2024-141, TreeFlow: Probabilistic Modelling and Automatic Differentiation for Phylogenetics:
+
+Minor Revisions.
+
+Thank you for your Systematic Biology submission. It has been reviewed by Associate Editor Dr Claudia Solis-Lemus and three of the original reviewers from the prior submission. Their comments are listed at the end of this letter.
+
+First, I would like to thank the authors for their hard work in addressing comments and suggestions throughout the previous review process. The original manuscript was difficult for the typical user to follow, and it lacked appropriate documentation for using the software. It also did not include a detailed comparison with other software utilizing a universal probabilistic programming language. The authors have taken two years to complete the revision, and I believe the end result represents a very valuable contribution. The new version includes a much better-documented online manual and a thorough comparison with other approaches.
+
+Even though the revised manuscript is clearly on-track towards publication, this second round of review has identified some additional issues that need to be addressed before acceptance, i.e., improvements are needed in the description of the software, particularly the instructions for installation and running the analyses in the tutorial. Both reviewers #1 and #2 reported difficulties in running the software with the provided examples. Reviewer #3 has provided a detailed report with many useful suggestions that I am sure you will appreciate. See this reviewer's comments below on how to improve the figures and the description of the user interface, as well as the inclusion of additional references. This reviewer also requests that the empirical benchmarking section focuses on the advantages and new capabilities introduced by TreeFlow, rather than on the biological implications. I fully agree with this opinion.
+
+Although these changes and some of the requests below may require more than minor revisions, I have designated the manuscript as "acceptance pending minor revisions" to encourage the authors to resubmit as soon as possible. We all agree that this is impressive work and that the manuscript deserves publication, but the suggested changes will enhance the usability of this software for the average Systematic Biology reader.
+
+Finally, I would like to sincerely apologise for the extended review time for your manuscript, which exceeded our current turnover standards. I hope you find the final outcome satisfactory, making the wait worthwhile, and that the thorough review reports provided below are helpful in preparing your manuscript for final publication. Moving forward, I will ensure that the final resubmission undergoes a more expedited editorial review process.
+
+Please acknowledge (by email to sysbio.editorialoffice@oup.com) receipt of the reviews and give a probable time frame for the return of your revised manuscript. Your revision should be submitted as soon as possible. Any revision not received in a timely manner may have to be considered a new submission.
+
+When submitting a revision, log onto ScholarOne Manuscripts and enter the Author Center. You should find your manuscript title listed under “Manuscripts with Decisions.” Under “Actions,” click on “Create a Revision.” You will be unable to make your revisions on the originally submitted version of the manuscript. Instead, delete the old files in ScholarOne and upload the new files.
+
+Clearly indicate the changes to your manuscript within the document using the Track Changes mode in MS Word or any text software by using bold, strikethrough, or colored text. If a large number of changes were made and you feel the document is too cluttered to read easily with all of them shown, you may submit a "clean" copy as well, in which changes are not indicated.
+
+Address each point made by the Editor-In-Chief, the Associate Editor and the Reviewers in the space indicated, under "Response to Decision Letter." Your revision will not be processed if your responses to reviews are given only in a cover letter. The best way to address each point would be to copy the decision letter and insert your comments after each point. Feel free to argue your case, with careful consideration and documentation, if you disagree with any of the suggestions. If you feel a reviewer did not understand a point you made, keep in mind that, as an author, it is your responsibility to make your points clear to the readers and develop your response accordingly. Do not change the order of or delete any of the comments, because this makes it difficult to review again and can slow the process.
+
+In addition to pasting your response to the decision letter in the space indicated in ScholarOne Manuscripts, please upload a plain text, Word, or PDF file with your responses.
+
+The format of your responses must be compatible with ScholarOne Manuscripts text fields. For example, color-formatted text is not an option, but you could use asterisks, numbers, or spacing to clearly distinguish your responses from the text of the reviews.
+
+After you've uploaded your revision, carefully view the ScholarOne Manuscripts version to verify that all figures and other files display correctly, and that you’ve followed all of our author instructions.
+
+Data and Code Availability
+
+Authors must deposit all datasets needed to reproduce the analyses in the manuscript in the Dryad repository. Deposit in Dryad is free of charge to SB authors. These files should not be uploaded to ScholarOne with your manuscript submission. 
+You also have the option to upload scripts/code for hosting by Zenodo via the Dryad submission form (authors may also deposit their code in GitHub). 
+Please also included one or several additional README files in these repositories, explaining the contents of each main subdirectory and providing more comprehensive documentation for the major scripts used in the study.
+
+Data availability statement
+
+The inclusion of a Data Availability Statement is a requirement for articles published in Systematic Biology. Your Data Availability Statement should be written as its own section after the Acknowledgments. The statement should provide one to two sentences describing the data (code/script) provided to Dryad (Zenodo) and an active link to your Dryad dataset (Zenodo code/script). For example:
+“Data Availability
+All the original data and scripts necessary to reproduce the analyses reported in this study can be accessed through the Dryad link: (provide the following).”
+
+Supplementary Materials
+
+Supplemental Materials can include a variety of types that are not data or code/script and therefore do not need to be uploaded into Dryad or Zenodo. Such materials may include Online Appendices, Extended Material and Methods, Taxonomic Revisions, and so forth. These files should be styled and formatted to look similar to the journal whenever possible. They should be uploaded to ScholarOne Manuscripts as PDFs and designated as Supplementary Materials. Guidance on preparing and labeling these files is available on Oxford Academic’s Preparing and submitting your manuscript webpage.
+These files will be available for download alongside the article on the OUP platform as Online Appendices, and will receive the same DOI as the main text. You may also choose to describe these files in the "Supplementary Materials" section within the main article.
+Note: Check over your Online Appendices or Supplemental Material (if any) carefully; they will not be copyedited or proofread and cannot be changed later.
+
+First corresponding authors of published articles who were PhD students at the time the research was conducted are eligible for the “Publisher’s Award for Excellence in Systematic Research” awarded by Oxford University Press (Oxford Academic) and the Society of Systematic Biology (SSB). If you meet these requirements, please remember to tick the corresponding box in Scholar One when resubmitting your manuscript.
+
+I think that your paper will be a valuable contribution to Systematic Biology once the comments provided below are addressed. Thank you very much for your submission.
+
+Sincerely,
+
+Dr Isabel Sanmartín
+Editor-in-Chief, Systematic Biology
+isanmartin@rjb.csic.es
+
+
+
+Associate Editor: Dr Claudia Solis-Lemus
+
+Associate Editor Recommendation: Major Revision
+
+Comments to the Author:
+I encourage the authors to pay attention to the reviewers' comments which are very thorough and I believe will greatly improve the manuscript.
+
+Reviewer(s)' comments to author (if any):
+Reviewer: 1
+
+Comments to the Author
+While the authors have taken good note of the reviewers previous
+recommendations by adding more documentation and installation
+instructions I'm afraid there is still some work to be done in order
+to provide a reasonably usable software package.
+
+Command-line documentation does not explain the output produced by
+executables, does not provide an example of how to run the executable.
+
+More importantly I met several issues trying to install and use
+treeflow. I could fix some but got stalled on the last one, which
+prevented me from evaluating treeflow.
+
+First using the installation instructions verbatim, I obtained the
+following error:
+
+```sh
+[~/tmp 09:37]$git clone https://github.com/christiaanjs/treeflow.git treeflow
+[...]
+[~/tmp 09:38]$cd treeflow/
+[~/tmp/treeflow 09:38]$python3 -m venv .venv
+[~/tmp/treeflow 09:38]$source .venv/bin/activate
+(.venv) [~/tmp/treeflow 09:38]$pip install --user .
+ERROR: Can not perform a '--user' install. User site-packages are not visible in this virtualenv.
+```
+
+Instead
+
+```sh
+(.venv) [~/tmp/treeflow 09:55]$pip install .
+```
+
+works. But then:
+
+```sh
+(.venv) [~/tmp/treeflow 09:54]$treeflow_vi
+Silencing TensorFlow...
+
+
+Failed to import TF-Keras. Please note that TF-Keras is not installed by default when you install TensorFlow Probability. This is so that JAX-only users do not have to install TensorFlow or TF-Keras. To use TensorFlow Probability with TensorFlow, please install the tf-keras or tf-keras-nightly package.
+This can be be done through installing the tensorflow-probability[tf] extra.
+
+
+Traceback (most recent call last):
+ File "/home/user/tmp/treeflow/.venv/bin/treeflow_vi", line 5, in
+   from treeflow.cli.vi import treeflow_vi
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/treeflow/__init__.py", line 18, in
+   from treeflow.tree import parse_newick, convert_tree_to_tensor, write_tensor_trees
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/treeflow/tree/__init__.py", line 12, in
+   from treeflow.tree.rooted.tensorflow_rooted_tree import (
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/treeflow/tree/rooted/tensorflow_rooted_tree.py", line 9, in
+   from treeflow.tree.topology.tensorflow_tree_topology import (
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/treeflow/tree/topology/tensorflow_tree_topology.py", line 15, in
+   import tensorflow_probability.python.internal.prefer_static as ps
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow_probability/__init__.py", line 22, in
+   from tensorflow_probability.python import *  # pylint: disable=wildcard-import
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow_probability/python/__init__.py", line 152, in
+   dir(globals()[pkg_name])  # Forces loading the package from its lazy loader.
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow_probability/python/internal/lazy_loader.py", line 57, in __dir__
+   module = self._load()
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow_probability/python/internal/lazy_loader.py", line 37, in _load
+   self._on_first_access()
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow_probability/python/__init__.py", line 79, in _validate_tf_environment
+   import tf_keras  # pylint: disable=unused-import
+ModuleNotFoundError: No module named 'tf_keras'
+```
+
+If I install `tf_keras` it works better:
+```sh
+(.venv) [~/tmp/treeflow 09:55]$pip install tf_keras
+(.venv) [~/tmp/treeflow 09:58]$treeflow_vi
+Silencing TensorFlow...
+Usage: treeflow_vi [OPTIONS]
+Try 'treeflow_vi --help' for help.
+
+Error: Missing option '-i' / '--input'.
+```
+
+Now when I try the
+[tutorial](https://treeflow.readthedocs.io/en/latest/rates-and-dates.html),
+I get this error:
+```python
+Python 3.10.12 (main, Jul 29 2024, 16:56:48) [GCC 11.4.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> from treeflow import Alignment, AlignmentFormat
+Silencing TensorFlow...
+>>>
+>>> alignment = Alignment("demo-data/YFV.nex", format=AlignmentFormat.NEXUS)
+>>> from treeflow import parse_newick
+>>>
+>>> starting_tree = parse_newick("demo-data/YFV.newick")
+>>> sequence_tensor = alignment.get_encoded_sequence_tensor(starting_tree.taxon_set)
+>>> import yaml
+>>> import tensorflow as tf
+>>> from treeflow import (
+...     PhyloModel,
+...     convert_tree_to_tensor,
+...     phylo_model_to_joint_distribution
+... )
+>>> model_string = """
+... clock:
+...   strict:
+...     clock_rate:
+...       lognormal:
+...         loc: -2.0
+...         scale: 2.0
+... site:
+...   discrete_gamma:
+...     category_count: 4
+...     site_gamma_shape:
+...       lognormal:
+...         loc: 0.0
+...         scale: 1.0
+... substitution:
+...   hky:
+...     kappa:
+...       lognormal:
+...         loc: 1.0
+...         scale: 1.25
+...     frequencies:
+...       dirichlet:
+...         concentration:
+...         - 2.0
+...         - 2.0
+...         - 2.0
+...         - 2.0
+... tree:
+...   coalescent:
+...     pop_size:
+...       lognormal:
+...         loc: 1.0
+...         scale: 1.5
+... """
+>>>
+>>> model_dict = yaml.safe_load(model_string)
+>>> model = PhyloModel(model_dict)
+>>> starting_tensor_tree = convert_tree_to_tensor(starting_tree)
+>>> model_dist = phylo_model_to_joint_distribution(model, starting_tensor_tree, alignment)
+>>> model_dist_sample = model_dist.sample()
+/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/treeflow/distributions/tree/coalescent/constant_coalescent.py:133: UserWarning: Dummy sampling
+ warnings.warn("Dummy sampling")
+/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/treeflow/tf_util/attrs.py:7: UserWarning: Temporary hotfix
+ warnings.warn("Temporary hotfix")
+Traceback (most recent call last):
+ File "", line 1, in
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow_probability/python/distributions/distribution.py", line 1205, in sample
+   return self._call_sample_n(sample_shape, seed, **kwargs)
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow_probability/python/distributions/joint_distribution.py", line 956, in _call_sample_n
+   return self._sample_n(
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow_probability/python/internal/distribution_util.py", line 1350, in _fn
+   return fn(*args, **kwargs)
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow_probability/python/distributions/joint_distribution.py", line 693, in _sample_n
+   self._get_static_distribution_attributes(seed=seed)
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow_probability/python/distributions/joint_distribution.py", line 361, in _get_static_distribution_attributes
+   flat_list_of_static_attributes = callable_util.get_output_spec(
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow_probability/python/internal/callable_util.py", line 63, in get_output_spec
+   return tf.function(fn, autograph=False).get_concrete_function(
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow/python/eager/polymorphic_function/polymorphic_function.py", line 1251, in get_concrete_function
+   concrete = self._get_concrete_function_garbage_collected(*args, **kwargs)
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow/python/eager/polymorphic_function/polymorphic_function.py", line 1221, in _get_concrete_function_garbage_collected
+   self._initialize(args, kwargs, add_initializers_to=initializers)
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow/python/eager/polymorphic_function/polymorphic_function.py", line 696, in _initialize
+   self._concrete_variable_creation_fn = tracing_compilation.trace_function(
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow/python/eager/polymorphic_function/tracing_compilation.py", line 178, in trace_function
+   concrete_function = _maybe_define_function(
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow/python/eager/polymorphic_function/tracing_compilation.py", line 283, in _maybe_define_function
+   concrete_function = _create_concrete_function(
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow/python/eager/polymorphic_function/tracing_compilation.py", line 310, in _create_concrete_function
+   traced_func_graph = func_graph_module.func_graph_from_py_func(
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow/python/framework/func_graph.py", line 1059, in func_graph_from_py_func
+   func_outputs = python_func(*func_args, **func_kwargs)
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow/python/eager/polymorphic_function/polymorphic_function.py", line 599, in wrapped_fn
+   out = weak_wrapped_fn().__wrapped__(*args, **kwds)
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow_probability/python/distributions/joint_distribution.py", line 362, in
+   lambda: self._execute_model(  # pylint: disable=g-long-lambda
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow_probability/python/distributions/joint_distribution.py", line 1005, in _execute_model
+   next_value, traced_values = sample_and_trace_fn(
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow_probability/python/distributions/joint_distribution.py", line 156, in trace_static_attributes
+   value = dist.sample(seed=seed)
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow_probability/python/distributions/distribution.py", line 1205, in sample
+   return self._call_sample_n(sample_shape, seed, **kwargs)
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/treeflow/distributions/tree/rooted_tree_distribution.py", line 74, in _call_sample_n
+   flat_samples = self._sample_n(
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/treeflow/distributions/tree/coalescent/constant_coalescent.py", line 134, in _sample_n
+   return self._make_dummy_samples(self.sampling_times, n)
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/treeflow/distributions/tree/rooted_tree_distribution.py", line 124, in _make_dummy_samples
+   event_shape = self.event_shape_tensor()
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow_probability/python/distributions/distribution.py", line 1110, in event_shape_tensor
+   for s in nest.flatten(self.event_shape)]):
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow_probability/python/distributions/distribution.py", line 1139, in event_shape
+   return nest.map_structure_up_to(
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow/python/util/nest.py", line 1034, in map_structure_up_to
+   return nest_util.map_structure_up_to(
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow/python/util/nest_util.py", line 1649, in map_structure_up_to
+   return _tf_core_map_structure_with_tuple_paths_up_to(
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow/python/util/nest_util.py", line 1674, in _tf_core_map_structure_with_tuple_paths_up_to
+   _tf_core_assert_shallow_structure(
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/tensorflow/python/util/nest_util.py", line 1376, in _tf_core_assert_shallow_structure
+   if len(input_tree) != len(shallow_tree):
+ File "/home/user/tmp/treeflow/.venv/lib/python3.10/site-packages/treeflow/tf_util/attrs.py", line 9, in __len__
+   return len(nest._get_attrs_items(self))
+AttributeError: module 'tensorflow.python.util.nest' has no attribute '_get_attrs_items'
+```
+
+On a final note, while it would be convenient to have a Docker
+**image** to get treeflow working rapidly, providing a Docker
+**recipe** (aka Dockerfile) is of limited interest because those are
+not meant to be reproducible in time (contrary to say, Guix or Nix
+derivations). As a matter of fact, it's already not working, here's
+the log I obtained trying to build the Docker image:
+
+```sh
+[internal] load build definition from Dockerfile
+transferring 1715/0 0.004
+resolve image config for docker-image://docker.io/docker/dockerfile:1
+docker-image://docker.io/docker/dockerfile:1@sha256:fe40cf4e92cd0c467be2cfc30657a680ae2398318afd50b0c80585784c604f28
+resolve docker.io/docker/dockerfile:1@sha256:fe40cf4e92cd0c467be2cfc30657a680ae2398318afd50b0c80585784c604f28 0/0 0.037
+done 8404/8404 -0.72
+done 482/482 -0.431
+done 1256/1256 -0.072
+done 12463520/12463520 16.473
+extract 0/0 0.196
+[internal] load metadata for docker.io/library/python:3.9.12-slim
+[internal] load .dockerignore
+[internal] load build context
+transferring 5127144/0 0.197
+[base 1/6] FROM docker.io/library/python:3.9.12-slim@sha256:364ada4cb4f943b603d330cbb3d26f689c8b54de51cb12bad1202de7dba31814
+resolve docker.io/library/python:3.9.12-slim@sha256:364ada4cb4f943b603d330cbb3d26f689c8b54de51cb12bad1202de7dba31814 0/0 0.032
+done 1862/1862 -0.849
+done 1370/1370 -0.646
+done 7483/7483 -0.3
+done 1076137/1076137 4.995
+done 233/233 5.294
+done 3166757/3166757 22.428
+done 11586986/11586986 33.368
+done 31379476/31379476 61.331
+extract 0/0 2.025
+extract 0/0 0.365
+extract 0/0 0.812
+extract 0/0 0
+extract 0/0 0.4
+[base 2/6] WORKDIR /app
+[base 3/6] RUN adduser     --disabled-password     --gecos ""     --shell "/sbin/nologin"     --uid "10001"     appuser
+Adding user `appuser' ...
+Adding new group `appuser' (10001) ...
+Adding new user `appuser' (10001) with group `appuser' ...
+Creating home directory `/home/appuser' ...
+Copying files from `/etc/skel' ...
+[base 4/6] RUN --mount=type=cache,target=/root/.cache/pip     --mount=type=bind,source=requirements.txt,target=requirements.txt     python -m pip install -r requirements.txt
+Collecting attrs==23.2.0
+Downloading attrs-23.2.0-py3-none-any.whl (60 kB)
+â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” 60.8/60.8 KB 23.4 kB/s eta 0:00:00
+Collecting click==8.1.3
+Downloading click-8.1.3-py3-none-any.whl (96 kB)
+â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” 96.6/96.6 KB 23.5 kB/s eta 0:00:00
+Collecting DendroPy==4.5.2
+Downloading DendroPy-4.5.2.tar.gz (15.2 MB)
+â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” 15.2/15.2 MB 771.0 kB/s eta 0:00:00
+Preparing metadata (setup.py): started
+Preparing metadata (setup.py): finished with status 'done'
+Collecting ete3==3.1.2
+Downloading ete3-3.1.2.tar.gz (4.7 MB)
+â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” 4.7/4.7 MB 779.5 kB/s eta 0:00:00
+Preparing metadata (setup.py): started
+Preparing metadata (setup.py): finished with status 'done'
+Collecting jupyterlab==4.1.3
+Downloading jupyterlab-4.1.3-py3-none-any.whl (11.4 MB)
+â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” 11.4/11.4 MB 778.1 kB/s eta 0:00:00
+Collecting numpy==1.22.3
+Downloading numpy-1.22.3-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (16.8 MB)
+â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” 16.8/16.8 MB 765.7 kB/s eta 0:00:00
+Collecting pandas==1.5.0
+Downloading pandas-1.5.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (12.2 MB)
+â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” 12.2/12.2 MB 779.5 kB/s eta 0:00:00
+Collecting PyYAML==6.0
+Downloading PyYAML-6.0-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl (661 kB)
+â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” 661.8/661.8 KB 780.3 kB/s eta 0:00:00
+Collecting silence-tensorflow==1.2.1
+Downloading silence_tensorflow-1.2.1.tar.gz (3.8 kB)
+Preparing metadata (setup.py): started
+Preparing metadata (setup.py): finished with status 'done'
+Collecting tensorflow==2.11.0
+Downloading tensorflow-2.11.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (588.3 MB)
+â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” 588.3/588.3 MB 595.5 kB/s eta 0:00:00
+Collecting tensorflow-estimator==2.11.0
+Downloading tensorflow_estimator-2.11.0-py2.py3-none-any.whl (439 kB)
+â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” 439.2/439.2 KB 772.1 kB/s eta 0:00:00
+Collecting tensorflow-io-gcs-filesystem==0.25.0
+Downloading tensorflow_io_gcs_filesystem-0.25.0-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.whl (2.1 MB)
+â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” 2.1/2.1 MB 777.6 kB/s eta 0:00:00
+Collecting tensorflow-probability==0.19.0
+Downloading tensorflow_probability-0.19.0-py2.py3-none-any.whl (6.7 MB)
+â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” 6.7/6.7 MB 780.0 kB/s eta 0:00:00
+Collecting tqdm==4.64.0
+Downloading tqdm-4.64.0-py2.py3-none-any.whl (78 kB)
+â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” 78.4/78.4 KB 732.7 kB/s eta 0:00:00
+Collecting typing_extensions==4.2.0
+Downloading typing_extensions-4.2.0-py3-none-any.whl (24 kB)
+Requirement already satisfied: setuptools in /usr/local/lib/python3.9/site-packages (from DendroPy==4.5.2->-r requirements.txt (line 3)) (58.1.0)
+Collecting ipykernel
+Downloading ipykernel-6.29.5-py3-none-any.whl (117 kB)
+â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” 117.2/117.2 KB 739.0 kB/s eta 0:00:00
+Collecting importlib-metadata>=4.8.3
+Downloading importlib_metadata-8.2.0-py3-none-any.whl (25 kB)
+Collecting jupyter-lsp>=2.0.0
+Downloading jupyter_lsp-2.2.5-py3-none-any.whl (69 kB)
+â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” 69.1/69.1 KB 803.9 kB/s eta 0:00:00
+Collecting tornado>=6.2.0
+Downloading tornado-6.4.1-cp38-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (436 kB)
+â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” 436.8/436.8 KB 783.0 kB/s eta 0:00:00
+Collecting jinja2>=3.0.3
+Downloading jinja2-3.1.4-py3-none-any.whl (133 kB)
+â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” 133.3/133.3 KB 754.6 kB/s eta 0:00:00
+Collecting httpx>=0.25.0
+Downloading httpx-0.27.0-py3-none-any.whl (75 kB)
+â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” 75.6/75.6 KB 665.4 kB/s eta 0:00:00
+Collecting tomli
+Downloading tomli-2.0.1-py3-none-any.whl (12 kB)
+Collecting jupyter-core
+Downloading jupyter_core-5.7.2-py3-none-any.whl (28 kB)
+Collecting jupyterlab-server<3,>=2.19.0
+Downloading jupyterlab_server-2.27.3-py3-none-any.whl (59 kB)
+â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” 59.7/59.7 KB 707.7 kB/s eta 0:00:00
+Collecting traitlets
+Downloading traitlets-5.14.3-py3-none-any.whl (85 kB)
+â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” 85.4/85.4 KB 743.0 kB/s eta 0:00:00
+Collecting jupyter-server<3,>=2.4.0
+Downloading jupyter_server-2.14.2-py3-none-any.whl (383 kB)
+â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” 383.6/383.6 KB 772.1 kB/s eta 0:00:00
+Collecting notebook-shim>=0.2
+Downloading notebook_shim-0.2.4-py3-none-any.whl (13 kB)
+Collecting async-lru>=1.0.0
+Downloading async_lru-2.0.4-py3-none-any.whl (6.1 kB)
+Collecting packaging
+Downloading packaging-24.1-py3-none-any.whl (53 kB)
+â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” 54.0/54.0 KB 725.2 kB/s eta 0:00:00
+Collecting python-dateutil>=2.8.1
+Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” 229.9/229.9 KB 770.9 kB/s eta 0:00:00
+Collecting pytz>=2020.1
+Downloading pytz-2024.1-py2.py3-none-any.whl (505 kB)
+â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” â” 505.5/505.5 KB 769.9 kB/s eta 0:00:00
+INFO: pip is looking at multiple versions of pyyaml to determine which version is compatible with other requirements. This could take a while.
+INFO: pip is looking at multiple versions of pandas to determine which version is compatible with other requirements. This could take a while.
+INFO: pip is looking at multiple versions of numpy to determine which version is compatible with other requirements. This could take a while.
+INFO: pip is looking at multiple versions of jupyterlab to determine which version is compatible with other requirements. This could take a while.
+INFO: pip is looking at multiple versions of ete3 to determine which version is compatible with other requirements. This could take a while.
+INFO: pip is looking at multiple versions of dendropy to determine which version is compatible with other requirements. This could take a while.
+INFO: pip is looking at multiple versions of click to determine which version is compatible with other requirements. This could take a while.
+INFO: pip is looking at multiple versions of to determine which version is compatible with other requirements. This could take a while.
+INFO: pip is looking at multiple versions of attrs to determine which version is compatible with other requirements. This could take a while.
+ERROR: Could not find a version that satisfies the requirement support_developer (from silence-tensorflow) (from versions: none)
+ERROR: No matching distribution found for support_developer
+WARNING: You are using pip version 22.0.4; however, version 24.2 is available.
+You should consider upgrading via the '/usr/local/bin/python -m pip install --upgrade pip' command.
+```
+
+I hope I've not made some silly mistake, but in any case I feel like
+the usability and level of documentation of treeflow are still too low
+to allow the wider community to build upon it. It should at the very
+least be trivial to reproduce the tutorial contents.
+
+
+Reviewer: 2
+
+Comments to the Author
+In my opinion the authors did an excellent job addressing all the issues and comments raised by the reviewers. It is great to see detailed descriptions of the TreeFlow functions and comments throughout the tutorial. Nevertheless, I ran into a couple of issues installing and running the software, that I was not able to fix myself:
+
+1) Pip installation:
+pip command runs without any issues, however the attempt ot import the treeflow gives this error
+ 
+Failed to import TF-Keras. Please note that TF-Keras is not installed by default when you install TensorFlow Probability. This is so that JAX-only users do not have to install TensorFlow or TF-Keras. To use TensorFlow Probability with TensorFlow, please install the tf-keras or tf-keras-nightly package.
+This can be be done through installing the tensorflow-probability[tf] extra.
+…
+
+ModuleNotFoundError: No module named 'tf_keras'
+
+However, it seems that installation of Keras via pip pip install tf-keras fixes this. Also, I was not able to run the third snipped of the tutorial. Specifically, this function model_dist_sample = model_dist.sample() generates an error AttributeError: module 'tensorflow.python.util.nest' has no attribute '_get_attrs_items'. I wonder if this is due to some compatibility issues between tf-keras versions as I had to install Keras separately. Because of this, I was not able to finish the tutorial.  
+
+2) Docker installation:
+Unfortunately, I was not able to build TreeFlow via Docker nor troubleshoot it. It produces this error:
+
+=> ERROR [base 4/6] RUN --mount=type=cache,target=/root/.cache/pip     --mount=type=bind,source=requirements.txt,target=requirements.txt     python -m pip install -r requirements.txt                                                25.5s
+
+25.07 ERROR: Could not find a version that satisfies the requirement support_developer (from silence-tensorflow) (from versions: none)
+25.07 ERROR: No matching distribution found for support_developer
+
+2 warnings found (use docker --debug to expand):
+- FromAsCasing: 'as' and 'FROM' keywords' casing do not match (line 10)
+- JSONArgsRecommended: JSON arguments recommended for CMD to prevent unintended behavior related to OS signals (line 54)
+Dockerfile:37
+--------------------
+ 36 |     # into this layer.
+ 37 | >>> RUN --mount=type=cache,target=/root/.cache/pip \
+ 38 | >>>     --mount=type=bind,source=requirements.txt,target=requirements.txt \
+ 39 | >>>     python -m pip install -r requirements.txt
+ 40 |    
+--------------------
+
+
+Overall, I think TreeFlow will be a fine contribution to the community and thus I will recommend publication of TreeFlow in Systematic Biology after all these minor issues are resolved.  
+
+
+Reviewer: 3
+
+Comments to the Author
+See attached PDF with detailed comments.
