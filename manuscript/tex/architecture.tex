@@ -1,6 +1,10 @@
 \documentclass{standalone}
 \usepackage{tikz}
-\usetikzlibrary{fit, positioning, arrows.meta, calc}
+\usetikzlibrary{fit, positioning, arrows.meta, calc, backgrounds}
+\usepackage{xcolor}
+
+\definecolor{apibg}{RGB}{245,245,235}
+\definecolor{uibg}{RGB}{220,235,250}
 
 \begin{document}
 \setlength{\baselineskip}{1.0em}
@@ -8,7 +12,8 @@
 \begin{tikzpicture}[
         box/.style={draw, rounded corners, minimum width=6em, minimum height=1em, align=center, fill=white, scale=0.7},
         depbox/.style={draw, minimum width=6em, minimum height=1em, align=center, fill=white, scale=0.7},
-        fitbox/.style={draw, rounded corners, dashed, inner sep=0.5em},
+        apifitbox/.style={draw, rounded corners, thick, inner sep=0.5em, fill=apibg},
+        uifitbox/.style={draw, rounded corners, thick, inner sep=0.5em, fill=uibg},
         arrow/.style={-Stealth, thick},
         % label/.style={font=\bfseries\large}
     ]
@@ -24,16 +29,20 @@
     \node[box, below=1em of approximation.south, anchor=north] (vi) {\texttt{treeflow.vi} \\ \small{Fixed topology variational inference}};
 
     % Fitting box for Developer API
-    \node[fitbox, fit=(priors)(tree)(evolution)(io)(traversal)(bijectors)(approximation)(vi)] (developerapi) {};
-    \node[label, above=0.5em of developerapi] {Developer API};
+    \begin{pgfonlayer}{background}
+    \node[apifitbox, fit=(priors)(tree)(evolution)(io)(traversal)(bijectors)(approximation)(vi)] (developerapi) {};
+    \end{pgfonlayer}
+    \node[label, above=0.5em of developerapi] {\textbf{Developer API}};
 
     % Nodes for User Interface
     \node[box, below=4em of developerapi.south, anchor=north, xshift=-4.5em] (phylomodel) {\texttt{treeflow.model.phylo\_model} \\ \small{Model specification}};
     \node[box, right=2em of phylomodel] (cli) {\texttt{treeflow.cli} \\ \small{Inference command line interfaces}};
 
     % Fitting box for User Interface
-    \node[fitbox, fit=(cli)(phylomodel)] (userinterface) {};
-    \node[label, above=0.5em of userinterface] {User interface};
+    \begin{pgfonlayer}{background}
+    \node[uifitbox, fit=(cli)(phylomodel)] (userinterface) {};
+    \end{pgfonlayer}
+    \node[label, above=0.5em of userinterface] {\textbf{User interface}};
 
     % TensorFlow and TensorFlow Probability nodes
     \node[depbox, above=1em of traversal.north, anchor=south] (tensorarray) {\texttt{tensorflow.TensorArray}};
