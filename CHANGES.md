@@ -67,3 +67,8 @@ Tracking all changes made for the response to the editor and reviewers.
 - [x] Removed debug "Temporary hotfix" warning from `attrs.py`
 - [x] Verified end-to-end: `pip install .` + `treeflow_vi` CLI runs cleanly with Python 3.12, TF 2.20, TFP 0.25, numpy 2.0.2
 - [x] Test suite: 255/260 pass (4 failures: 1 optional `bito` dep, 1 float precision, 2 incomplete cascading flows)
+- [x] Updated installation docs: Python 3.9+ (3.12 recommended), fixed Docker flag order
+- [x] CI docs build: updated Python 3.8→3.12, actions/setup-python v4→v5
+- [x] Fixed Sphinx docs: replaced broken `sphinxcontrib.napoleon` with built-in `sphinx.ext.napoleon`
+- [x] Fixed dev/requirements.txt: resolved Sphinx/docutils/nbsphinx-link version conflicts (Sphinx 7.4.7, docutils 0.20.1, myst-parser 4.0.1)
+- [x] All changes in treeflow PR #75 (`fix/reviewer-installation-issues` branch), CI passing
