@@ -12,10 +12,10 @@ renameFunc <- pythonModule$get_benchmark_colname
 df <- readr::read_csv(plotDataPath, show_col_types = FALSE)
 remappedDf <- pythonModule$remap_and_sort_benchmark_df(df)
 ggsaveArgs <- list(width = 8, height = 3)
-treeflowbenchmarksr::comparisonPlot(
+plot <- treeflowbenchmarksr::comparisonPlot(
     remappedDf,
-    outFile = outFile,
-    ggsaveArgs = ggsaveArgs,
     renameFunc = renameFunc,
     colorFunc = purrr::partial(paste, sep = ", ")
 )
+plot <- plot + ggplot2::guides(colour = ggplot2::guide_legend(reverse = TRUE))
+do.call(ggplot2::ggsave, modifyList(ggsaveArgs, list(filename = outFile, plot = plot)))
