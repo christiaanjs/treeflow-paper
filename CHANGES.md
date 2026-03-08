@@ -42,8 +42,8 @@ Tracking all changes made for the response to the editor and reviewers.
 ## Figure modifications (R3)
 
 - [x] Fig 1 (architecture.tex): added distinct fill colors (light blue for User Interface, beige for Developer API), thick borders, bold labels
-- [ ] Figs 2 & 6a: add Monte Carlo error estimates for BEAST (needs ESS data from pipeline)
-- [ ] Fig 7: reverse legend symbol order (needs plot regeneration)
+- [ ] Figs 2 & 6a: add Monte Carlo error estimates for BEAST — R scripts updated (`improved-marginals-plot.R` with bootstrap density bands, `carnivores-kappa-plot.R` with batch means SE); awaiting pipeline data to regenerate figures
+- [ ] Fig 7: reverse legend symbol order — R script updated (`improved-benchmark-plot.R` with `guide_legend(reverse = TRUE)`); awaiting benchmark pipeline to regenerate figure
 
 ## Clarifications & expansions (R3)
 
@@ -54,6 +54,24 @@ Tracking all changes made for the response to the editor and reviewers.
 - [x] L428: clarified BEAST used built-in autotuning plus manual operator weight adjustment; added ELBO monitoring as VI convergence diagnostic
 - [x] L529-538: expanded structured approximations with concrete examples (block-diagonal covariance for clock rate/tree height correlation, normalizing flows)
 - [x] L539-545: added forward-looking direction for topology inference (subsplit Bayesian networks combined with TreeFlow's existing components)
+
+## Manuscript version specificity
+
+- Specified BEAST version as 2.7.7 at first analysis mention (carnivores example)
+
+## Pipeline compatibility fixes (treeflow-paper repo)
+
+- Updated all BEAST XML templates to 2.7 namespaces (`beast.core.*` → `beast.base.*`, `beast.evolution.*` → `beast.base.evolution.*`, `beast.app.seqgen` → `beastfx.app.seqgen`): `beast-analysis.j2.xml`, `sim-seq.j2.xml`, `tree-sim.j2.xml`, `rate-sim.j2.xml`
+- Updated fully qualified class names in `templating.py` (`YuleModel`, `WeibullSiteModel`)
+- Updated `supplementary-data/*/beast-2.7.xml` version attributes from `required="BEAST v2.5.2"` to `required="BEAST v2.7.0"`
+- Fixed `data.smk`: filtered starting values to only include free parameters in `variational_fit` and `ml_fit` rules (prevents `Unknown parameters in initial values: {'clock_rate'}` for strict clock models)
+- Fixed `setup.py`: removed `importlib` dependency (Python 2 backport, not needed)
+
+## Documentation
+
+- Wrote comprehensive README for treeflow-paper repo (reproduction guide, requirements, workflows)
+- Wrote README for treeflow-benchmarks repo (dependencies, usage, configuration, outputs)
+- Wrote README for phylojax repo (features, installation, usage example)
 
 ## Software / installation fixes (R1 & R2) — in ~/Git/treeflow repo
 
