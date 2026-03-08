@@ -2,7 +2,6 @@ import click
 import click_config_file
 import pathlib
 import importlib.resources
-import snakemake
 import yaml
 import treeflow_pipeline.model
 import pickle
@@ -71,33 +70,57 @@ def infer_topology(
     date_index,
     alignment_format,
 ):
+    from snakemake.api import (
+        SnakemakeApi,
+        ConfigSettings,
+        DAGSettings,
+        ResourceSettings,
+    )
+
     if working_directory is None:
         working_directory = obj.output_path.parents[0]
 
-    with importlib.resources.path("treeflow_pipeline", "topology.smk") as snakefile:
-        success = snakemake.snakemake(
-            snakefile,
-            config=dict(
-                alignment=obj.alignment_path,
-                output=obj.output_path,
-                working_directory=working_directory,
-                tree_method=tree_method,
-                rooting_method=rooting_method,
-                subst_model=obj.model.subst_model,
-                site_model=obj.model.site_model,
-                clock_model=obj.model.clock_model,
-                tree_model=obj.model.tree_model,
-                lsd_output_format=lsd_output_format,
-                seed=obj.seed,
-                date_index=date_index,
-                alignment_format=alignment_format,
-            ),
-            targets=["tree", "starting_values"],
-            lock=False,
-            forceall=force_all,
-            force_incomplete=True,
-        )
-    if not success:
+    config = dict(
+        alignment=obj.alignment_path,
+        output=str(obj.output_path),
+        working_directory=str(working_directory),
+        tree_method=tree_method,
+        rooting_method=rooting_method,
+        subst_model=obj.model.subst_model,
+        site_model=obj.model.site_model,
+        clock_model=obj.model.clock_model,
+        tree_model=obj.model.tree_model,
+        lsd_output_format=lsd_output_format,
+        seed=obj.seed,
+        date_index=date_index,
+        alignment_format=alignment_format,
+    )
+
+    snakefile = importlib.resources.files("treeflow_pipeline").joinpath(
+        "topology.smk"
+    )
+
+    try:
+        with SnakemakeApi() as api:
+            workflow_api = api.workflow(
+                snakefile=snakefile,
+                resource_settings=ResourceSettings(cores=1),
+                config_settings=ConfigSettings(config=config),
+            )
+            starting_values_path = str(
+                pathlib.Path(working_directory) / "starting-values.yaml"
+            )
+            dag_api = workflow_api.dag(
+                dag_settings=DAGSettings(
+                    targets=frozenset(
+                        {str(obj.output_path), starting_values_path}
+                    ),
+                    forceall=force_all,
+                    force_incomplete=True,
+                )
+            )
+            dag_api.execute_workflow()
+    except Exception as e:
         raise click.UsageError(
-            "Topology inference pipeline was unsuccessful, check inputs"
+            f"Topology inference pipeline was unsuccessful: {e}"
         )

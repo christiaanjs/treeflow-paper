@@ -1,11 +1,11 @@
-<beast version='2.0' namespace='beast.core
-    :beast.core.parameter
-    :beast.evolution.sitemodel
-    :beast.evolution.substitutionmodel
-    :beast.evolution.branchratemodel
-    :beast.math.distributions
-    :beast.evolution.alignment
-    :beast.app.seqgen'>
+<beast version='2.7' namespace='beast.base.core
+    :beast.base.inference.parameter
+    :beast.base.evolution.sitemodel
+    :beast.base.evolution.substitutionmodel
+    :beast.base.evolution.branchratemodel
+    :beast.base.math.distributions
+    :beast.base.evolution.alignment
+    :beastfx.app.seqgen'>
 
     <run spec="SequenceSimulator"
         sequencelength="{{ sequence_length }}"
@@ -16,7 +16,7 @@
         {% endfor %}
         </data>
 
-        <tree spec="beast.util.TreeParser"
+        <tree spec="beast.base.evolution.tree.TreeParser"
             id="tree"
             newick="{{ newick_string }}"
             IsLabelledNewick="true"

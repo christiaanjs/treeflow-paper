@@ -1,12 +1,12 @@
-<beast version="2.0"
-       namespace="beast.core
-                 :beast.core.parameter
-                 :beast.evolution.alignment
-                 :beast.evolution.tree
-                 :beast.evolution.tree.coalescent
-                 :beast.math.distributions
-                 :beast.evolution.branchratemodel">
-    <tree spec="beast.util.TreeParser"
+<beast version="2.7"
+       namespace="beast.base.core
+                 :beast.base.core.parameter
+                 :beast.base.evolution.alignment
+                 :beast.base.evolution.tree
+                 :beast.base.evolution.tree.coalescent
+                 :beast.base.math.distributions
+                 :beast.base.evolution.branchratemodel">
+    <tree spec="beast.base.evolution.tree.TreeParser"
             id="tree"
             newick="{{ newick_string }}"
             IsLabelledNewick="true"
@@ -24,7 +24,7 @@
             <log idref="rates"/>
         </logger>
         <logger fileName="{{ tree_out_path }}" logEvery="1" mode="tree">
-            <log spec="beast.evolution.tree.TreeWithMetaDataLogger" tree="@tree" branchratemodel="@relaxedClock"/>
+            <log spec="beast.base.evolution.TreeWithMetaDataLogger" tree="@tree" branchratemodel="@relaxedClock"/>
     </logger>
     </run>
 </beast>

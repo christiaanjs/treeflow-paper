@@ -200,7 +200,7 @@ def build_lsd_inputs(
         util.sequence_input(input_file, input_format), date_path, date_index=date_index
     )
 
-    lsd_args = ["-c"] + util.cmd_kwargs(
+    lsd_args = util.cmd_kwargs(
         r="a", i=tree_path, d=date_path, o=(out_path / LSD_OUT_PATH)
     )
 
@@ -268,14 +268,17 @@ def get_taxon_count(tree_file, tree_format):
 
 
 def get_starting_values_lsd(
-    date_tree_file, distance_tree_file, lsd_output_format, tree_model
+    date_tree_file, distance_tree_file, lsd_output_format, tree_model,
+    distance_tree_format=None,
 ):
+    if distance_tree_format is None:
+        distance_tree_format = lsd_output_format
     res = dict(
         clock_rate=estimate_rate(
             date_tree_file,
             distance_tree_file,
             date_tree_format=lsd_output_format,
-            distance_tree_format=lsd_output_format,
+            distance_tree_format=distance_tree_format,
         ),
     )
     if tree_model == "coalescent":

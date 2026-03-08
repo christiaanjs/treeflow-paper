@@ -1,8 +1,14 @@
 import pathlib
 import treeflow_pipeline.topology_inference as top
 from treeflow_pipeline.util import yaml_input, yaml_output, sequence_input, text_input, text_output, pickle_output
+from Bio import SeqIO
 
 wd = pathlib.Path(config["working_directory"])
+
+# Compute sequence length for LSD2
+_alignment_format = config.get("alignment_format", "fasta")
+_first_seq = next(SeqIO.parse(config["alignment"], _alignment_format))
+seq_length = len(_first_seq.seq)
 
 unrooted_tree_filename = dict(
     raxml="RAxML_bestTree.raxml"
@@ -10,9 +16,10 @@ unrooted_tree_filename = dict(
 
 lsd_output_format = config["lsd_output_format"]
 
+# LSD2 v2.4+ outputs .nwk for distance tree and .date.nexus for date tree
 rooted_tree_filename, rooted_tree_format, fix_dates = {
-    "lsd": (f"lsd-tree.{lsd_output_format}", lsd_output_format, False),
-    "lsd-dates": (f"lsd-dates-tree.date.{lsd_output_format}", lsd_output_format, True)
+    "lsd": ("lsd-tree.nwk", "newick", False),
+    "lsd-dates": ("lsd-dates-tree.date.nexus", "nexus", True)
 }[config["rooting_method"]]
 
 rule raxml_topology:
@@ -36,22 +43,22 @@ rule root_topology_lsd:
     input:
         tree = wd / unrooted_tree_filename
     output:
-        date_tree = wd / f"lsd-tree.date.{lsd_output_format}",
-        distance_tree = wd / f"lsd-tree.{lsd_output_format}",
+        date_tree = wd / "lsd-tree.date.nexus",
+        distance_tree = wd / "lsd-tree.nwk",
         log = (wd / "lsd-tree")
     shell:
-        "lsd -c -r a -i {input.tree} -o {output.log}"
+        f"lsd -r a -s {seq_length} -i {{input.tree}} -o {{output.log}}"
 
 rule root_topology_lsd_dates:
     input:
         dates = wd / "lsd.dates",
         tree = wd / unrooted_tree_filename
     output:
-        date_tree = wd / f"lsd-dates-tree.date.{lsd_output_format}",
-        distance_tree = wd / f"lsd-dates-tree.{lsd_output_format}",
+        date_tree = wd / "lsd-dates-tree.date.nexus",
+        distance_tree = wd / "lsd-dates-tree.nwk",
         log= (wd / "lsd-dates-tree")
     shell:
-        "lsd -c -r a -i {input.tree} -d {input.dates} -o {output.log}"
+        f"lsd -r a -s {seq_length} -i {{input.tree}} -d {{input.dates}} -o {{output.log}}"
 
 rule starting_values_raxml:
     input:
@@ -71,8 +78,9 @@ rule starting_values_lsd:
         yaml_output(top.get_starting_values_lsd(
             input.date_tree,
             input.distance_tree,
-            lsd_output_format,
-            config["tree_model"]
+            "nexus",
+            config["tree_model"],
+            distance_tree_format="newick",
         ), output[0])
 
 rule starting_values_lsd_dates:
@@ -85,8 +93,9 @@ rule starting_values_lsd_dates:
         yaml_output(top.get_starting_values_lsd(
             input.date_tree,
             input.distance_tree,
-            lsd_output_format,
-            config["tree_model"]
+            "nexus",
+            config["tree_model"],
+            distance_tree_format="newick",
         ), output[0])
 
 rule starting_values:

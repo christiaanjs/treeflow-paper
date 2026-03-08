@@ -12,7 +12,6 @@ setuptools.setup(
         "pandas",
         "click",
         "click-config-file",
-        "importlib",
         "snakemake",
         "papermill",
         "biopython",

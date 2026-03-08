@@ -1,22 +1,22 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><beast beautitemplate='Standard' beautistatus='' namespace="beast.core:beast.evolution.alignment:beast.evolution.tree.coalescent:beast.core.util:beast.evolution.nuc:beast.evolution.operators:beast.evolution.sitemodel:beast.evolution.substitutionmodel:beast.evolution.likelihood:beast.evolution.branchratemodel" required="BEAST v2.5.2" version="2.5">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><beast beautitemplate='Standard' beautistatus='' namespace="beast.pkgmgmt:beast.base.core:beast.base.inference:beast.base.evolution.alignment:beast.base.evolution.tree.coalescent:beast.base.util:beast.base.math:beast.evolution.nuc:beast.base.evolution.operator:beast.base.inference.operator:beast.base.evolution.sitemodel:beast.base.evolution.substitutionmodel:beast.base.evolution.likelihood:beast.base.evolution.branchratemodel" required="BEAST v2.7.0" version="2.7">
 
     <data id="alignment" name="alignment">
         {% for taxon_name, sequence in sequence_dict.items() %}<sequence id="Sequence{{ taxon_name }}" taxon="{{ taxon_name }}" totalcount="4" value="{{ sequence }}"/>
         {% endfor %}
-        <userDataType id="Nucleotide" spec="beast.evolution.datatype.Nucleotide"/>
+        <userDataType id="Nucleotide" spec="beast.base.evolution.datatype.Nucleotide"/>
     </data>
-<map name="Exponential" >beast.math.distributions.Exponential</map>
-<map name="LogNormal" >beast.math.distributions.LogNormalDistributionModel</map>
-<map name="LogNormalWithPrecision" >beast.math.distributions.LogNormalWithPrecision</map>
-<map name="Normal" >beast.math.distributions.Normal</map>
-<map name="NormalGammaNormal" >beast.math.distributions.NormalGammaNormal</map>
-<map name="Beta" >beast.math.distributions.Beta</map>
-<map name="Gamma" >beast.math.distributions.Gamma</map>
-<map name="LaplaceDistribution" >beast.math.distributions.LaplaceDistribution</map>
-<map name="prior" >beast.math.distributions.Prior</map>
-<map name="InverseGamma" >beast.math.distributions.InverseGamma</map>
-<map name="OneOnX" >beast.math.distributions.OneOnX</map>
-<map name="Dirichlet" >beast.math.distributions.Dirichlet</map>
+<map name="Exponential" >beast.base.math.distributions.Exponential</map>
+<map name="LogNormal" >beast.base.math.distributions.LogNormalDistributionModel</map>
+<map name="LogNormalWithPrecision" >beast.base.math.distributions.LogNormalWithPrecision</map>
+<map name="Normal" >beast.base.math.distributions.Normal</map>
+<map name="NormalGammaNormal" >beast.base.math.distributions.NormalGammaNormal</map>
+<map name="Beta" >beast.base.math.distributions.Beta</map>
+<map name="Gamma" >beast.base.math.distributions.Gamma</map>
+<map name="LaplaceDistribution" >beast.base.math.distributions.LaplaceDistribution</map>
+<map name="prior" >beast.base.math.distributions.Prior</map>
+<map name="InverseGamma" >beast.base.math.distributions.InverseGamma</map>
+<map name="OneOnX" >beast.base.math.distributions.OneOnX</map>
+<map name="Dirichlet" >beast.base.math.distributions.Dirichlet</map>
 
 
 <run id="mcmc" spec="MCMC" chainLength="{{ chain_length }}">
@@ -36,7 +36,7 @@
             <parameter id="rates"  name="stateNode" lower="0.0">1</parameter>
         {% endif %}
     </state>
-    <init spec="beast.util.TreeParser" initial="@tree" taxa="@alignment" IsLabelledNewick="true" newick="{{ newick_string  }}"/>   
+    <init spec="beast.base.evolution.tree.TreeParser" initial="@tree" taxa="@alignment" IsLabelledNewick="true" newick="{{ newick_string  }}"/>   
 
     <distribution id="posterior" spec="util.CompoundDistribution">
         <distribution id="prior" spec="util.CompoundDistribution">
@@ -78,11 +78,11 @@
         <log idref="likelihood"/>
         <log idref="prior"/>
         <log idref="tree_likelihood"/>
-        <log spec="beast.evolution.tree.TreeStatLogger" tree="@tree" logHeight="true" logLength="true"/>
+        <log spec="beast.base.evolution.tree.TreeStatLogger" tree="@tree" logHeight="true" logLength="true"/>
         {% for log_tag in log_tags %}{{ log_tag }}
         {% endfor %}
         {% if relaxed %}
-        <log id="rate_stats" spec="beast.evolution.branchratemodel.RateStatistic" branchratemodel="@branch_rate_model" tree="@tree"/>
+        <log id="rate_stats" spec="beast.base.evolution.branchratemodel.RateStatistic" branchratemodel="@branch_rate_model" tree="@tree"/>
         {% endif %}
     </logger>
 
@@ -93,7 +93,7 @@
     </logger>
 
     <logger id="treelog.t:Treeflow" fileName="{{ tree_out_path }}" logEvery="{{ log_every }}" mode="tree">
-        <log id="TreeWithMetaDataLogger.t:Treeflow" spec="beast.evolution.tree.TreeWithMetaDataLogger" tree="@tree" {% if relaxed %}branchratemodel="@branch_rate_model"{% endif %}/>
+        <log id="TreeWithMetaDataLogger.t:Treeflow" spec="beast.base.evolution.TreeWithMetaDataLogger" tree="@tree" {% if relaxed %}branchratemodel="@branch_rate_model"{% endif %}/>
     </logger>
 
 </run>

@@ -161,7 +161,9 @@ rule variational_fit:
         starting_values = wd / dataset_dir / "starting-values.yaml",
         model_file = wd / dataset_dir / "model.yaml"
     params:
-        starting_values_string = lambda wildcards, input: build_init_values_string(yaml_input(input.starting_values))
+        starting_values_string = lambda wildcards, input: build_init_values_string(
+            {k: v for k, v in yaml_input(input.starting_values).items() if k in models[wildcards.dataset].free_params()}
+        )
     output:
         trace = wd / dataset_dir / "variational-trace.pickle",
         samples = wd / dataset_dir / "variational-samples.csv",
@@ -194,7 +196,9 @@ rule ml_fit:
         starting_values = wd / dataset_dir / "starting-values.yaml",
         model_file = wd / dataset_dir / "model.yaml"
     params:
-        starting_values_string = lambda wildcards, input: build_init_values_string(yaml_input(input.starting_values))
+        starting_values_string = lambda wildcards, input: build_init_values_string(
+            {k: v for k, v in yaml_input(input.starting_values).items() if k in models[wildcards.dataset].free_params()}
+        )
     output:
         trace = wd / dataset_dir / "ml-trace.pickle",
         variables = wd / dataset_dir / "ml-variables.csv",

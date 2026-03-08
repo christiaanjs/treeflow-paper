@@ -223,7 +223,7 @@ def get_tree_prior_tag(tree_model, params, init_values):
     elif tree_model == "yule":
         dist_tag = ET.Element(
             "distribution",
-            spec="beast.evolution.speciation.YuleModel",
+            spec="beast.base.evolution.speciation.YuleModel",
             tree="@tree",
             birthDiffRate=resolve_param_value(
                 "birth_rate", params["birth_rate"], init_values["birth_rate"]
@@ -304,7 +304,7 @@ def get_site_model_tag(site_model, params, init_values, subst_model_tag):
     elif site_model == "discrete_weibull":
         site_tag = ET.Element(
             "siteModel",
-            spec="beast.evolution.sitemodel.WeibullSiteModel",
+            spec="beast.base.evolution.sitemodel.WeibullSiteModel",
             mutationRate=str(1.0),
             shape=resolve_param_value(
                 "site_weibull_concentration",
