@@ -1,0 +1,13 @@
+method,computation,model,intercept,slope
+treeflow,likelihood_time,jc,-5.994870018305659,1.1915933202624684
+treeflow,likelihood_time,full,-4.851636771456211,1.1597976903647025
+beagle_bito_direct,likelihood_time,jc,-9.312003490812899,1.073597934366823
+beagle_bito_direct,likelihood_time,full,-9.038067405119941,1.228417060901843
+jax,likelihood_time,jc,-3.1645578528559186,1.0148231668220455
+jax,likelihood_time,full,-4.063466975395518,1.2740578536079523
+treeflow,phylo_gradients_time,jc,-5.861911121593516,1.3632877308498117
+treeflow,phylo_gradients_time,full,-4.187898031392473,1.269329323342259
+beagle_bito_direct,phylo_gradients_time,jc,-8.665269052379285,1.250683227107953
+beagle_bito_direct,phylo_gradients_time,full,-6.307112962371994,1.309498167089041
+jax,phylo_gradients_time,jc,-1.1864158870681565,1.1096413115149044
+jax,phylo_gradients_time,full,-1.173139413603913,1.1737206431673273
