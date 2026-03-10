@@ -1,22 +1,22 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><beast beautitemplate='Standard' beautistatus='' namespace="beast.pkgmgmt:beast.base.core:beast.base.inference:beast.base.evolution.alignment:beast.base.evolution.tree.coalescent:beast.base.util:beast.base.math:beast.evolution.nuc:beast.base.evolution.operator:beast.base.inference.operator:beast.base.evolution.sitemodel:beast.base.evolution.substitutionmodel:beast.base.evolution.likelihood:beast.base.evolution.branchratemodel" required="BEAST v2.7.0" version="2.7">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><beast beautitemplate='Standard' beautistatus='' namespace="beast.pkgmgmt:beast.base.core:beast.base.inference:beast.base.evolution.alignment:beast.base.evolution.tree.coalescent:beast.base.inference.util:beast.base.math:beast.evolution.nuc:beast.base.evolution.operator:beast.base.inference.operator:beast.base.evolution.sitemodel:beast.base.evolution.substitutionmodel:beast.base.evolution.likelihood:beast.base.evolution.branchratemodel" required="BEAST v2.7.0" version="2.7">
 
     <data id="alignment" name="alignment">
         {% for taxon_name, sequence in sequence_dict.items() %}<sequence id="Sequence{{ taxon_name }}" taxon="{{ taxon_name }}" totalcount="4" value="{{ sequence }}"/>
         {% endfor %}
         <userDataType id="Nucleotide" spec="beast.base.evolution.datatype.Nucleotide"/>
     </data>
-<map name="Exponential" >beast.base.math.distributions.Exponential</map>
-<map name="LogNormal" >beast.base.math.distributions.LogNormalDistributionModel</map>
-<map name="LogNormalWithPrecision" >beast.base.math.distributions.LogNormalWithPrecision</map>
-<map name="Normal" >beast.base.math.distributions.Normal</map>
-<map name="NormalGammaNormal" >beast.base.math.distributions.NormalGammaNormal</map>
-<map name="Beta" >beast.base.math.distributions.Beta</map>
-<map name="Gamma" >beast.base.math.distributions.Gamma</map>
-<map name="LaplaceDistribution" >beast.base.math.distributions.LaplaceDistribution</map>
-<map name="prior" >beast.base.math.distributions.Prior</map>
-<map name="InverseGamma" >beast.base.math.distributions.InverseGamma</map>
-<map name="OneOnX" >beast.base.math.distributions.OneOnX</map>
-<map name="Dirichlet" >beast.base.math.distributions.Dirichlet</map>
+<map name="Exponential" >beast.base.inference.distribution.Exponential</map>
+<map name="LogNormal" >beast.base.inference.distribution.LogNormalDistributionModel</map>
+<map name="LogNormalWithPrecision" >beast.math.distributions.LogNormalWithPrecision</map>
+<map name="Normal" >beast.base.inference.distribution.Normal</map>
+<map name="NormalGammaNormal" >beast.base.inference.distribution.NormalGammaNormal</map>
+<map name="Beta" >beast.base.inference.distribution.Beta</map>
+<map name="Gamma" >beast.base.inference.distribution.Gamma</map>
+<map name="LaplaceDistribution" >beast.base.inference.distribution.LaplaceDistribution</map>
+<map name="prior" >beast.base.inference.distribution.Prior</map>
+<map name="InverseGamma" >beast.base.inference.distribution.InverseGamma</map>
+<map name="OneOnX" >beast.base.inference.distribution.OneOnX</map>
+<map name="Dirichlet" >beast.base.inference.distribution.Dirichlet</map>
 
 
 <run id="mcmc" spec="MCMC" chainLength="{{ chain_length }}">
@@ -24,7 +24,7 @@
         <tree id="tree" name="stateNode">
             <taxonset id="TaxonSet.Treeflow" spec="TaxonSet" alignment="@alignment"/>
             {% if date_trait_string is not none %}
-            <trait id="date_trait" spec="beast.evolution.tree.TraitSet" traitname="date">
+            <trait id="date_trait" spec="beast.base.evolution.tree.TraitSet" traitname="date">
                     {{ date_trait_string }}
                 <taxa idref="TaxonSet.Treeflow"/>
             </trait>
@@ -38,14 +38,14 @@
     </state>
     <init spec="beast.base.evolution.tree.TreeParser" initial="@tree" taxa="@alignment" IsLabelledNewick="true" newick="{{ newick_string  }}"/>   
 
-    <distribution id="posterior" spec="util.CompoundDistribution">
-        <distribution id="prior" spec="util.CompoundDistribution">
+    <distribution id="posterior" spec="beast.base.inference.CompoundDistribution">
+        <distribution id="prior" spec="beast.base.inference.CompoundDistribution">
             {% for prior_tag in prior_tags %}{{ prior_tag }}
             {% endfor %}
             {{ tree_prior_tag }}
             {{ rate_prior_tag }}
         </distribution>
-        <distribution id="likelihood" spec="util.CompoundDistribution" useThreads="true">
+        <distribution id="likelihood" spec="beast.base.inference.CompoundDistribution" useThreads="true">
             <distribution id="tree_likelihood" spec="ThreadedTreeLikelihood" data="@alignment" tree="@tree">
                 {{ site_model_tag }}
                 {{ branch_rate_model_tag }}

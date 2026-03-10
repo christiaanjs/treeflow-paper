@@ -216,7 +216,7 @@ def get_tree_prior_tag(tree_model, params, init_values):
                 "pop_size", params["pop_size"], init_values["pop_size"]
             ),
         )  # TODO: Case of missing init value
-        intervals_tag = ET.Element("treeIntervals", spec="TreeIntervals", tree="@tree")
+        intervals_tag = ET.Element("treeIntervals", spec="beast.base.evolution.tree.TreeIntervals", tree="@tree")
         dist_tag = ET.Element("distribution", spec="Coalescent")
         dist_tag.insert(0, population_tag)
         dist_tag.insert(1, intervals_tag)
@@ -229,7 +229,7 @@ def get_tree_prior_tag(tree_model, params, init_values):
                 "birth_rate", params["birth_rate"], init_values["birth_rate"]
             ),
         )
-        intervals_tag = ET.Element("treeIntervals", spec="TreeIntervals", tree="@tree")
+        intervals_tag = ET.Element("treeIntervals", spec="beast.base.evolution.tree.TreeIntervals", tree="@tree")
     else:
         raise ValueError(f"Unknown tree model: {tree_model}")
     return x2s(dist_tag)
