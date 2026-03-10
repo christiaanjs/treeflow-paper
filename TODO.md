@@ -5,16 +5,8 @@
 Previous run had correct speed (13.7 min/M with BEAGLE CPU arm64) but laptop
 went to sleep after ~17M iterations, inflating the cumulative average to 26 min/M.
 
-Kill the current run first, then re-run with caffeinate:
-
 ```bash
-# Kill current BEAST process
-kill $(pgrep -f "beast.*h3n2")
-
-# Clean outputs
-rm -f out/h3n2/beast.log out/h3n2/beast.trees out/h3n2/beast-log.txt out/h3n2/beast-benchmark.txt
-
-# Run with caffeinate to prevent sleep (expects venv + ~/bin/beast on PATH)
+# Clean outputs and run with caffeinate to prevent sleep (expects venv + ~/bin/beast on PATH)
 cd ~/Git/treeflow-paper
 source .venv/bin/activate
 export PATH="$HOME/bin:$PATH"
