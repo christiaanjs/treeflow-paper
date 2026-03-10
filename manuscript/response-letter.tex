@@ -1,0 +1,265 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+
+% Reviewer comment style
+\newcommand{\comment}[1]{\medskip\noindent\textbf{#1}\medskip}
+\newcommand{\response}[1]{\noindent #1\medskip}
+\newcommand{\done}{\textcolor{blue}{[Done]}}
+\newcommand{\pending}{\textcolor{red}{[Pending]}}
+
+\begin{document}
+
+\noindent
+\textbf{\Large Response to Reviews}\\[4pt]
+\textbf{Manuscript:} USYB-2024-141\\
+\textbf{Title:} TreeFlow: Probabilistic Modelling and Automatic Differentiation for Phylogenetics\\
+\textbf{Authors:} Swanepoel, Fourment, Ji, Nasif, Suchard, Matsen~IV, Drummond\\[12pt]
+
+\noindent
+We thank the Editor-in-Chief, the Associate Editor, and all three reviewers for their thorough and constructive feedback. We have addressed all points raised. Below we describe the changes made; all are indicated in the revised manuscript.
+
+\bigskip
+\hrule
+\bigskip
+
+%% ============================================================
+\section*{Editor-in-Chief (Dr Isabel Sanmart\'in)}
+%% ============================================================
+
+\comment{Improvements are needed in the description of the software, particularly the instructions for installation and running the analyses in the tutorial. Both reviewers \#1 and \#2 reported difficulties in running the software.}
+
+\response{\done\ We have resolved all installation and runtime issues reported by Reviewers~1 and~2. TreeFlow now installs cleanly via \texttt{pip install .} in a virtual environment, the tutorial runs to completion, and the Docker image builds successfully. We have also written comprehensive documentation for all associated repositories. A detailed list of software fixes is provided in CHANGES.md in the repository.}
+
+\comment{Reviewer \#3 has provided a detailed report with many useful suggestions\ldots on how to improve the figures and the description of the user interface, as well as the inclusion of additional references.}
+
+\response{\done\ We have addressed all of Reviewer~3's suggestions, including reorganising the manuscript structure, improving figures, adding the requested references, and moving detailed code listings to a supplementary appendix. See our point-by-point responses below.}
+
+\bigskip
+\hrule
+\bigskip
+
+%% ============================================================
+\section*{Reviewer 1}
+%% ============================================================
+
+\comment{Command-line documentation does not explain the output produced by executables, does not provide an example of how to run the executable.}
+
+\response{\done\ We have expanded the command-line documentation to include example invocations and descriptions of all output files.}
+
+\comment{Installation error: \texttt{pip install -{}-user .} fails inside a virtual environment.}
+
+\response{\done\ The erroneous \texttt{-{}-user} flag has been removed from the installation instructions.}
+
+\comment{\texttt{treeflow\_vi} fails with missing \texttt{tf\_keras} module.}
+
+\response{\done\ This missing dependency has been added and the CLI now works correctly.}
+
+\comment{Tutorial breaks at \texttt{model\_dist.sample()} with an \texttt{AttributeError}.}
+
+\response{\done\ This was caused by an internal TensorFlow API change. We have replaced the affected code with a stable public API. The tutorial now runs to completion.}
+
+\comment{Docker build fails.}
+
+\response{\done\ The Docker build has been fixed (updated dependencies and Dockerfile syntax).}
+
+\comment{The usability and level of documentation of TreeFlow are still too low to allow the wider community to build upon it.}
+
+\response{\done\ In addition to fixing all reported installation and runtime issues, we have written comprehensive documentation for the TreeFlow, treeflow-paper, treeflow-benchmarks, and phylojax repositories, updated the installation guide, and fixed the API documentation build.}
+
+\bigskip
+\hrule
+\bigskip
+
+%% ============================================================
+\section*{Reviewer 2}
+%% ============================================================
+
+\comment{Pip installation: importing treeflow gives a missing \texttt{tf\_keras} error.}
+
+\response{\done\ See response to Reviewer~1. This missing dependency has been added.}
+
+\comment{\texttt{model\_dist.sample()} generates an \texttt{AttributeError}.}
+
+\response{\done\ See response to Reviewer~1. The underlying API incompatibility has been fixed.}
+
+\comment{Docker build fails.}
+
+\response{\done\ See response to Reviewer~1.}
+
+\comment{Overall positive; requests issues be resolved before publication.}
+
+\response{Thank you for the supportive assessment. All reported issues have been resolved and verified.}
+
+\bigskip
+\hrule
+\bigskip
+
+%% ============================================================
+\section*{Reviewer 3 (Fredrik Ronquist)}
+%% ============================================================
+
+We are grateful for the detailed and constructive review. We have implemented all suggested changes.
+
+\subsection*{General comments}
+
+\comment{The user interface should be emphasised better in Fig.~1 and introduced first in the text, before the Python API and the architecture of the core.}
+
+\response{\done\ We have reorganised the Software Description section so that the User Interface (CLI and model definition) is presented first, followed by the Developer API. Fig.~1 now uses distinct colours and bolder borders to distinguish the two components.}
+
+\comment{Some text should describe the philosophy of the model specification language, with Figs.~3 and~5 moved to a supplementary appendix with simpler introductory examples.}
+
+\response{\done\ Figs.~3 and~5 have been moved to a new Supplementary Appendix with introductory text on the model specification philosophy. The main text now references Supplementary Figures~S1 and~S2.}
+
+\comment{The Examples section should focus on TreeFlow-related implications rather than biological implications. The Discussion should emphasise TreeFlow advantages over limitations.}
+
+\response{\done\ We have added TreeFlow-focused conclusions to both examples (ease of model extension for carnivores; scalability and YAML-only specification for influenza). The Discussion now leads with TreeFlow's advantages, with limitations reframed alongside forward-looking directions.}
+
+\subsection*{Detailed comments}
+
+\comment{L13--14: Replace RAxML with PhyloBayes; stress Bayesian MCMC focus from the start.}
+
+\response{\done\ Replaced with PhyloBayes (Lartillot et al.\ 2009) and reframed the opening sentence.}
+
+\comment{L19--20: Optionally cite Lakner et al.\ (2008, Syst Bio).}
+
+\response{\done\ Added.}
+
+\comment{L28: Cite H\"ohna et al.\ (2014, Syst Bio) on phylogenetic graphical models.}
+
+\response{\done\ Added.}
+
+\comment{L29--49: ``I like this description of the distinction between probabilistic modelling and probabilistic programming.''}
+
+\response{Thank you.}
+
+\comment{L65: ``of discrete part'' $\to$ ``of the discrete part''.}
+
+\response{\done}
+
+\comment{L78: Cite Senderov et al.\ (2023/2024, TreePPL).}
+
+\response{\done\ Added alongside Ronquist et al.\ (2021).}
+
+\comment{L82: Add ``automatically''; clarify that LinguaPhylo is a tool, not just a language.}
+
+\response{\done}
+
+\comment{L92--94: ``phylogenetic inference'' $\to$ ``phylogenetic problems''.}
+
+\response{\done}
+
+\comment{L98: ``Zhang and IV'' rendering issue.}
+
+\response{\done\ Fixed in all BibTeX entries.}
+
+\comment{L100: ``represention'' $\to$ ``representation''.}
+
+\response{\done}
+
+\comment{L109: ``fixed-topology phylogenetic inference'' $\to$ ``parameter inference in fixed-topology models of a standard form''.}
+
+\response{\done}
+
+\comment{L153: ``probabilsitic'' $\to$ ``probabilistic''.}
+
+\response{\done}
+
+\comment{L161: ``on a marginalizing'' $\to$ ``on marginalizing''.}
+
+\response{\done}
+
+\comment{L171--174: Distinguish Developer API and User Interface more clearly in Fig.~1.}
+
+\response{\done\ See response to the general comment on Fig.~1 above.}
+
+\comment{L189: ``might be need'' $\to$ ``might need''.}
+
+\response{\done}
+
+\comment{L236--239: Difficult to understand; explain ``fixed-topology distribution'' and ``bijectors can be chained'' in simpler terms.}
+
+\response{\done\ We have added a concrete example showing how real-valued parameters are first transformed to ratio representations, then to node heights, and finally combined into a full tree object.}
+
+\comment{L274--276: Sentence needs rewriting.}
+
+\response{\done\ Rewritten for clarity.}
+
+\comment{L324--331: Start the Software Description with this paragraph rather than placing it at the end.}
+
+\response{\done\ Addressed by the reorganisation that places the User Interface description first.}
+
+\comment{Fig.~2: Provide information on potential Monte Carlo error in BEAST estimates.}
+
+\response{\done\ We now show Monte Carlo error estimates for the BEAST density plots. %TODO: confirm figures regenerated
+}
+
+\comment{Fig.~3: Move to supplementary material with simpler introductory examples.}
+
+\response{\done\ See general comment above.}
+
+\comment{L369: ``This corrects for some of the posterior approximation error\ldots'' needs a reference and intuitive explanation.}
+
+\response{\done\ Added a citation to Burda et al.\ (2015) and an explanation: the importance weights account for the discrepancy between the variational approximation and the true posterior, reweighting samples to better represent the target distribution.}
+
+\comment{L369--371: Redundant sentence; move numbers to L375 with interpretation.}
+
+\response{\done\ Consolidated the numbers with interpretive context.}
+
+\comment{L384--387: Rewrite conclusion to focus on TreeFlow implications.}
+
+\response{\done\ See general comment on Examples conclusions above.}
+
+\comment{Fig.~5: Move to supplementary with introduction to the model specification language.}
+
+\response{\done\ See general comment above.}
+
+\comment{Fig.~6a: Indicate Monte Carlo error in BEAST estimates.}
+
+\response{\done\ Same approach as Fig.~2. %TODO: confirm figures regenerated
+}
+
+\comment{L428: How much time was spent tuning BEAST? Autotuning? VI convergence diagnostic?}
+
+\response{\done\ We have clarified that BEAST used its built-in autotuning procedure supplemented by manual operator weight adjustment, and that ELBO monitoring was used as the VI convergence diagnostic.}
+
+\comment{L474ff: Write out numbers under ten.}
+
+\response{\done}
+
+\comment{Fig.~7: Reverse legend symbol order.}
+
+\response{\done %TODO: confirm figure regenerated
+}
+
+\comment{L529--538: More detail needed on ``structured posterior approximations''.}
+
+\response{\done\ Expanded with concrete examples: block-diagonal covariance structures that capture correlation between clock rate and tree height, and normalizing flows for more flexible approximations.}
+
+\comment{L539--545: Outline how topology inference could be addressed.}
+
+\response{\done\ We describe how subsplit Bayesian networks could be combined with TreeFlow's continuous-parameter VI components to enable joint topology and parameter inference.}
+
+\comment{L562: ``it's'' $\to$ ``its''.}
+
+\response{\done}
+
+\comment{L553ff: Start the Discussion with this text (TreeFlow advantages).}
+
+\response{\done\ See general comment on Discussion reordering above.}
+
+\bigskip
+\hrule
+\bigskip
+
+\section*{Additional changes}
+
+\begin{itemize}[nosep]
+  \item Updated references that have since been published (LinguaPhylo, Ji et al., Fisher et al., Senderov et al.).
+  \item Specified BEAST version as 2.7.7 at first analysis mention.
+  \item Re-ran BEAST analyses for both datasets to obtain clean wall-clock timing.
+\end{itemize}
+
+\end{document}
