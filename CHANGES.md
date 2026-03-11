@@ -42,8 +42,9 @@ Tracking all changes made for the response to the editor and reviewers.
 ## Figure modifications (R3)
 
 - [x] Fig 1 (architecture.tex): added distinct fill colors (light blue for User Interface, beige for Developer API), thick borders, bold labels
-- [ ] Figs 2 & 6a: add Monte Carlo error estimates for BEAST — R scripts updated (`improved-marginals-plot.R` with bootstrap density bands, `carnivores-kappa-plot.R` with batch means SE); awaiting pipeline data to regenerate figures
-- [ ] Fig 7: reverse legend symbol order — R script updated (`improved-benchmark-plot.R` with `guide_legend(reverse = TRUE)`); awaiting benchmark pipeline to regenerate figure
+- [x] Fig 2 (marginals): regenerated with bootstrap density bands for BEAST MC error; fixed snakemake R input accessor (`[` → `[[`) in `improved-marginals-plot.R`
+- [ ] Fig 6a (kappa): add batch-means MC SE error bars — R script updated (`carnivores-kappa-plot.R`); awaiting `carnivores.ipynb` notebook execution to produce `carnivores-alt-trees.nexus`
+- [x] Fig 7 (benchmark): regenerated with reversed legend symbol order
 
 ## Clarifications & expansions (R3)
 
@@ -66,6 +67,8 @@ Tracking all changes made for the response to the editor and reviewers.
 - Updated `supplementary-data/*/beast-2.7.xml` version attributes from `required="BEAST v2.5.2"` to `required="BEAST v2.7.0"`
 - Fixed `data.smk`: filtered starting values to only include free parameters in `variational_fit` and `ml_fit` rules (prevents `Unknown parameters in initial values: {'clock_rate'}` for strict clock models)
 - Fixed `setup.py`: removed `importlib` dependency (Python 2 backport, not needed)
+- Fixed `results.py`: arviz 1.0 compatibility — `compute_beast_ess` now passes `(chain, draw)` shaped arrays via `np.expand_dims`
+- Fixed `treeflow.j2.tex`: added `backgrounds` tikz library and `apibg`/`uibg` color definitions so `\includestandalone{architecture}` works in main document
 
 ## Documentation
 

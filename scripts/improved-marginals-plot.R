@@ -43,10 +43,10 @@ bootstrapDensityBands <- function(x, n_boot = 200, n_grid = 512, ci = 0.95) {
     )
 }
 
-viTrace <- readViTrace(snakemake@input["vi_samples"])
+viTrace <- readViTrace(snakemake@input[["vi_samples"]])
 
 dfs <- list(
-    `Beast 2` = readBeastTrace(snakemake@input["beast_samples"], colnames(viTrace)),
+    `Beast 2` = readBeastTrace(snakemake@input[["beast_samples"]], colnames(viTrace)),
     `Treeflow VI` = viTrace
 )
 

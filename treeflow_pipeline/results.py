@@ -413,7 +413,7 @@ def get_runtime_from_benchmark_file(benchmark_file):
 
 def compute_beast_ess(beast_trace, burn_in=0.1):
     burned_in = beast_trace.iloc[int(beast_trace.shape[0] * burn_in) :]
-    ess_array = arviz.ess(burned_in.drop(columns="Sample").to_dict(orient="series"))
+    ess_array = arviz.ess({k: np.expand_dims(v.values, 0) for k, v in burned_in.drop(columns="Sample").to_dict(orient="series").items()})
     return {key: array.values.item() for key, array in dict(ess_array).items()}
 
 
