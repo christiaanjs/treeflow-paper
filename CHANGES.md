@@ -43,7 +43,7 @@ Tracking all changes made for the response to the editor and reviewers.
 
 - [x] Fig 1 (architecture.tex): added distinct fill colors (light blue for User Interface, beige for Developer API), thick borders, bold labels
 - [x] Fig 2 (marginals): regenerated with bootstrap density bands for BEAST MC error; fixed snakemake R input accessor (`[` → `[[`) in `improved-marginals-plot.R`
-- [ ] Fig 6a (kappa): add batch-means MC SE error bars — R script updated (`carnivores-kappa-plot.R`); awaiting `carnivores.ipynb` notebook execution to produce `carnivores-alt-trees.nexus`
+- [x] Fig 6a (kappa): regenerated with log y-axis from fresh VI fit (`carnivores.ipynb` re-run with Keras 3 optimizer fix). MC SE error bars omitted — this figure shows VI (not MCMC) estimates, so MC error is negligible with 1000 independent samples.
 - [x] Fig 7 (benchmark): regenerated with reversed legend symbol order
 
 ## Clarifications & expansions (R3)

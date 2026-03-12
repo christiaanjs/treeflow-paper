@@ -27,7 +27,7 @@ getHeightDf <- function(trees) {
     bind_rows(lapply(trees, addHeights), .id = "index")
 }
 
-heightsDf <- bind_rows(Base = getHeightDf(baseTrees), `Kappa variation` = getHeightDf(altTrees), .id = "model")
+heightsDf <- tibble::as_tibble(bind_rows(Base = getHeightDf(baseTrees), `Kappa variation` = getHeightDf(altTrees), .id = "model"))
 
 loP <- 0.025
 upP <- 0.975

@@ -24,7 +24,7 @@ getHeightDf <- function(trees) {
     bind_rows(lapply(trees, addHeights), .id = "index")
 }
 
-heightsDf <- bind_rows(`BEAST 2` = getHeightDf(beastTrees), `TreeFlow VI` = getHeightDf(variationalTrees), .id = "method")
+heightsDf <- tibble::as_tibble(bind_rows(`BEAST 2` = getHeightDf(beastTrees), `TreeFlow VI` = getHeightDf(variationalTrees), .id = "method"))
 
 
 

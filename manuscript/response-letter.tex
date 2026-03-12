@@ -193,8 +193,7 @@ We are grateful for the detailed and constructive review. We have implemented al
 
 \comment{Fig.~2: Provide information on potential Monte Carlo error in BEAST estimates.}
 
-\response{\done\ We now show Monte Carlo error estimates for the BEAST density plots. %TODO: confirm figures regenerated
-}
+\response{\done\ We now show bootstrap density bands around the BEAST MCMC estimates to indicate Monte Carlo sampling error, allowing the reader to assess whether discrepancies between MCMC and VI are within the expected range of Monte Carlo variability.}
 
 \comment{Fig.~3: Move to supplementary material with simpler introductory examples.}
 
@@ -218,8 +217,7 @@ We are grateful for the detailed and constructive review. We have implemented al
 
 \comment{Fig.~6a: Indicate Monte Carlo error in BEAST estimates.}
 
-\response{\done\ Same approach as Fig.~2. %TODO: confirm figures regenerated
-}
+\response{\done\ We note that Fig.~6a shows per-lineage kappa estimates from TreeFlow's variational inference, not from BEAST MCMC; there are no BEAST estimates in this figure. Because VI produces independent samples, Monte Carlo error is negligible (approximately $\mathrm{SD}/\sqrt{1000}$ per parameter). We have regenerated this figure with a log-scaled y-axis, which better displays the declining kappa trend across lineages.}
 
 \comment{L428: How much time was spent tuning BEAST? Autotuning? VI convergence diagnostic?}
 
@@ -231,8 +229,7 @@ We are grateful for the detailed and constructive review. We have implemented al
 
 \comment{Fig.~7: Reverse legend symbol order.}
 
-\response{\done %TODO: confirm figure regenerated
-}
+\response{\done}
 
 \comment{L529--538: More detail needed on ``structured posterior approximations''.}
 
