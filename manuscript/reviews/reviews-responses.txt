@@ -1,0 +1,166 @@
+We thank the Editor-in-Chief, the Associate Editor, and all three reviewers for their thorough and constructive feedback. We have addressed all points raised.
+
+Reviewer(s)' comments to author (if any):
+Reviewer: 1
+
+Comments to the Author
+While the authors have taken good note of the reviewers previous recommendations by adding more documentation and installation instructions I'm afraid there is still some work to be done in order to provide a reasonably usable software package.
+
+Command-line documentation does not explain the output produced by executables, does not provide an example of how to run the executable.
+- We have provided a link to the repository's example of how to run the `treeflow_vi` executable.
+
+More importantly I met several issues trying to install and use
+treeflow. I could fix some but got stalled on the last one, which
+prevented me from evaluating treeflow.
+
+First using the installation instructions verbatim, I obtained the
+following error: ...
+Now when I try the
+[tutorial](https://treeflow.readthedocs.io/en/latest/rates-and-dates.html),
+I get this error: ...
+
+On a final note, while it would be convenient to have a Docker
+**image** to get treeflow working rapidly, providing a Docker
+**recipe** (aka Dockerfile) is of limited interest because those are
+not meant to be reproducible in time (contrary to say, Guix or Nix
+derivations). As a matter of fact, it's already not working, here's
+the log I obtained trying to build the Docker image: ...
+
+I hope I've not made some silly mistake, but in any case I feel like
+the usability and level of documentation of treeflow are still too low
+to allow the wider community to build upon it. It should at the very
+least be trivial to reproduce the tutorial contents.
+- We have fixed the issues that were a result of dependency version issue and incorrect installation instructions.
+- We have also provided a remote Docker image, and updated the documentation to use that instead of a locally built image.
+
+Reviewer: 2
+
+Comments to the Author
+In my opinion the authors did an excellent job addressing all the issues and comments raised by the reviewers. It is great to see detailed descriptions of the TreeFlow functions and comments throughout the tutorial. Nevertheless, I ran into a couple of issues installing and running the software, that I was not able to fix myself:
+
+1) Pip installation:
+pip command runs without any issues, however the attempt ot import the treeflow gives this error ...
+2) Docker installation:
+Unfortunately, I was not able to build TreeFlow via Docker nor troubleshoot it. It produces this error: ...
+- Please see the responses to Reviewer 1 related to issues with the dependencies and Docker image
+
+Overall, I think TreeFlow will be a fine contribution to the community and thus I will recommend publication of TreeFlow in Systematic Biology after all these minor issues are resolved.
+- Thank you for the supportive assessment. All reported issues have been resolved and verified.
+
+Reviewer: 3
+
+Comments to the Author
+
+- We are grateful for the detailed and constructive review. We have implemented all suggested
+changes.
+
+The user interface should be emphasised better in Fig. 1 and introduced first in the
+text, before the Python API and the architecture of the core.
+- We have reorganised the Software Description section so that the User Interface (CLI and
+model definition) is presented first, followed by the Developer API. Fig. 1 now uses distinct colours
+and bolder borders to distinguish the two components.
+
+Some text should describe the philosophy of the model specification language, with
+Figs. 3 and 5 moved to a supplementary appendix with simpler introductory examples.
+- Figs. 3 and 5 have been moved to a new Supplementary Appendix with introductory text
+on the model specification philosophy. The main text now references Supplementary Figures S1
+and S2.
+
+The Examples section should focus on TreeFlow-related implications rather than bi-
+ological implications. The Discussion should emphasise TreeFlow advantages over
+limitations.
+- We have added TreeFlow-focused conclusions to both examples (ease of model extension for
+carnivores; scalability and YAML-only specification for influenza). The Discussion now leads with
+TreeFlow’s advantages, with limitations reframed alongside forward-looking directions.
+
+Detailed comments
+L13–14: Replace RAxML with PhyloBayes; stress Bayesian MCMC focus from the
+start.
+- Replaced with PhyloBayes (Lartillot et al. 2009) and reframed the opening sentence.
+L19–20: Optionally cite Lakner et al. (2008, Syst Bio).
+- Added.
+L28: Cite Hohna et al. (2014, Syst Bio) on phylogenetic graphical models.
+- Added.
+L29–49: “I like this description of the distinction between probabilistic modelling and
+probabilistic programming.”
+- Thank you.
+L65: “of discrete part” → “of the discrete part”.
+- Fixed.
+L78: Cite Senderov et al. (2023/2024, TreePPL).
+- Added alongside Ronquist et al. (2021).
+L82: Add “automatically”; clarify that LinguaPhylo is a tool, not just a language.
+- Added.
+L92–94: “phylogenetic inference” → “phylogenetic problems”.
+- Changed.
+L98: “Zhang and IV” rendering issue.
+- Fixed in all BibTeX entries.
+L100: “represention” → “representation”.
+- Fixed.
+L109: “fixed-topology phylogenetic inference” → “parameter inference in fixed-topology
+models of a standard form”.
+- Changed.
+L153: “probabilsitic” → “probabilistic”.
+- Fixed
+L161: “on a marginalizing” → “on marginalizing”.
+- Fixed
+L171–174: Distinguish Developer API and User Interface more clearly in Fig. 1.
+- See response to the general comment on Fig. 1 above.
+L189: “might be need” → “might need”.
+- Fixed
+L236–239: Difficult to understand; explain “fixed-topology distribution” and “bijec-
+tors can be chained” in simpler terms.
+- We have added a concrete example showing how real-valued parameters are first transformed
+to ratio representations, then to node heights, and finally combined into a full tree object.
+L274–276: Sentence needs rewriting.
+- Rewritten for clarity.
+L324–331: Start the Software Description with this paragraph rather than placing it
+at the end.
+- Addressed by the reorganisation that places the User Interface description first.
+Fig. 2: Provide information on potential Monte Carlo error in BEAST estimates.
+- We now show bootstrap density bands around the BEAST MCMC estimates to indicate
+Monte Carlo sampling error, allowing the reader to assess whether discrepancies between MCMC
+and VI are within the expected range of Monte Carlo variability.
+Fig. 3: Move to supplementary material with simpler introductory examples.
+- See general comment above.
+L369: “This corrects for some of the posterior approximation error. . . ” needs a
+reference and intuitive explanation.
+- Added a citation to Burda et al. (2015) and an explanation: the importance weights account
+for the discrepancy between the variational approximation and the true posterior, reweighting
+samples to better represent the target distribution.
+L369–371: Redundant sentence; move numbers to L375 with interpretation.
+- Consolidated the numbers with interpretive context.
+L384–387: Rewrite conclusion to focus on TreeFlow implications.
+- See general comment on Examples conclusions above.
+Fig. 5: Move to supplementary with introduction to the model specification language.
+- See general comment above.
+Fig. 6a: Indicate Monte Carlo error in BEAST estimates.
+- We note that Fig. 6a shows per-lineage kappa estimates from TreeFlow’s variational infer-
+ence, not from BEAST MCMC; there are no BEAST estimates in this figure. Because VI produces
+independent samples, Monte Carlo error is negligible (approximately SD/√1000 per parameter).
+We have regenerated this figure with a log-scaled y-axis, which better displays the declining kappa
+trend across lineages.
+L428: How much time was spent tuning BEAST? Autotuning? VI convergence diag-
+nostic?
+- We have clarified that BEAST used its built-in autotuning procedure supplemented by
+manual operator weight adjustment, and that ELBO monitoring was used as the VI convergence
+diagnostic.
+L474ff: Write out numbers under ten.
+- Fixed.
+Fig. 7: Reverse legend symbol order.
+- Done.
+L529–538: More detail needed on “structured posterior approximations”.
+- Expanded with concrete examples: block-diagonal covariance structures that capture corre-
+lation between clock rate and tree height, and normalizing flows for more flexible approximations.
+L539–545: Outline how topology inference could be addressed.
+- We describe how subsplit Bayesian networks could be combined with TreeFlow’s continuous-
+parameter VI components to enable joint topology and parameter inference.
+L562: “it’s” → “its”.
+- Fixed.
+L553ff: Start the Discussion with this text (TreeFlow advantages).
+- See general comment on Discussion reordering above.
+
+Additional changes
+- Updated references that have since been published (LinguaPhylo, Ji et al., Fisher et al.,
+Senderov et al.).
+- Specified BEAST version as 2.7.7 at first analysis mention.
+- Re-ran BEAST analyses for both datasets to obtain clean wall-clock timing.

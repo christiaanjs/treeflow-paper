@@ -17,6 +17,7 @@ setuptools.setup(
         "biopython",
         "matplotlib",
         "humanfriendly",
+        "arviz"
     ],
     entry_points="""
         [console_scripts]

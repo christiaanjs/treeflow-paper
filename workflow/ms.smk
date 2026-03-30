@@ -33,6 +33,8 @@ rule ms:
     input:
         #manuscript_dir / "out" / "submission.zip",
         manuscript_dir / "out" / "treeflow.pdf",
+        manuscript_dir / "out" / "supplementary.pdf",
+        manuscript_dir / "out" / "response-letter.pdf"
         #supplementary_data_dir / config["flu_dataset"] / "beast.xml",
         #supplementary_data_dir / "carnivores" / "beast.xml",
 
@@ -359,7 +361,34 @@ rule compile_ms:
         pdflatex --shell-escape -output-directory={params.output_dir} {input.main}
         """
 
-# export BSTINPUTS=.:{params.bst_dir}:
+rule compile_supplementary:
+    input:
+        tex = manuscript_dir / "tex" / "supplementary.tex"
+    output:
+        manuscript_dir / "out" / "supplementary.pdf"
+    params:
+        output_dir = lambda _, output: pathlib.Path(output[0]).parents[0],
+        tex_inputs = manuscript_dir / "tex"
+    shell:
+        """
+        export TEXINPUTS=.:{params.tex_inputs}:
+        pdflatex --shell-escape -output-directory={params.output_dir} {input.tex}
+        pdflatex --shell-escape -output-directory={params.output_dir} {input.tex}
+        """
+
+rule compile_response_letter:
+    input:
+        tex = manuscript_dir / "response-letter.tex"
+    output:
+        manuscript_dir / "out" / "response-letter.pdf"
+    params:
+        output_dir = lambda _, output: pathlib.Path(output[0]).parents[0],
+        tex_inputs = manuscript_dir / "tex"
+    shell:
+        """
+        export TEXINPUTS=.:{params.tex_inputs}:
+        pdflatex --shell-escape -output-directory={params.output_dir} {input.tex}
+        """
 
 rule supplementary_data:
     input:

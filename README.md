@@ -33,7 +33,25 @@ workflow/            Snakemake workflow files (data.smk, ms.smk, sim.smk)
 
 ### R
 
-- R >= 4.0 with packages: `ggplot2`, `dplyr`, `tidyr`, `readr`, `purrr`, `stringr`, `treeio`, `ape`, `reticulate`, `gridExtra`, `glue`, `tibble`
+- R >= 4.0
+- Install required CRAN and Bioconductor packages:
+
+```r
+install.packages(c(
+  "ggplot2", "dplyr", "tidyr", "readr", "purrr", "stringr",
+  "ape", "reticulate", "gridExtra", "glue", "tibble",
+  "broom", "magrittr"
+))
+if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
+BiocManager::install("treeio")
+```
+
+- Install the local `treeflowbenchmarksr` package (from this workspace):
+
+```r
+if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes")
+remotes::install_local("../treeflow-benchmarks/treeflowbenchmarksr")
+```
 
 ### Benchmarks (optional)
 
@@ -42,6 +60,14 @@ To reproduce the benchmark comparison (Fig 7), you also need:
 - [`phylojax`](https://github.com/christiaanjs/phylojax)
 - [`bito`](https://github.com/phylovi/bito) (must be built from source; see its README for build instructions)
 - The R package `treeflowbenchmarksr` (included in the treeflow-benchmarks repo)
+
+### LaTeX
+
+Install with `tlmgr install <PACKAGE>`
+* `minted`
+* `multirow`
+* `lastpage`
+* `standalone`
 
 ## Installation
 
