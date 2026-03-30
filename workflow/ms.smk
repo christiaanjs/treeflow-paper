@@ -465,6 +465,30 @@ rule copy_submission_figures:
 rule ms_figures:
     input: list(rules.copy_submission_figures.output)
 
+rule extract_benchmark_table:
+    input: manuscript_dir / "out" / "treeflow.tex"
+    output: manuscript_dir / "out" / "table-1.tex"
+    run:
+        import re as _re
+        with open(str(input[0])) as fh:
+            content = fh.read()
+        m = _re.search(r'(\\begin\{table\}.*?\\end\{table\})', content, _re.DOTALL)
+        if not m:
+            raise ValueError("No table environment found in treeflow.tex")
+        table_body = m.group(1)
+        wrapper = (
+            "\\documentclass{article}\n"
+            "\\usepackage{booktabs}\n"
+            "\\usepackage{multirow}\n"
+            "\\begin{document}\n"
+            + table_body + "\n"
+            "\\end{document}\n"
+        )
+        text_output(wrapper, output[0])
+
+rule ms_tables:
+    input: manuscript_dir / "out" / "table-1.pdf"
+
 rule compile_ms:
     input:
         main = manuscript_dir / "out" / "{manuscript}.tex",
