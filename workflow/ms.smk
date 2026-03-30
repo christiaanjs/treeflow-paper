@@ -365,13 +365,11 @@ submission_figures_dir = manuscript_dir / "out" / "figures"
 # Ordered mapping of submission figure names to source files.
 # Subfigures within the same figure environment use letter suffixes (e.g. 3a, 3b).
 submission_figures = {
-    "figure-1":  manuscript_dir / "out" / "architecture.pdf",
-    "figure-2":  manuscript_dir / "figures" / "carnivores-marginals.png",
-    "figure-3a": manuscript_dir / "figures" / "carnivores-kappa.png",
-    "figure-3b": manuscript_dir / "figures" / "carnivores-model-trees.png",
-    "figure-4a": manuscript_dir / "figures" / "h3n2-marginals.png",
-    "figure-4b": manuscript_dir / "figures" / "h3n2-trees.png",
-    "figure-5":  manuscript_dir / "figures" / "benchmark-log-scale-plot.png",
+    "figure-1": manuscript_dir / "out" / "architecture.pdf",
+    "figure-2": manuscript_dir / "figures" / "carnivores-marginals.png",
+    "figure-3": manuscript_dir / "out" / "figure-3.pdf",
+    "figure-4": manuscript_dir / "out" / "figure-4.pdf",
+    "figure-5": manuscript_dir / "figures" / "benchmark-log-scale-plot.png",
 }
 
 rule compile_architecture_figure:
@@ -385,6 +383,32 @@ rule compile_architecture_figure:
         export TEXINPUTS=.:{params.tex_inputs}:
         pdflatex -output-directory={params.output_dir} {input}
         """
+
+rule extract_compound_figure_3:
+    input: manuscript_dir / "out" / "treeflow.tex"
+    output: manuscript_dir / "out" / "figure-3.tex"
+    run:
+        text_output(treeflow_pipeline.diff.extract_compound_figure_tex(input[0], 0), output[0])
+
+rule extract_compound_figure_4:
+    input: manuscript_dir / "out" / "treeflow.tex"
+    output: manuscript_dir / "out" / "figure-4.tex"
+    run:
+        text_output(treeflow_pipeline.diff.extract_compound_figure_tex(input[0], 1), output[0])
+
+rule compile_compound_figure:
+    input: manuscript_dir / "out" / "figure-{n}.tex"
+    output: manuscript_dir / "out" / "figure-{n}.pdf"
+    params:
+        output_dir = str(manuscript_dir / "out"),
+        tex_inputs = manuscript_dir / "tex"
+    shell:
+        """
+        export TEXINPUTS=.:{params.tex_inputs}:
+        pdflatex -output-directory={params.output_dir} {input}
+        """
+
+ruleorder: compile_compound_figure > compile_ms
 
 rule copy_submission_figures:
     input:

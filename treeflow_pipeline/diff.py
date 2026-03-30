@@ -128,3 +128,56 @@ def extract_table_tex(treeflow_tex):
         + table_body + "\n"
         "\\end{document}\n"
     )
+
+
+def extract_compound_figure_tex(treeflow_tex, figure_index):
+    """Extract a compound figure (containing subfigures) as a standalone document.
+
+    Includes the subfigure images and their subcaptions but omits the main
+    figure-level caption, as required for separate figure file submission.
+
+    Parameters
+    ----------
+    treeflow_tex : str
+        Path to the compiled treeflow.tex manuscript file.
+    figure_index : int
+        Zero-based index among figures that contain subfigures.
+
+    Returns
+    -------
+    str
+        Complete standalone LaTeX document wrapping the extracted figure.
+    """
+    with open(str(treeflow_tex)) as fh:
+        content = fh.read()
+
+    figure_envs = re.findall(
+        r"\\begin\{figure\}.*?\\end\{figure\}", content, re.DOTALL
+    )
+    compound = [f for f in figure_envs if r"\begin{subfigure}" in f]
+    if figure_index >= len(compound):
+        raise ValueError(
+            f"figure_index {figure_index} out of range "
+            f"({len(compound)} compound figures found)"
+        )
+    body = compound[figure_index]
+
+    # Remove the main \caption{...} that follows the last \end{subfigure}.
+    # Handles one level of nested braces (sufficient for plain-text captions).
+    last_sub_end = body.rfind(r"\end{subfigure}") + len(r"\end{subfigure}")
+    tail = re.sub(
+        r"\\caption\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}",
+        "",
+        body[last_sub_end:],
+    )
+    body = body[:last_sub_end] + tail
+
+    return (
+        "\\documentclass{article}\n"
+        "\\usepackage{graphicx}\n"
+        "\\usepackage{subcaption}\n"
+        "\\begin{document}\n"
+        + body + "\n"
+        "\\end{document}\n"
+    )
+
