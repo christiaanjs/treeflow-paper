@@ -4,6 +4,7 @@ import pandas as pd
 import treeflow_pipeline.model
 from treeflow_pipeline.util import yaml_input, text_input, text_output
 import treeflow_pipeline.manuscript
+from ms_helpers import run_latexdiff, extract_table_tex
 
 import treeflow
 import treeflow_benchmarks
@@ -58,73 +59,7 @@ rule latexdiff_treeflow:
     output:
         manuscript_dir / "out" / "treeflow-diff.tex"
     run:
-        import re as _re, subprocess as _sp
-        _result = _sp.run(
-            [
-                "latexdiff",
-                "--append-safecmd=bibliographystyle,setcitestyle,usetikzlibrary,definecolor",
-                "--append-context2cmd=maketitle",
-                "--add-to-config", "VERBATIMENV=minted",
-                input.old,
-                str(input.new),
-            ],
-            capture_output=True, text=True, check=True,
-        )
-        raw = _result.stdout
-
-        # Comment out verbatim code content inside deleted blocks (minted in deleted figures)
-        def _fix_deleted_verbatim(content):
-            lines = content.split("\n")
-            out, in_del, in_verb = [], False, False
-            for line in lines:
-                s = line.rstrip()
-                if r"\DIFdelbegin" in s and not s.startswith("%"):
-                    in_del = True
-                if r"\DIFdelend" in s and not s.startswith("%"):
-                    in_del = False; in_verb = False
-                if in_del and _re.match(r"%DIFDELCMD\s*<\s*\\begin\{minted", s):
-                    in_verb = True
-                if in_del and _re.match(r"%DIFDELCMD\s*<\s*\\end\{minted", s):
-                    in_verb = False
-                if in_del and in_verb and not s.startswith("%") and s:
-                    out.append("%DIFDELCMD < " + line)
-                else:
-                    out.append(line)
-            return "\n".join(out)
-
-        raw = _fix_deleted_verbatim(raw)
-
-        # Remove entirely-deleted figure environments (brace-balance issues in captions)
-        raw = _re.sub(
-            r"\\DIFdelbegin %DIFDELCMD < \\begin\{figure\}.*?\\DIFdelend\s*\n",
-            "",
-            raw,
-            flags=_re.DOTALL,
-        )
-
-        # Remove "DELETED TITLE COMMANDS FOR MARKUP" block from preamble
-        # (conflicts with sysbio_sse class \author using \@dblarg)
-        raw = _re.sub(
-            r"%DIF DELETED TITLE COMMANDS FOR MARKUP\n.*?(?=%DIF PREAMBLE EXTENSION)",
-            "",
-            raw,
-            flags=_re.DOTALL,
-        )
-
-        # Replace the body title/header with clean new version
-        # (structural differences between old article class and new sysbio_sse class
-        #  cause \DIFadd{} wrappers to break \author{} and \maketitle in the journal class)
-        with open(str(input.new), "r") as fh:
-            new_tex = fh.read()
-        new_header_m = _re.search(
-            r"(\\begin\{document\}.*?(?=\\section\{Introduction\}))",
-            new_tex, _re.DOTALL,
-        )
-        diff_body_m = _re.search(r"(\\section\{Introduction\}.*)", raw, _re.DOTALL)
-        preamble_m = _re.search(r"(.*?)(?=\\begin\{document\})", raw, _re.DOTALL)
-        result_tex = preamble_m.group(1) + new_header_m.group(1) + diff_body_m.group(1)
-
-        text_output(result_tex, output[0])
+        text_output(run_latexdiff(input.old, input.new), output[0])
 
 APPROXES = ["mean_field", "scaled"] # TODO: Where to store these in common?
 methods = ["beast"] + expand("variational-samples-{approx}", approx=APPROXES)
@@ -469,22 +404,7 @@ rule extract_benchmark_table:
     input: manuscript_dir / "out" / "treeflow.tex"
     output: manuscript_dir / "out" / "table-1.tex"
     run:
-        import re as _re
-        with open(str(input[0])) as fh:
-            content = fh.read()
-        m = _re.search(r'(\\begin\{table\}.*?\\end\{table\})', content, _re.DOTALL)
-        if not m:
-            raise ValueError("No table environment found in treeflow.tex")
-        table_body = m.group(1)
-        wrapper = (
-            "\\documentclass{article}\n"
-            "\\usepackage{booktabs}\n"
-            "\\usepackage{multirow}\n"
-            "\\begin{document}\n"
-            + table_body + "\n"
-            "\\end{document}\n"
-        )
-        text_output(wrapper, output[0])
+        text_output(extract_table_tex(input[0]), output[0])
 
 rule ms_tables:
     input: manuscript_dir / "out" / "table-1.pdf"
