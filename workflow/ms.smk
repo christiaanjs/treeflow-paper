@@ -28,6 +28,7 @@ submission_dir = manuscript_dir / "submission"
 minted_cache_dir = "minted-cache"
 dataset_dir = "{dataset}"
 supplementary_data_dir = pathlib.Path("supplementary-data")
+diff_base_commit = "ecc3dd2fae34bcebf706078be366e863a7f4fc2d"
 
 rule ms:
     input:
@@ -37,6 +38,93 @@ rule ms:
         manuscript_dir / "out" / "response-letter.pdf"
         #supplementary_data_dir / config["flu_dataset"] / "beast.xml",
         #supplementary_data_dir / "carnivores" / "beast.xml",
+
+rule ms_diff:
+    input:
+        manuscript_dir / "out" / "treeflow-diff.pdf"
+
+rule extract_old_treeflow_tex:
+    output: temp(manuscript_dir / "out" / "treeflow-old.tex")
+    params:
+        commit = diff_base_commit,
+        tex_path = "manuscript/out/treeflow.tex"
+    shell:
+        "git show {params.commit}:{params.tex_path} > {output}"
+
+rule latexdiff_treeflow:
+    input:
+        old = manuscript_dir / "out" / "treeflow-old.tex",
+        new = manuscript_dir / "out" / "treeflow.tex"
+    output:
+        manuscript_dir / "out" / "treeflow-diff.tex"
+    run:
+        import re as _re, subprocess as _sp
+        _result = _sp.run(
+            [
+                "latexdiff",
+                "--append-safecmd=bibliographystyle,setcitestyle,usetikzlibrary,definecolor",
+                "--append-context2cmd=maketitle",
+                "--add-to-config", "VERBATIMENV=minted",
+                input.old,
+                str(input.new),
+            ],
+            capture_output=True, text=True, check=True,
+        )
+        raw = _result.stdout
+
+        # Comment out verbatim code content inside deleted blocks (minted in deleted figures)
+        def _fix_deleted_verbatim(content):
+            lines = content.split("\n")
+            out, in_del, in_verb = [], False, False
+            for line in lines:
+                s = line.rstrip()
+                if r"\DIFdelbegin" in s and not s.startswith("%"):
+                    in_del = True
+                if r"\DIFdelend" in s and not s.startswith("%"):
+                    in_del = False; in_verb = False
+                if in_del and _re.match(r"%DIFDELCMD\s*<\s*\\begin\{minted", s):
+                    in_verb = True
+                if in_del and _re.match(r"%DIFDELCMD\s*<\s*\\end\{minted", s):
+                    in_verb = False
+                if in_del and in_verb and not s.startswith("%") and s:
+                    out.append("%DIFDELCMD < " + line)
+                else:
+                    out.append(line)
+            return "\n".join(out)
+
+        raw = _fix_deleted_verbatim(raw)
+
+        # Remove entirely-deleted figure environments (brace-balance issues in captions)
+        raw = _re.sub(
+            r"\\DIFdelbegin %DIFDELCMD < \\begin\{figure\}.*?\\DIFdelend\s*\n",
+            "",
+            raw,
+            flags=_re.DOTALL,
+        )
+
+        # Remove "DELETED TITLE COMMANDS FOR MARKUP" block from preamble
+        # (conflicts with sysbio_sse class \author using \@dblarg)
+        raw = _re.sub(
+            r"%DIF DELETED TITLE COMMANDS FOR MARKUP\n.*?(?=%DIF PREAMBLE EXTENSION)",
+            "",
+            raw,
+            flags=_re.DOTALL,
+        )
+
+        # Replace the body title/header with clean new version
+        # (structural differences between old article class and new sysbio_sse class
+        #  cause \DIFadd{} wrappers to break \author{} and \maketitle in the journal class)
+        with open(str(input.new), "r") as fh:
+            new_tex = fh.read()
+        new_header_m = _re.search(
+            r"(\\begin\{document\}.*?(?=\\section\{Introduction\}))",
+            new_tex, _re.DOTALL,
+        )
+        diff_body_m = _re.search(r"(\\section\{Introduction\}.*)", raw, _re.DOTALL)
+        preamble_m = _re.search(r"(.*?)(?=\\begin\{document\})", raw, _re.DOTALL)
+        result_tex = preamble_m.group(1) + new_header_m.group(1) + diff_body_m.group(1)
+
+        text_output(result_tex, output[0])
 
 APPROXES = ["mean_field", "scaled"] # TODO: Where to store these in common?
 methods = ["beast"] + expand("variational-samples-{approx}", approx=APPROXES)

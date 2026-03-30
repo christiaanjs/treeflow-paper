@@ -1,0 +1,642 @@
+%DIF 1-2c1-3
+%DIF LATEXDIFF DIFFERENCE FILE
+%DIF DEL /tmp/treeflow-old.tex         Mon Mar 30 04:32:17 2026
+%DIF ADD manuscript/out/treeflow.tex   Mon Mar 30 04:24:04 2026
+%DIF < \documentclass{article}
+%DIF < %\usepackage[top=0.85in,left=2.75in,footskip=0.75in]{geometry}
+%DIF -------
+\documentclass[oupdraft]{sysbio_sse} %DIF > 
+% \usepackage[colorlinks=true, urlcolor=citecolor, linkcolor=citecolor, citecolor=citecolor]{hyperref} %DIF > 
+\usepackage{url} %DIF > 
+%DIF -------
+
+%DIF 4-12c5
+%DIF < \usepackage{amsmath,amssymb}
+%DIF < \usepackage{graphicx}
+%DIF < \usepackage[utf8x]{inputenc}
+%DIF < \usepackage{textcomp,marvosym}
+%DIF < \usepackage{cite}
+%DIF < \usepackage{nameref,hyperref}
+%DIF < \usepackage[right]{lineno}
+%DIF < \usepackage{array}
+%DIF < \bibliographystyle{plos2015}
+%DIF -------
+\usepackage{indentfirst} %DIF > 
+%DIF -------
+
+%DIF 14-15c7-9
+%DIF < \usepackage{setspace}
+%DIF < \doublespacing
+%DIF -------
+% Add history information for the article if required %DIF > 
+%\history{Received Month X, 20XX; %DIF > 
+%revised Month X, 20XX} %DIF > 
+%DIF -------
+
+%DIF 17c11-14
+%DIF < % END MACROS SECTION
+%DIF -------
+\bibliographystyle{CSE} %DIF > 
+\setcitestyle{authoryear,round,aysep={}} %DIF > 
+\let\cite\citep %DIF > 
+ %DIF > 
+%DIF -------
+\usepackage{booktabs}
+%DIF 19c16
+%DIF < \usepackage[finalizecache,outputdir=manuscript/out,cachedir=manuscript/out/minted-cache]{minted}
+%DIF -------
+\usepackage{minted} %DIF > 
+%DIF -------
+\usepackage{multirow}
+\usepackage{setspace}
+\usepackage[T1]{fontenc}
+\usepackage{standalone}
+\usepackage{tikz}
+\usepackage{caption}
+\usepackage{subcaption}
+%DIF 27c24-26
+%DIF < \usetikzlibrary{fit, positioning, arrows.meta, calc}
+%DIF -------
+\usetikzlibrary{fit, positioning, arrows.meta, calc, backgrounds} %DIF > 
+\definecolor{apibg}{RGB}{245,245,235} %DIF > 
+\definecolor{uibg}{RGB}{220,235,250} %DIF > 
+%DIF -------
+
+\setcounter{secnumdepth}{0}
+\setminted{baselinestretch=0.9}
+%DIF < 
+%DIF < \title{TreeFlow: Probabilistic Modelling and Automatic Differentiation for Phylogenetics
+%DIF < }
+%DIF < \author{
+%DIF < Christiaan Swanepoel,$^{\ast, 1, 2}$\\
+%DIF < Mathieu Fourment,$^{3}$\\
+%DIF < Xiang Ji,$^{4}$\\
+%DIF < Hassan Nasif,$^{5}$\\
+%DIF < Marc A Suchard,$^{6,7,8}$\\
+%DIF < Frederick A Matsen IV,$^{5,9,10}$\\
+%DIF < Alexei J Drummond$^{1,11}$
+%DIF < }
+%DIF < 
+%DIF < \date{}
+%DIF PREAMBLE EXTENSION ADDED BY LATEXDIFF
+%DIF UNDERLINE PREAMBLE %DIF PREAMBLE
+\RequirePackage[normalem]{ulem} %DIF PREAMBLE
+\RequirePackage{color}\definecolor{RED}{rgb}{1,0,0}\definecolor{BLUE}{rgb}{0,0,1} %DIF PREAMBLE
+\providecommand{\DIFadd}[1]{{\protect\color{blue}\uwave{#1}}} %DIF PREAMBLE
+\providecommand{\DIFdel}[1]{{\protect\color{red}\sout{#1}}}                      %DIF PREAMBLE
+%DIF SAFE PREAMBLE %DIF PREAMBLE
+\providecommand{\DIFaddbegin}{} %DIF PREAMBLE
+\providecommand{\DIFaddend}{} %DIF PREAMBLE
+\providecommand{\DIFdelbegin}{} %DIF PREAMBLE
+\providecommand{\DIFdelend}{} %DIF PREAMBLE
+\providecommand{\DIFmodbegin}{} %DIF PREAMBLE
+\providecommand{\DIFmodend}{} %DIF PREAMBLE
+%DIF FLOATSAFE PREAMBLE %DIF PREAMBLE
+\providecommand{\DIFaddFL}[1]{\DIFadd{#1}} %DIF PREAMBLE
+\providecommand{\DIFdelFL}[1]{\DIFdel{#1}} %DIF PREAMBLE
+\providecommand{\DIFaddbeginFL}{} %DIF PREAMBLE
+\providecommand{\DIFaddendFL}{} %DIF PREAMBLE
+\providecommand{\DIFdelbeginFL}{} %DIF PREAMBLE
+\providecommand{\DIFdelendFL}{} %DIF PREAMBLE
+%DIF COLORLISTINGS PREAMBLE %DIF PREAMBLE
+\RequirePackage{listings} %DIF PREAMBLE
+\RequirePackage{color} %DIF PREAMBLE
+\lstdefinelanguage{DIFcode}{ %DIF PREAMBLE
+%DIF DIFCODE_UNDERLINE %DIF PREAMBLE
+  moredelim=[il][\color{red}\sout]{\%DIF\ <\ }, %DIF PREAMBLE
+  moredelim=[il][\color{blue}\uwave]{\%DIF\ >\ } %DIF PREAMBLE
+} %DIF PREAMBLE
+\lstdefinestyle{DIFverbatimstyle}{ %DIF PREAMBLE
+	language=DIFcode, %DIF PREAMBLE
+	basicstyle=\ttfamily, %DIF PREAMBLE
+	columns=fullflexible, %DIF PREAMBLE
+	keepspaces=true %DIF PREAMBLE
+} %DIF PREAMBLE
+\lstnewenvironment{DIFverbatim}{\lstset{style=DIFverbatimstyle}}{} %DIF PREAMBLE
+\lstnewenvironment{DIFverbatim*}{\lstset{style=DIFverbatimstyle,showspaces=true}}{} %DIF PREAMBLE
+%DIF END PREAMBLE EXTENSION ADDED BY LATEXDIFF
+
+\begin{document}
+
+% Title of paper
+
+% Identify the name, address, telephone/fax numbers, and e-mail address for the author who will receive proofs and be designated the "corresponding author" in text.
+
+\title{TreeFlow: Probabilistic Modelling and Automatic Differentiation for Phylogenetics
+}
+% Each important word in the title should begin with a capital letter
+
+% List of authors, with corresponding author marked by asterisk
+\author{Christiaan Swanepoel,$^{\ast, 1, 2}$\\
+Mathieu Fourment,$^{3}$\\
+Xiang Ji,$^{4}$\\
+Hassan Nasif,$^{5}$\\
+Marc A Suchard,$^{6,7,8}$\\
+Frederick A Matsen IV,$^{5,9,10}$\\
+Alexei J Drummond$^{1,11}$
+\\[4pt]
+    % Author addresses
+    ${^1}$Centre for Computational Evolution, The University of Auckland, Auckland, New Zealand;\\
+$^{2}$School of Computer Science, The University of Auckland, Auckland, New Zealand, 1010;\\
+$^{3}$Australian Institute for Microbiology and Infection, University of Technology Sydney, Ultimo NSW, Australia;\\
+$^{4}$Department of Mathematics, Tulane University, New Orleans, USA;\\
+$^{5}$Public Health Sciences Division, Fred Hutchinson Cancer Research Center, Seattle, Washington, USA;\\
+$^{6}$Department of Human Genetics, University of California, Los Angeles, USA;\\
+$^{7}$Department of Computational Medicine, University of California, Los Angeles, USA;\\
+$^{8}$Department of Biostatistics, University of California, Los Angeles, USA;\\
+$^{9}$Department of Statistics, University of Washington, Seattle, USA;\\
+$^{10}$Department of Genome Sciences, University of Washington, Seattle, USA;\\
+$^{11}$School of Biological Sciences, The University of Auckland, Auckland, New Zealand, 1010;\\
+ [2pt]
+    % E-mail address for correspondence
+    \textit{Correspondence to be sent to: School of Computer Science, The University of Auckland, Auckland, New Zealand, 1010;\\
+Email: cswa648@aucklanduni.ac.nz
+}}
+
+
+% Running headers of paper:
+\markboth%
+% First field is the short list of authors
+{Swanepoel et al.}
+% Second field is the short title of the paper
+{TreeFlow}
+% This should be shortened version of the title and no greater than 50 characters
+
+\maketitle
+
+\begin{abstract}
+    {Probabilistic modelling frameworks are powerful tools for statistical modelling and inference. They are not immediately generalisable to phylogenetic problems due to the particular computational properties of the phylogenetic tree object. TreeFlow is a software library for probabilistic modelling and automatic differentiation with phylogenetic trees. It embeds phylogenetic trees in the TensorFlow Probability framework, and implements inference algorithms for phylogenetic models given a fixed tree topology. We demonstrate how TreeFlow can be used to quickly implement and assess new models. We also show that it provides reasonable performance for gradient-based inference algorithms compared to specialized computational libraries for phylogenetics.
+}
+    {phylogenetics; Bayesian inference; probabilistic modelling; variational inference}
+\end{abstract}
+\newline
+
+
+\section{Introduction}
+
+% Motivate probabilistic programming/phylogenetics
+Traditionally, \DIFaddbegin \DIFadd{Bayesian }\DIFaddend phylogenetic analyses have been performed by specialized software \DIFdelbegin \DIFdel{\mbox{%DIFAUXCMD
+\cite{stamatakis2014raxml, drummond2012bayesian, huelsenbeck2001mrbayes}}\hskip0pt%DIFAUXCMD
+}\DIFdelend \DIFaddbegin \DIFadd{\mbox{%DIFAUXCMD
+\cite{lartillot2009phylobayes, drummond2012bayesian, huelsenbeck2001mrbayes}}\hskip0pt%DIFAUXCMD
+}\DIFaddend . A number of software packages exist that implement a broad but predefined collection of models and associated specialized inference methods. Typically, inference is handled by carefully crafted but computationally costly \DIFdelbegin \DIFdel{stochastic optimisation or }\DIFdelend Markov chain Monte Carlo (MCMC) methods \cite{metropolis1953equation, hastings1970monte}. Considerable effort has been invested in improving the computational efficiency of MCMC for phylogenetics \DIFdelbegin \DIFdel{\mbox{%DIFAUXCMD
+\cite{mateiu2006inferring, hohna2012guided, zhang2020improving}}\hskip0pt%DIFAUXCMD
+}\DIFdelend \DIFaddbegin \DIFadd{\mbox{%DIFAUXCMD
+\cite{mateiu2006inferring, lakner2008efficiency, hohna2012guided, zhang2020improving}}\hskip0pt%DIFAUXCMD
+}\DIFaddend . In contrast, in other realms of statistical analysis, \textit{probabilistic graphical modelling} or \textit{probabilistic programming} software libraries have entered into widespread use. These allow the specification of almost any model as a probabilistic program, and inference is provided automatically with a generic inference method. Exploiting the power of these tools in phylogenetic analyses could significantly accelerate research by making the process of developing new models and implementing inference faster and more flexible, as evidenced by recent work attempting to reconcile probabilistic modelling and programming frameworks with phylogenetic models \cite{fourment2019evaluating, ronquist2021universal}.
+
+% Review probabilistic programming
+Probabilistic modelling tools, such as BUGS \cite{lunn2000winbugs}, Stan \cite{carpenter2017stan}, PyMC3 \cite{salvatier2016probabilistic}, and TensorFlow Probability \cite{dillon2017tensorflow} allow users to specify probabilistic models by describing the structure of a \textit{probabilistic graphical model} with code. Typically, this involves composing pre-implemented probability distributions by specifying conditional dependencies between variables. This structure can be used to evaluate a joint probability density function for the model variables. Advancements in automatic inference methods have allowed these tools to perform efficient inference on a wide range of models. Some notable examples, including automatic differentiation variational inference \cite{kucukelbir2017automatic} (ADVI) and Hamiltonian Monte Carlo \cite{duane1987hybrid} (HMC), use local gradient information from the model's probability density function to efficiently navigate the parameter space.
+
+Another class of methods for performing statistical inference are \textit{probabilistic programming languages}. These provide more flexibility than graphical modelling methods by explicitly describing the generative process of the model as a \textit{probabilistic program}, rather than just composing probability distributions, and typically include inference schemes that do not require explicit evaluation of a joint probability density. Since the term \textit{probabilistic programming} has been widely adopted to describe probabilistic graphical modelling software, probabilistic programming languages are often qualified as \textit{universal} in that they are not restricted to composing pre-implemented probability distributions. Examples of universal probabilistic programming languages include Church \cite{goodman2008church} and Pyro \cite{bingham2019pyro}.
+
+One key technology that enables gradient-based automatic inference with probabilistic models is \textit{automatic differentiation}. Automatic differentiation refers to methods which efficiently calculate machine-precision gradients of functions, specified by computer programs, without extra analytical derivation or excessive computational overhead compared to the function evaluation. Numerical programs consist of elementary arithmetic operations, and automatic differentiation tools apply the chain rule to these to compute derivatives directly, without requiring the construction of explicit mathematical expressions. Automatic differentiation frameworks that have statistical inference packages built on top of them include Theano \cite{bergstra2010theano}, Pytorch \cite{paszke2019pytorch}, JAX \cite{jax2018github} and TensorFlow \cite{abadi2016tensorflow}. Some of these extend to non-trivial computational constructs such as control flow and recursion \cite{yu2018dynamic}.
+
+The structure of the phylogenetic tree object is a major barrier to implementing efficient inference for phylogenetic probabilistic models. It is not clear how the association between its discrete and continuous quantities (the topology and branch lengths respectively) should be represented and handled in inference. Also, the combinatorial explosion of the size of \DIFaddbegin \DIFadd{the }\DIFaddend discrete part of the phylogenetic state space presents a major challenge to any inference algorithm. Generic random search methods for discrete variables, as in the naive implementation of MCMC sampling, do not scale appropriately to allow inference on modern datasets with thousands of taxa.
+
+Efforts have already been made to apply probabilistic graphical modelling and probabilistic programming to phylogenetic methods
+\DIFdelbegin \DIFdel{\mbox{%DIFAUXCMD
+\cite{fourment2019evaluating, ronquist2021universal, drummond2022linguaphylo}}\hskip0pt%DIFAUXCMD
+}\DIFdelend \DIFaddbegin \DIFadd{\mbox{%DIFAUXCMD
+\cite{hohna2014probabilistic, fourment2019evaluating, ronquist2021universal, drummond2023linguaphylo}}\hskip0pt%DIFAUXCMD
+}\DIFaddend . RevBayes \cite{hohna2016revbayes} implements a probabilistic modelling language that is focused on phylogenetic models. However, it requires the user to manually specify an MCMC scheme for performing inference. In other work, it has been shown that universal probabilistic programming languages can be used to express generative processes for trees and generate Sequential Monte Carlo inference schemes for complex speciation models, as well as proposing how they might be used to generate inference schemes for other phylogenetic models, including MCMC samplers for trees \DIFdelbegin \DIFdel{\mbox{%DIFAUXCMD
+\cite{ronquist2021universal}}\hskip0pt%DIFAUXCMD
+}\DIFdelend \DIFaddbegin \DIFadd{\mbox{%DIFAUXCMD
+\cite{ronquist2021universal, senderov2024treeppl}}\hskip0pt%DIFAUXCMD
+}\DIFaddend . Blang \cite{bouchard2022blang} is a probabilistic modelling framework which supports arbitrary data structures that has been used to implement phylogenetic models and can automatically construct inference schemes. Another tool, LinguaPhylo, provides a domain specific graphical modelling language for phylogenetics and has the capability to \DIFaddbegin \DIFadd{automatically }\DIFaddend generate a specification for an MCMC sampler for inference \DIFdelbegin \DIFdel{\mbox{%DIFAUXCMD
+\cite{drummond2022linguaphylo}}\hskip0pt%DIFAUXCMD
+}\DIFdelend \DIFaddbegin \DIFadd{\mbox{%DIFAUXCMD
+\cite{drummond2023linguaphylo}}\hskip0pt%DIFAUXCMD
+}\DIFaddend .
+
+Applying gradient-based inference methods to phylogenetics is a major challenge. \textit{Probabilistic path Hamiltonian Monte Carlo} has been developed to use gradient information to sample phylogenetic posteriors across multiple tree topologies \cite{dinh2017probabilistic}, though moves between tree topologies are not totally informed by gradient information and are similar to the random-walk proposal distributions available to standard MCMC routines. Hamiltonian Monte Carlo proposals for continuous parameters within tree topologies has been paired with standard MCMC moves between topologies for estimating local mutation rates and divergence times using scalable algorithms for gradient calculation \DIFdelbegin \DIFdel{\mbox{%DIFAUXCMD
+\cite{ji2021scalable, fisher2021shrinkage}}\hskip0pt%DIFAUXCMD
+}\DIFdelend \DIFaddbegin \DIFadd{\mbox{%DIFAUXCMD
+\cite{ji2023scalable, fisher2023shrinkage}}\hskip0pt%DIFAUXCMD
+}\DIFaddend . Another approach has used Stan to apply automatic differentiation variational inference to phylogenetic inference with a fixed rooted tree topology \cite{fourment2019evaluating}. Finally, variational inference has been applied to phylogenetic tree inference using a clade-based distribution on unrooted tree topologies \cite{zhang2018variational}. This approach has been extended to a more expressive family of approximating distributions \cite{zhang2020improved}, and applied to rooted phylogenies \cite{zhang2022variational}.
+
+TreeFlow aims to enable the application of gradient-based inference methods to phylogenetic models. It implements a \DIFdelbegin \DIFdel{represention }\DIFdelend \DIFaddbegin \DIFadd{representation }\DIFaddend of phylogenetic trees in the TensorFlow computational framework which supports automatic differentiation, and a range of associated computations typically used in phylogenetic models of sequence evolution. These are all integrated with the TensorFlow Probability probabilistic modelling framework. TreeFlow provides utilities for applying variational Bayesian inference to phylogenetic models, particularly with a fixed tree topology, and a command line user \DIFdelbegin \DIFdel{interace}\DIFdelend \DIFaddbegin \DIFadd{interface}\DIFaddend .
+
+\section{Software Description}
+
+TreeFlow is a Python library which provides modular tools for phylogenetic modelling and inference. It \DIFdelbegin \DIFdel{also provides }\DIFdelend \DIFaddbegin \DIFadd{provides two primary interfaces: }\DIFaddend a user interface \DIFdelbegin \DIFdel{which can be used for }\DIFdelend \DIFaddbegin \DIFadd{for performing parameter inference in }\DIFaddend fixed-topology \DIFdelbegin \DIFdel{phylogenetic inference with }\DIFdelend models of a standard form\DIFaddbegin \DIFadd{, and a Python developer API for implementing and composing custom phylogenetic models}\DIFaddend . TreeFlow supports both rooted and unrooted phylogenetic trees, but the user interface is focused on inference with rooted trees. The architecture of the TreeFlow package is displayed in Figure \ref{fig:architecture}.
+
+\newlength{\originalbaselineskip}
+\setlength{\originalbaselineskip}{\baselineskip}
+
+\begin{figure}
+    \centering
+    \includestandalone{architecture}
+    \caption{Diagram showing the architecture of the TreeFlow package. Nodes represent Python modules and the arrows between them denote major dependencies. The dashed rectangles separate the components based on their primary interfaces. Nodes outside the two interface groups denote major external dependencies.}
+    \label{fig:architecture}
+\end{figure}
+
+\setlength{\baselineskip}{\originalbaselineskip}
+
+\DIFdelbegin \DIFdel{The TreeFlow Python library includes modules for the representation, traversal, and reading and writing of phylogenetic tree . There are modules implementing bijections for phylogenetic trees, phylogenetic posterior approximations, and }\DIFdelend \DIFaddbegin \DIFadd{We first describe the user interface, which provides the most accessible entry point for users wanting to apply TreeFlow to standard phylogenetic analyses. We then describe the developer API, which provides the modular components that underpin the user interface and allow users to implement new models.
+}
+
+\subsection{\DIFadd{User interface}}
+
+\DIFadd{TreeFlow provides command line interfaces for }\DIFaddend fixed-topology \DIFdelbegin \DIFdel{variational Bayesian inference. It also implements tree priors and models of sequence evolution. The user interface implements a model definition formatfor standard phylogenetic models and command line interfaces for variational Bayesian and maximum likelihood }\DIFdelend \DIFaddbegin \DIFadd{inference. These allow inference on standard phylogenetic models such as those performed by specialized software. For inputs, they take a nucleotide sequence alignment in the FASTA or Nexus format, a rooted tree topology in Newick format, and a TreeFlow model specification in YAML format. Command line interfaces are provided for both automatic differentiation variational inference and maximum a posteriori }\DIFaddend inference.
+
+\DIFdelbegin \DIFdel{It is important to note that the primary interface is intended to be the Python developer API, which }\DIFdelend \DIFaddbegin \DIFadd{Because many phylogenetic analyses use models of a similar structure, TreeFlow provides a format for concisely specifying this kind of model. A single unpartitioned multiple sequence alignment can be modelled with a single substitution model, tree prior, and associated parameter priors. The model specification is a nested dictionary, with keys at various levels corresponding to model components, their parameters, and distributions used as priors. This is transformed into a TensorFlow Probability joint distribution. The model definition structure can be serialized in the YAML markup format which provides a text-based model definition format. An example of this is shown in Supplementary Appendix Figure S1. The substitution and tree models can be drawn from the models described below, as well as parameter priors from a range of standard probability distributions implemented in TensorFlow Probability. This model definition format is not intended to cover the full range of probabilistic models that can be implemented with TreeFlow's Python API, but rather provide a convenient input for TreeFlow's command line interfaces.
+}
+
+\subsection{\DIFadd{Developer API}}
+
+\DIFadd{The developer API }\DIFaddend allows users to implement new models and compose them with existing model components in a flexible structure, while leveraging the inferential machinery provided by TreeFlow. The \DIFdelbegin \DIFdel{user interface is provided to simplify testing and demonstration of TreeFlow, while also potentially making TreeFlow's scalable inference methods more accessible}\DIFdelend \DIFaddbegin \DIFadd{TreeFlow Python library includes modules for the representation, traversal, and reading and writing of phylogenetic trees. There are modules implementing bijections for phylogenetic trees, phylogenetic posterior approximations, and fixed-topology variational Bayesian inference. It also implements tree priors and models of sequence evolution. TensorFlow Probability distributions can be composed into a }\textit{\DIFadd{probabilistic graphical model}} \DIFadd{using TensorFlow Probability's joint distribution functionality \mbox{%DIFAUXCMD
+\cite{piponi2020joint}}\hskip0pt%DIFAUXCMD
+. The code to specify a joint distribution provides a concise representation of the model used in a data analysis. The ability to implement phylogenetic models in this framework means that automatic inference algorithms implemented in TensorFlow can be leveraged, as well as other utilities such as sampling from the joint prior. The subsections below describe the major components of the developer API}\DIFaddend .
+
+\subsection{Tree representation}
+
+TreeFlow is built on TensorFlow, a computational framework for machine learning. TreeFlow leverages TensorFlow's capabilities for accelerated numerical computation and automatic differentiation. TensorFlow operations can be executed on either the CPU or GPU, and as a result TreeFlow can make use of either type of processor. Many of TensorFlow's CPU operations are parallelized, allowing TreeFlow to make use of multiple processor cores. All of the benchmarks and examples in this paper, and TreeFlow's command line interfaces, use the CPU for computation.
+
+TensorFlow's core computational object is the Tensor, a multi-dimensional array with a uniform data type. Phylogenetic trees are not immediately at home in a Tensor-centric universe, as they are a complex data structure, often defined recursively, with both continuous and discrete components. TreeFlow represents trees as a structure of Tensors. This structure contains floating point Tensors representing the times and branch lengths, and integer Tensors representing the topology, all encapsulated in a Python object. The topological Tensors include indices of node parents, children, and for pre- and post-order traversals. TensorFlow has extensive support for structures of Tensors such as the TreeFlow tree class, including using them as arguments to compiled functions and defining probability distributions over complex objects. This means computations and models involving phylogenetic trees can be expressed naturally.
+
+\subsection{Tree distributions}
+\label{treepriors}
+
+TreeFlow uses the existing probabilistic modelling infrastructure provided by TensorFlow Probability, which implements standard statistical distributions and inferential machinery \cite{dillon2017tensorflow}. The Distribution interface encapsulates functionality for sampling from a distribution and computing its probability density or mass function. TreeFlow implements a tree distribution base class which allows TensorFlow Probability Distributions to be defined on TreeFlow's phylogenetic tree representation.
+
+TreeFlow implements Distributions for some commonly-used generative models for phylogenetic trees.
+The models currently implemented, Kingman's coalescent \cite{kuhner1995estimating} and the Birth-Death-Sampling speciation process \cite{stadler2009incomplete}, can be used as \textit{tree priors} in phylogenetic \DIFdelbegin \DIFdel{probabilsitic }\DIFdelend \DIFaddbegin \DIFadd{probabilistic }\DIFaddend models and to infer parameters related to population dynamics from genetic sequence data. Since sampling from these distributions is non-trivial and not required for variational inference, only the probability densities of these models are currently implemented.
+
+\subsection{Models of sequence evolution}
+\label{evolution}
+
+The models of nucleotide sequence evolution currently implemented in TreeFlow are the Jukes-Cantor \cite{jukes1969evolution}, HKY85 \cite{hasegawa1985dating}, and General Time Reversible (GTR) \cite{tavare1986some} models. TreeFlow includes a standard approach for dealing with heterogeneity in mutation rate across sites based on \DIFdelbegin \DIFdel{a }\DIFdelend marginalizing over a discretized site rate distribution \cite{yang1994maximum}. The probabilistic modelling framework, however, allows for the use of any appropriate distribution as the base site rate distribution rather than just the standard single-parameter Gamma distribution. For example, it is straightforward to replace the base Gamma distribution with a Weibull distribution, which has a quantile function that is much easier to compute \cite{fourment2019evaluating}. Thanks to TensorFlow's vectorized arithmetic operations, it is also natural to model variations in mutation rate over lineages by specifying parameters for multiple rates (possibly with a hierarchical prior) and multiplying by the branch lengths of the phylogenetic tree. Models which can be naturally expressed this way include the log-Normal random local clock \cite{drummond2006relaxed}, which is implemented with TreeFlow's model definition format, and auto-correlated relaxed clock models \cite{thorne1998estimating}, which would be straightforward to implement with the traversal module in the Python API.
+
+\subsection{Tree traversals}
+
+To perform model computations involving the phylogenetic tree, it is necessary to traverse the tree according to the structure specified by its topology. Since this structure is less accessible in an array-based tree representation, and native Python control flow cannot be used when the topology of the tree is a dynamic variable, TreeFlow provides utilities to perform tree traversals. These are used to efficiently implement some core computations and also made accessible to developers for extending TreeFlow's functionality.
+
+When iterating over the nodes of the tree in an automatic differentiation framework it is important to consider computational complexity. Since modern genomic datasets can result in the number of nodes in the tree being extremely large, it is crucial to maintain linear scaling with the size of the tree. Any computation that produces values for every node and requires access to results for multiple previous nodes in the traversal might incur a quadratic computational cost. This could occur when the topology is a dynamic variable as, at a given step of the iteration, values from any element of the Tensor representation might \DIFdelbegin \DIFdel{be }\DIFdelend need to be accessed. Since TensorFlow's automatic differentiation framework depends on the immutability of Tensors, an intermediate representation of the state for the whole tree needs to be maintained for every step of the iteration, leading to a quadratic complexity.
+
+TreeFlow's solution to this scaling issue is to implement tree traversals using TensorFlow's \texttt{TensorArray} construct \cite{yu2018dynamic}. The TensorArray is a data structure representing a collection of tensors. The TensorArray relaxes the requirement of immutability to a \textit{write-once} property enforced on its constituent tensors. The TensorArray tracks dependencies between values so automatic differentiation can appropriately propagate gradients back through computation in linear time.
+
+% Phylogenetic likelihood 
+A notable computation that makes use of the tree traversal framework described above is the \textit{phylogenetic likelihood}, the probability of a sequence alignment given a phylogeny and model of sequence evolution. This typically involves integrating out character states at unsampled ancestral nodes using a \textit{dynamic programming} computation known as \textit{Felsenstein's pruning algorithm} \cite{felsenstein1981evolutionary}. Considerable attention has been given to the problem of efficiently computing gradients of branch lengths with respect to the phylogenetic likelihood \cite{ji2020gradients}. The dynamic programming algorithm is implemented as a TensorArray-based \textit{postorder} traversal. The branch-length gradient computed through automatic differentiation demonstrates linear scaling with respect to the number of taxa in the tree in our benchmarks (see Benchmarks section below). Our implementation also allows computation of gradients which respect to any substitution model parameters.
+
+% Ratio transform
+Another useful tool for phylogenetic inference implemented in TreeFlow is the \textit{node height ratio transform} \cite{kishino2001performance}. This has been used to infer times on phylogenetic trees using maximum likelihood in the PAML software package \cite{yang2007paml}. The ratio transform parametrizes the internal node heights of a tree as the ratio between a node's height and its parent's height. This has been applied to Bayesian phylogenetic inference in the context of automatic differentiation variational inference \cite{fourment2019evaluating} and Hamiltonian Monte Carlo \DIFdelbegin \DIFdel{\mbox{%DIFAUXCMD
+\cite{ji2021scalable}}\hskip0pt%DIFAUXCMD
+}\DIFdelend \DIFaddbegin \DIFadd{\mbox{%DIFAUXCMD
+\cite{ji2023scalable}}\hskip0pt%DIFAUXCMD
+}\DIFaddend . The computation of node heights from ratios is implemented in TreeFlow as a TensorArray-based \textit{preorder} traversal.
+
+\subsection{Bijectors on phylogenetic trees}
+
+The ratio transform described above is wrapped into a TensorFlow Probability Bijector which provides an interface for transforming real-valued distributions into phylogenetic tree distributions. The Bijector is an interface which represents a transformation of samples from a multivariate probability distribution. It requires implementation of the forward transformation and its inverse (which necessarily exists if the transformation is a bijection), as well as the determinant of the Jacobian matrix of the transformation. This can be used by TensorFlow Probability to perform change of variable, rewriting the probability density of the base distribution in the space the bijector transforms it to.
+
+The ratio transformation has a triangular Jacobian matrix, which means computing the determinant required for the change of variable formula can be computed in linear time with respect to the number of internal node heights \cite{fourment2019evaluating}. Using change of variable, a multivariate distribution on ratios can be transformed into a distribution on the internal node heights of a rooted phylogeny. Other TensorFlow Probability Bijectors can be used to transform real-valued distributions into ratios. Another Bijector implemented in TreeFlow \DIFdelbegin \DIFdel{is the composition of }\DIFdelend \DIFaddbegin \DIFadd{combines }\DIFaddend node heights with a fixed tree topology to \DIFdelbegin \DIFdel{form }\DIFdelend \DIFaddbegin \DIFadd{produce }\DIFaddend a complete phylogenetic tree \DIFaddbegin \DIFadd{object}\DIFaddend . These bijectors can be \DIFdelbegin \DIFdel{chained to transform a real-valued distribution into a fixed-topology distribution over TreeFlow's tree objects}\DIFdelend \DIFaddbegin \DIFadd{composed sequentially --- for example, transforming unconstrained real values to ratios, then to node heights, then to a full tree --- yielding a probability distribution over branch lengths for a given topology}\DIFaddend . The result can be used as an approximation to a phylogenetic posterior distribution and \DIFaddbegin \DIFadd{combined }\DIFaddend with models such as TreeFlow's tree priors and phylogenetic likelihood.
+
+\subsection{Variational inference}
+
+% Inference
+One form of statistical inference for which gradient computation is essential is variational Bayesian inference \cite{jordan1999introduction}. The goal of Bayesian inference is to characterise a \textit{posterior distribution} which represents uncertainty over model parameters. Variational Bayesian inference achieves this by optimizing an approximation to the posterior distribution which has more convenient analytical properties. Typically, the optimisation routine used in variational inference can scale to a larger number of model parameters than the random-walk sampling methods used by MCMC methods.
+
+One concrete implementation of variational inference is \textit{automatic differentiation variational inference} (ADVI) \cite{kucukelbir2017automatic}. ADVI can perform inference on a wide range of probabilistic graphical models composed of continuous variables. It automatically constructs an approximation to the posterior by transforming a convenient base distribution to respect the domains of the model's component distributions. It then optimizes this approximation using stochastic gradient methods \cite{robbins1951stochastic, bottou2010large}. Typically, independent Normal distributions are used as the base distribution for computational convenience. This is known as the \textit{mean field approximation}, and for posterior distributions that have significant correlation-structure, skew, multi-modality, or heavy tails, can introduce error in parameter estimation \cite{blei2017variational}. Possible solutions to this approximation error include highly flexible variational approximations with large numbers of parameters \cite{rezende2015variational} or structured approximations that are informed by the form of the model \cite{ambrogioni2021automatic}.
+
+TreeFlow leverages the stochastic gradient optimizers already implemented in TensorFlow and the variational inference objectives in TensorFlow Probability. The discrete topology element of phylogenetic trees is an obstacle in the usage of these algorithms, which are typically restricted to continuous latent variables. Often, the phylogenetic tree topology is not the latent variable of interest, and is not a significant source of uncertainty \cite{yang2000codon}. This can be the case when divergence times or other substitution or speciation model parameters are the focus. In this scenario, useful results can be obtained by performing inference with a fixed tree topology, such as one obtained from fast maximum likelihood methods. This is the approach taken by the NextStrain platform \cite{hadfield2018nextstrain}, which uses the scalability afforded by a fixed tree topology to allow large-scale rapid phylodynamic analysis of pathogen molecular sequence data. Using a variational approximation with a fixed topology in TreeFlow makes the application of ADVI to phylogenetic models straightforward. When using variational inference in TreeFlow, care must be taken if it is possible the tree topology for a given dataset is difficult to infer by assessing how sensitive the inference results are to it.
+
+Although TreeFlow's current variational inference scheme is limited to a fixed tree topology, the rest of the library is not constrained in this manner. The Tensor-based tree representation means that the topology is part of TensorFlow's computational graph. Additionally, computations such as the phylogenetic likelihood are implemented with support for a dynamic tree topology. This means that \DIFdelbegin \DIFdel{gradient-based inference schemes that also infer the tree topology, such as the }\DIFdelend existing approaches to variational inference \DIFdelbegin \DIFdel{for phylogenetic trees \mbox{%DIFAUXCMD
+\cite{zhang2018variational} }\hskip0pt%DIFAUXCMD
+, could naturally be implemented in TensorFlow with TreeFlowproviding }\DIFdelend \DIFaddbegin \DIFadd{over tree topologies \mbox{%DIFAUXCMD
+\cite{zhang2018variational} }\hskip0pt%DIFAUXCMD
+could be implemented using TreeFlow's }\DIFaddend model specification and likelihood evaluation\DIFdelbegin \DIFdel{functionality}\DIFdelend \DIFaddbegin \DIFadd{, extending the library to support topology inference in the future}\DIFaddend .
+
+\subsection{Model approximations}
+
+TreeFlow implements posterior approximations for ADVI using TensorFlow Probability's bijector framework to transform a base distribution. Approximations are constructed automatically from probabilistic models in the form of TensorFlow Probability joint distribution objects. A base distribution, by default an uncorrelated Normal, is split into the variables of the joint distribution, and transformed to match the support of the model variables. The base distribution for the phylogenetic tree is transformed using a chain of bijectors. Learnable parameters to optimize are introduced by adding an initial trainable transformation to the base distribution. For the mean field approximation, this is an affine elementwise shifting and scaling operation.
+
+ADVI opens the door to using TensorFlow's neural network framework to implement deep-learning-based variants such as variational inference with \textit{normalizing flows} \cite{rezende2015variational}, which transform the base distribution through invertible trainable neural network layers to better approximate complex posterior distributions. Approximations based on \textit{inverse autoregressive flows} \cite{kingma2016improved} are implemented in TreeFlow, but since their computational and memory requirements scale quadratically with the number of model variables they are not ideal for large phylogenetic analyses.
+
+\DIFdelbegin \subsection{\DIFdel{Model definition}}
+%DIFAUXCMD
+\addtocounter{subsection}{-1}%DIFAUXCMD
+%DIFDELCMD < 
+
+%DIFDELCMD < %%%
+\DIFdel{TensorFlow Probability distributions can be composed into a }\textit{\DIFdel{probabilistic graphical model}} %DIFAUXCMD
+\DIFdel{using TensorFlow Probability's joint distribution functionality \mbox{%DIFAUXCMD
+\cite{piponi2020joint}}\hskip0pt%DIFAUXCMD
+. The code to specify a joint distribution provides a concise representation of the model used in a data analysis. The ability to implement phylogenetic models in this framework means that automatic inference algorithms implemented in TensorFlow can be leveraged, as well as other utilities such as sampling from the joint prior.
+}%DIFDELCMD < 
+
+%DIFDELCMD < %%%
+\DIFdel{Because many phylogenetic analyses use models of a similar structure, TreeFlow provides a format for concisely specifying this kind of model. A single unpartitioned multiple sequence alignment can be modelled with a single substitution model, tree prior, and associated parameter priors. The model specification is a nested dictionary, with keys at various levels corresponding to model components, their parameters, and distributions used as priors. This is transformed into a TensorFlow Probability joint distribution. The model definition structure can be serialized in the YAML markup format which provides a text-based model definition format. An example of this is shown in Figure \ref{fig:fluyaml}. The substitution and tree models can be drawn from those described above, as well as parameter priors from a range of standard probability distributions implemented in TensorFlow Probability. This model definition format is not intended to cover the full range of probabilistic models that can be implemented with TreeFlow's Python API, but rather provide a convenient input for TreeFlow's command line interfaces.
+}%DIFDELCMD < 
+
+%DIFDELCMD < %%%
+\subsection{\DIFdel{Command line interfaces}}
+%DIFAUXCMD
+\addtocounter{subsection}{-1}%DIFAUXCMD
+%DIFDELCMD < 
+
+%DIFDELCMD < %%%
+\DIFdel{As well as a library for probabilistic modelling with TensorFlow Probability, TreeFlow provides command line interfaces for fixed-topology inference. These allow inference on standard phylogenetic models such as those performed by specialized software. For inputs, they take a nucleotide sequence alignment in the FASTA or Nexus format, a rooted tree topology in Newick format, and a TreeFlow model specification in YAML format. Command line interfaces are provided for both automatic differentiation variational inference and maximum a posteriori inference.
+}%DIFDELCMD < 
+
+%DIFDELCMD < %%%
+\DIFdelend \section{Biological examples}
+
+We used TreeFlow to perform fixed-topology phylogenetic analyses of two datasets. The first is an alignment of 62 mitochondrial DNA sequences from carnivores \cite{suchard2009many}. The second is a dataset of 980 influenza sequences \cite{vaughan2014efficient}. In both datasets maximum likelihood unrooted topologies are estimated using RAxML \cite{stamatakis2014raxml}. These topologies are rooted with Least Squares Dating \cite{to2016lsd}.
+
+\subsection{Probabilistic modelling and model selection}
+
+In the carnivores dataset, we demonstrate the flexibility of probabilistic modelling with TreeFlow by investigating variation in the ratio of transitions to transversions in the nucleotide substitution process across lineages in the tree. Early maximum likelihood analyses of mitochondrial DNA in primates detected variation in this ratio, but without a biological basis, it was attributed to a saturation effect \cite{yang1999estimation}. A later simulation-based investigation showed that this was a reasonable explanation, which exposed the limitations of nucleotide substitution models for estimating the length of branches deep in the tree \cite{duchene2015declining}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{manuscript/figures/carnivores-marginals}
+    \caption{Carnivores base model posterior marginal parameter estimates}
+    \label{fig:carnivoresmarginals}
+\end{figure}
+
+This problem could be approached by means of Bayesian model comparison; a lack of preference for a model allowing between-lineage variation of the ratio could indicate that the substitution model lacks the power to separate variation `signal' from saturation `noise'. Firstly, we construct a standard phylogenetic model with a HKY substitution model with a single transition-transversion ratio parameter (\textit{kappa}). We perform inference using ADVI, and also using MCMC as implemented in BEAST 2 \DIFdelbegin \DIFdel{\mbox{%DIFAUXCMD
+\cite{bouckaert2019beast}}\hskip0pt%DIFAUXCMD
+}\DIFdelend \DIFaddbegin \DIFadd{(v2.7.7; \mbox{%DIFAUXCMD
+\cite{bouckaert2019beast}}\hskip0pt%DIFAUXCMD
+)}\DIFaddend . Since this model is of the form of a standard phylogenetic analysis, it could be fit using TreeFlow's command line interface. Figure \ref{fig:carnivoresmarginals} compares the marginal parameter estimates obtained from TreeFlow and BEAST 2. The error in variables with larger discrepancies in distribution, apparent in the estimates of the frequencies and tree height, can be attributed to the approximation error introduced by ADVI. Most importantly, the estimate of the parameter of interest, kappa, appears reasonable.
+
+\DIFdelbegin %DIFDELCMD < \begin{figure}
+%DIFDELCMD <     \begin{minted}[highlightlines={19-22,41-44},baselinestretch=0.9,highlightcolor=cyan,fontsize=\small]{py}
+%DIFDELCMD < site_category_count = 4
+%DIFDELCMD < pattern_counts = alignment.get_weights_tensor()
+%DIFDELCMD < subst_model = HKY()
+
+%DIFDELCMD < def build_sequence_dist(tree, kappa, frequencies, site_gamma_shape):
+%DIFDELCMD <     unrooted_tree = tree.get_unrooted_tree()
+%DIFDELCMD <     site_rate_distribution = DiscretizedDistribution(
+%DIFDELCMD <         category_count=site_category_count,
+%DIFDELCMD <         distribution=Gamma(
+%DIFDELCMD <             concentration=site_gamma_shape,
+%DIFDELCMD <             rate=site_gamma_shape
+%DIFDELCMD <         ),
+%DIFDELCMD <     )
+%DIFDELCMD <     transition_probs_tree = get_transition_probabilities_tree(
+%DIFDELCMD <         unrooted_tree,
+%DIFDELCMD <         subst_model,
+%DIFDELCMD <         rate_categories=site_rate_distribution.normalised_support,
+%DIFDELCMD <         frequencies=frequencies,
+%DIFDELCMD <         frequencies=tf.broadcast_to(
+%DIFDELCMD <             tf.expand_dims(frequencies, -2),
+%DIFDELCMD <             kappa.shape + (4,)
+%DIFDELCMD <         ),
+%DIFDELCMD <         kappa=kappa
+%DIFDELCMD <     )
+%DIFDELCMD <     return SampleWeighted(
+%DIFDELCMD <         DiscreteParameterMixture(
+%DIFDELCMD <             site_rate_distribution,
+%DIFDELCMD <             LeafCTMC(
+%DIFDELCMD <                 transition_probs_tree,
+%DIFDELCMD <                 expand_dims(frequencies, -2),
+%DIFDELCMD <             ),
+%DIFDELCMD <         ),
+%DIFDELCMD <         sample_shape=alignment.site_count,
+%DIFDELCMD <         weights=pattern_counts
+%DIFDELCMD <     )
+
+%DIFDELCMD < model = JointDistributionNamed(dict(
+%DIFDELCMD <     birth_rate=LogNormal(c(1.0), c(1.5)),
+%DIFDELCMD <     tree=lambda birth_rate: Yule(tree.taxon_count, birth_rate),
+%DIFDELCMD <     kappa=LogNormal(c(0.0), c(2.0)),
+%DIFDELCMD <     kappa=Sample(
+%DIFDELCMD <         LogNormal(c(0.0), c(2.0)),
+%DIFDELCMD <         tree.branch_lengths.shape
+%DIFDELCMD <     ),
+%DIFDELCMD <     site_gamma_shape=LogNormal(c(0.0), c(1.0)),
+%DIFDELCMD <     frequencies=Dirichlet(c([2.0, 2.0, 2.0, 2.0])),
+%DIFDELCMD <     sequences=build_sequence_dist
+%DIFDELCMD < ))
+%DIFDELCMD <     \end{minted}
+%DIFDELCMD <     %%%
+%DIFDELCMD < \caption{%
+%DIFDELCMD < {%DIFAUXCMD
+%DIFDELCMD < \DIFdelFL{Code to specify models for carnivores analysis. Highlighted lines show changes (from previous line) to add kappa variation across lineages. The }\texttt{\DIFdelFL{Sample}} %DIFAUXCMD
+%DIFDELCMD < \DIFdelFL{distribution is used to make the kappa prior an independent identically-distributed sample for each branch. The frequencies parameter needs to be manually broadcasted over the added kappa dimension.}}
+%DIFDELCMD <     %DIFAUXCMD
+%DIFDELCMD < \label{fig:carnivorescode}
+%DIFDELCMD < \end{figure}
+%DIFDELCMD < 
+
+%DIFDELCMD < %%%
+\DIFdelend We then altered this model to estimate a separate ratio for every lineage on the tree; the implementation of this was simple and scalable as a result of TensorFlow's vectorization and broadcasting functionality. \DIFdelbegin \DIFdel{Figure \ref{fig:carnivorescode} shows the }\DIFdelend \DIFaddbegin \DIFadd{The }\DIFaddend model definition code for the base model \DIFdelbegin \DIFdel{, }\DIFdelend and the small changes required to model variation in the kappa parameter across lineages \DIFaddbegin \DIFadd{are shown in Supplementary Appendix Figure S2}\DIFaddend . We compared the models using estimates of the marginal likelihood \cite{mackay2003information}. The \textit{marginal likelihood}, or \textit{evidence}, the integral of the likelihood of the data over model parameters, is typically analytically intractable and challenging to compute using MCMC methods \cite{xie2011improving}. The closed-form approximation to the posterior distribution provided by variational inference \DIFdelbegin \DIFdel{means we could estimate the marginal likelihood using importance sampling }\DIFdelend \DIFaddbegin \DIFadd{can be used as a proposal distribution for importance sampling \mbox{%DIFAUXCMD
+\cite{burda2015importance}}\hskip0pt%DIFAUXCMD
+}\DIFaddend , a utility provided by TreeFlow. \DIFdelbegin \DIFdel{This corrects for some of the posterior approximation error described above. The log marginal likelihood for the base model was -193606.4 and for the model with kappa variation it was -192414.4}\DIFdelend \DIFaddbegin \DIFadd{Because the importance weights account for the discrepancy between the variational approximation and the true posterior, this produces more accurate marginal likelihood estimates than the variational bound alone}\DIFaddend .
+
+\begin{figure}
+    \centering
+    \begin{subfigure}[t]{0.4\linewidth}
+        \includegraphics[width=\linewidth]{manuscript/figures/carnivores-kappa}
+        \caption{Lineage age (number of expected substitutions per site before the present) vs estimated kappa for carnivores dataset}
+        \label{fig:carnivoreskappa}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.4\linewidth}
+        \includegraphics[width=\linewidth]{manuscript/figures/carnivores-model-trees}
+        \caption{Node age estimates for base model vs per-lineage kappa variation model}
+        \label{fig:carnivorestree}
+    \end{subfigure}
+    \caption{Parameter estimates for per-lineage transition/tranversion ratio (kappa) variation model on carnivores dataset}
+\end{figure}
+
+The estimated per-lineage kappa parameters are shown in Figure \ref{fig:carnivoreskappa}. Kappa estimates decline with increasing age of the lineage, which agrees with the results of the previous studies. The \DIFaddbegin \DIFadd{estimated log }\DIFaddend marginal likelihood for the \DIFaddbegin \DIFadd{base model was -193607.0 and for the model with kappa variation it was -192415.1, indicating that the }\DIFaddend model with transition-transversion ratio variation across lineages \DIFdelbegin \DIFdel{was higher than for the base model}\DIFdelend \DIFaddbegin \DIFadd{is preferred}\DIFaddend . This means that, under the other components of this model, the data supports variation in the ratio. This does not necessarily imply that transition-transversion ratio in the true generative process of the data varies in the same way, but could be a useful consideration in designing more sophisticated models of nucleotide substitution. The growth in uncertainty in kappa estimates deeper in the tree supports previous conclusions that nucleotide substitution models are unable to effectively estimate the number of substitutions on older branches \cite{duchene2015declining}. Figure \ref{fig:carnivorestree} shows that the kappa variation model shortens older branches, leading to a substantially reduced overall tree height estimate, with proportionally similar uncertainty in node height estimates. This is not a proper dating analysis because it does not account for uncertainty in the mutation rate and lacks time calibration. However, it is evident that the inclusion or exclusion of heterogeneity in the transition-transversion ratio affects the time estimates. \DIFdelbegin %DIFDELCMD < 
+
+%DIFDELCMD < \begin{figure}
+%DIFDELCMD < 
+
+%DIFDELCMD <     \inputminted{yaml}{out/h3n2/model.yaml}
+%DIFDELCMD < 
+
+%DIFDELCMD <     %%%
+%DIFDELCMD < \caption{%
+{%DIFAUXCMD
+\DIFdelFL{YAML model definition for the analysis of the influenza dataset}}
+    %DIFAUXCMD
+%DIFDELCMD < \label{fig:fluyaml}
+%DIFDELCMD < \end{figure}
+%DIFDELCMD < %%%
+\DIFdelend \DIFaddbegin \DIFadd{This example demonstrates the power of TreeFlow's probabilistic modelling approach: extending the standard model to include per-lineage kappa variation required only a few lines of code changes (Supplementary Appendix Figure S2), and the variational inference and marginal likelihood estimation machinery could be applied to the new model without any additional implementation effort.
+}\DIFaddend 
+
+\begin{figure}
+    \centering
+    \begin{subfigure}[b]{\linewidth}
+        \includegraphics[width=\linewidth]{manuscript/figures/h3n2-marginals}
+        \caption{Parameter marginal posterior distributions}
+        \label{fig:flumarginals}
+    \end{subfigure}
+
+    \begin{subfigure}[b]{\linewidth}
+        \includegraphics[width=\linewidth]{manuscript/figures/h3n2-trees}
+        \caption{Node height posterior distribution statistics}
+        \label{fig:flutree}
+    \end{subfigure}
+
+    \caption{Parameter estimates from analysis of the influenza dataset}
+\end{figure}
+
+\subsection{Scalable inference}
+
+In the analysis of the 980-taxon influenza dataset, we demonstrate the scalability of variational inference. We performed variational inference using TreeFlow's command line interface. The model used for inference included a coalescent prior with a constant population size on the tree, a strict molecular clock, a discretized Gamma model of site rate variation and a GTR substitution model. The YAML model definition code for this model, including parameter priors, is shown in \DIFdelbegin \DIFdel{Figure \ref{fig:fluyaml}}\DIFdelend \DIFaddbegin \DIFadd{Supplementary Appendix Figure S1}\DIFaddend . This parameterization of the GTR substitution model (here named \texttt{gtr\_rel}), with independent priors on five of the relative rates and one held fixed to 1, is used to allow comparison of parameter estimates with BEAST 2. It is also possible to use a six-rate GTR parameterisation with a Dirichlet prior in TreeFlow such as used in other phylogenetics software \cite{huelsenbeck2001mrbayes, hohna2016revbayes}.
+
+Figure \ref{fig:flumarginals} shows the marginal parameter estimates obtained from this dataset, compared to those obtained from a fixed-topology MCMC analysis using BEAST 2. The posterior distributions of most parameters are approximated with high fidelity by the mean field approximation. The uncertainty in the tree height, coalescent effective population size, and clock rate are slightly underestimated. This is likely a result of using an approximation that ignores the correlations between these parameters that are present in the posterior. The objective function used in ADVI, the KL divergence between the approximating and posterior distributions, heavily penalises regions of the approximation where there is no posterior support, which typically results in low uncertainty estimates.
+
+Figure \ref{fig:flutree} compares the divergence time estimates. TreeFlow's mean field variational approximation assumes the posterior distribution on the times of the tree are independent Normal distributions transformed through the node height ratio transformation to respect the time constraints of the tree. However, the true posterior is almost certainly not of this form, so the approximation introduces error. In general, the mean of the posterior distribution is well approximated, in particular for the oldest seven nodes of the tree. The posterior means of other divergence times are generally close but not identical to the true posterior. The error is more apparent in the posterior uncertainty; the standard deviation estimates produced by variational inference often differ substantially from the posterior estimated by BEAST 2. While mean field variational inference seems effective for estimating the parameters of the phylogenetic model the estimates of divergence times appear less reliable. Variational approximations that better capture the form of the true posterior would improve the quality of these estimates.
+
+BEAST 2 MCMC sampling was run for 30,000,000 iterations using the standard single-threaded MCMC routine. Convergence was checked using \textit{effective sample size} (ESS), which was computed for all parameters using ArviZ \cite{kumar2019arviz}. \DIFdelbegin \DIFdel{Multiple }\DIFdelend \DIFaddbegin \DIFadd{BEAST 2's built-in operator autotuning was used, and multiple preliminary }\DIFaddend runs were performed to \DIFdelbegin \DIFdel{tune MCMC }\DIFdelend \DIFaddbegin \DIFadd{manually adjust }\DIFaddend operator weights to improve ESSs. Generally, the minimum acceptable ESS is 100, though 200 is preferred \cite{drummond2015bayesian}. The analysis resulted in a minimum effective sample size of \DIFdelbegin \DIFdel{125. }\DIFdelend \DIFaddbegin \DIFadd{103. }\DIFaddend The wall clock runtime for the BEAST 2 analysis was \DIFdelbegin \DIFdel{5 hours and 57 }\DIFdelend \DIFaddbegin \DIFadd{6 hours and 21 }\DIFaddend minutes. Convergence for the TreeFlow-based variational inference analysis was \DIFdelbegin \DIFdel{checked visually by examining parameter traces }\DIFdelend \DIFaddbegin \DIFadd{assessed by monitoring the evidence lower bound (ELBO) }\DIFaddend over the optimization routine \DIFaddbegin \DIFadd{and visually examining parameter traces}\DIFaddend . The TreeFlow analysis converged in \DIFdelbegin \DIFdel{20}\DIFdelend \DIFaddbegin \DIFadd{22}\DIFaddend ,000 iterations which took \DIFdelbegin \DIFdel{3 hours and 3 }\DIFdelend \DIFaddbegin \DIFadd{10 hours and 30 }\DIFaddend minutes. This \DIFdelbegin \DIFdel{shows }\DIFdelend \DIFaddbegin \DIFadd{demonstrates }\DIFaddend that variational inference with TreeFlow is a \DIFdelbegin \DIFdel{reasonable }\DIFdelend \DIFaddbegin \DIFadd{viable }\DIFaddend option for large phylogenetic datasets\DIFaddbegin \DIFadd{, providing substantial speed improvements over MCMC }\DIFaddend despite the more expensive gradient computations required\DIFdelbegin \DIFdel{, and that }\DIFdelend \DIFaddbegin \DIFadd{. }\DIFaddend TreeFlow's \DIFdelbegin \DIFdel{slower }\DIFdelend phylogenetic likelihood implementation performs well enough to be useful in real-world inference scenarios\DIFdelbegin \DIFdel{where the sacrifice in accuracy from the variational approximation is permissible}\DIFdelend \DIFaddbegin \DIFadd{, and the entire analysis was specified using TreeFlow's YAML model definition format (Supplementary Appendix Figure S1) without any custom code}\DIFaddend .
+
+\section{Benchmarks}
+\label{benchmarks}
+
+The phylogenetic likelihood is the computation that dominates the computational cost of model-based phylogenetic inference. We benchmark the performance of our TensorFlow-based likelihood implementation against specialized libraries. Since gradient computations are of equal importance to likelihood evaluations in modern automatic inference regimes, we also benchmark computation of derivatives of the phylogenetic likelihood, with respect to both the continuous elements of the tree and the parameters of the substitution model. A clear difference emerges in the implementation of derivatives; TreeFlow's are based on automatic differentiation while bespoke libraries need analytically-derived gradients. Therefore, we do not necessarily expect our implementation to be as fast as bespoke software, but it does not rely on analytical derivation of gradient expressions for every model and therefore automatically supports a wider range of models.
+
+We compare the performance of TreeFlow's likelihood implementation against BEAGLE \cite{ayres2019beagle}. BEAGLE is a library for high-performance computation of phylogenetic likelihoods. Recent versions of BEAGLE implement analytical gradients with respect to tree branch lengths \cite{ji2020gradients}. We use BEAGLE via the \texttt{bito} software package \cite{bito}, which provides a Python interface to BEAGLE's branch length gradients and also numerically computes derivatives with respect to substitution model parameters using a finite differences approximation. This hybrid approach has been shown to perform as well as fully analytical substitution model parameter gradients on large datasets \cite{fourment2023automatic}.
+
+We also compare TreeFlow with a simple likelihood implementation \cite{phylojax} based on another automatic differentiation framework, JAX \cite{jax2018github}. JAX uses an eager execution model where execution of an operation immediately results in the computation being performed. In contrast, TensorFlow's function mode, which is used by TreeFlow in the benchmarks, constructs a graph representation of the computation which is processed and can then be executed. As a result the phylogenetic likelihood in JAX can be implemented with native Python control flow even with a dynamic tree topology.
+
+Benchmarks are performed on simulated data. Simulation allows the generation of a large number of data replicates with appropriate properties. Since we want to investigate the scaling of likelihood and gradient calculations with respect to the number of sequences, we simulate data for a range of sequence counts. Sequence counts are selected as increasing powers of 2 to better display asymptotic properties of the implementations. We simulate data with sequence counts ranging from 32 to 2048. Trees are simulated under a coalescent model for a given number of taxa, and then nucleotide sequences of length 1000 are simulated under a fixed rate of evolution and a HKY substitution model. Tree and sequence simulations are performed using BEAST 2 \cite{bouckaert2019beast}.
+
+We benchmark \DIFdelbegin \DIFdel{4 }\DIFdelend \DIFaddbegin \DIFadd{four }\DIFaddend distinct computations on these datasets. Firstly, for each replicate we compute the phylogenetic likelihood under a very simple model of sequence evolution. This uses a Jukes-Cantor model of nucleotide substitution and no model of site rate variation. Secondly, we calculate derivatives with respect to branch lengths under this simple model. Thirdly, we compute the likelihood under a more sophisticated substitution model, with a discretized Weibull distribution with \DIFdelbegin \DIFdel{4 }\DIFdelend \DIFaddbegin \DIFadd{four }\DIFaddend rate categories to model site rate variation and a GTR model of nucleotide substitution. This Weibull distribution is used for site rate variation in \texttt{bito} instead of the widely used Gamma distribution because its inverse cumulative distribution function (required for computing rates for the discretized categories) has a simpler form. Because this is a minor part of the computation, only performed once for each rate category per likelihood evaluation, TreeFlow's scaling should be unaffected if the standard Gamma distribution is used. Finally, we compute derivatives with respect to both branch lengths and the parameters of the substitution model (the \DIFdelbegin \DIFdel{6 }\DIFdelend \DIFaddbegin \DIFadd{six }\DIFaddend GTR relative substitution rates, \DIFdelbegin \DIFdel{4 }\DIFdelend \DIFaddbegin \DIFadd{four }\DIFaddend base nucleotide frequencies, and the Weibull site rate shape parameter). Each computation is performed 100 times on 10 simulated datasets.
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{manuscript/figures/benchmark-log-scale-plot}
+    \caption{Times from phylogenetic likelihood benchmark (100 evaluations for 1000 sites)}
+    \label{fig:benchmark}
+\end{figure}
+
+\begin{table}
+    \centering
+    \begin{tabular}{lllrr}
+\toprule
+ &  &  & Mean time (512 taxa) & log-log slope \\
+Model & Computation & Method &  &  \\
+\midrule
+\multirow[t]{6}{*}{JC} & \multirow[t]{3}{*}{Likelihood} & TreeFlow & \DIFdelbeginFL \DIFdelFL{6.23 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{4.16 }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{1.13 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{1.19 }\DIFaddendFL \\
+ &  & bito/BEAGLE & \DIFdelbeginFL \DIFdelFL{0.16 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{0.07 }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{1.27 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{1.07 }\DIFaddendFL \\
+ &  & JAX & \DIFdelbeginFL \DIFdelFL{168.79 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{23.65 }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{1.15 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{1.01 }\DIFaddendFL \\
+ & \multirow[t]{3}{*}{Gradients} & TreeFlow & \DIFdelbeginFL \DIFdelFL{14.55 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{11.98 }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{1.23 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{1.36 }\DIFaddendFL \\
+ &  & bito/BEAGLE & \DIFdelbeginFL \DIFdelFL{0.87 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{0.43 }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{1.33 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{1.25 }\DIFaddendFL \\
+ &  & JAX & \DIFdelbeginFL \DIFdelFL{644.22 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{312.68 }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{1.19 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{1.11 }\DIFaddendFL \\
+\multirow[t]{6}{*}{GTR/Weibull} & \multirow[t]{3}{*}{Likelihood} & TreeFlow & \DIFdelbeginFL \DIFdelFL{10.73 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{10.52 }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{1.12 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{1.16 }\DIFaddendFL \\
+ &  & bito/BEAGLE & \DIFdelbeginFL \DIFdelFL{0.58 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{0.26 }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{1.40 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{1.23 }\DIFaddendFL \\
+ &  & JAX & \DIFdelbeginFL \DIFdelFL{908.24 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{65.39 }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{1.58 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{1.27 }\DIFaddendFL \\
+ & \multirow[t]{3}{*}{Gradients} & TreeFlow & \bfseries \DIFdelbeginFL \DIFdelFL{36.14 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{41.00 }\DIFaddendFL & \bfseries \DIFdelbeginFL \DIFdelFL{1.34 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{1.27 }\DIFaddendFL \\
+ &  & bito/BEAGLE & \bfseries \DIFdelbeginFL \DIFdelFL{14.74 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{6.84 }\DIFaddendFL & \bfseries \DIFdelbeginFL \DIFdelFL{1.41 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{1.31 }\DIFaddendFL \\
+ &  & JAX & \bfseries \DIFdelbeginFL \DIFdelFL{2801.35 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{533.91 }\DIFaddendFL & \bfseries \DIFdelbeginFL \DIFdelFL{1.58 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{1.17 }\DIFaddendFL \\
+\bottomrule
+\end{tabular}
+
+    \caption{Results of phylogenetic likelihood benchmark. Times for gradients for the GTR/Weibull are highlighted as they are the most relevant computation for gradient-based inference on real data.}
+    \label{tab:benchmarkfit}
+\end{table}
+
+Figure \ref{fig:benchmark} shows the results of the benchmarks with a log scale on both axes. For likelihood computation with both models and branch gradient computation with the simple model \texttt{bito}/BEAGLE are at least an order of magnitude faster than TreeFlow. This is expected as BEAGLE is a highly optimized special-purpose library written in native code. The performance gap grows much smaller for computing the gradients of the more complex substitution model. \texttt{bito} performs at least 2 likelihood evaluations for each additional parameter when calculating the gradient with respect to substitution model parameters, while the overhead for substitution model parameters with automatic differentiation is minimal. As a result, it is likely that TreeFlow would be a reasonable choice compared to \texttt{bito}/BEAGLE for substitution models with even more parameters (e.g. amino acid substitution models \cite{adachi1996model}), or those where the number of parameters grows with the number of sequences, as in the example using the carnivore dataset above.
+
+For typical real-world phylogenetic analyses, a model with many parameters, such as the GTR/Weibull model in our benchmarks, is used. For modern Bayesian inference methods such as variational inference and Hamiltonian Monte Carlo, the gradient is the primary computation performed at each iteration. We observe that TreeFlow's times for this combination of model and computation are within an order of magnitude of \texttt{bito}/BEAGLE's, around 2-3 times slower. Therefore for applied analyses the automatic differentiation-based computations of TreeFlow presents a reasonable alternative to specialized software while simultaneously offering greater flexibility.
+
+We also observe that the runtimes for TreeFlow are roughly an order of magnitude less than those of the JAX-based implementation. These indicate that the control flow constructs and execution model of TensorFlow are a good choice for implementing tree-based computations compared to the eager execution model of JAX.
+
+Table \ref{tab:benchmarkfit} shows the coefficients obtained from fitting a linear model to the benchmark times where the predictor is the log-transformed number of sequences and the target is the log-transformed runtime. The slope parameter estimates from these fits is a rough empirical estimate of the polynomial degree of the computational scaling. The slope parameters for all TreeFlow computations are well below 2 and indicate a roughly linear scaling with the size of the data. For the JC benchmark, the only gradients computed are with respect to branch lengths, so the whole computation for \texttt{bito}/BEAGLE is the analytical linear-time branch gradient. TreeFlow's scaling is certainly not worse in this case, indicating that the TensorArray-based likelihood implementation enables linear-time branch gradients.
+
+\section{Discussion}
+
+The \DIFaddbegin \DIFadd{probabilistic modelling approach enabled by the TreeFlow Python API in conjunction with TensorFlow Probability has similar goals to other phylogenetic probabilistic modelling software. Two notable examples, RevBayes \mbox{%DIFAUXCMD
+\cite{hohna2016revbayes} }\hskip0pt%DIFAUXCMD
+and Blang \mbox{%DIFAUXCMD
+\cite{bouchard2022blang} }\hskip0pt%DIFAUXCMD
+provide a generic model definition and inference engine which also support phylogenetic models and tree inference. Some notable differences exist between TreeFlow and these which may prove advantageous for certain users. Firstly, RevBayes requires the user to manually specify an MCMC operator scheme, including parameters and weights. This may require substantial user time and expertise to achieve correct and efficient inference. Blang and TreeFlow, on the other hand, are focused on automatic inference methods that require less user input. Secondly, TreeFlow and its Python model specification API are implemented in a widely used computational framework (TensorFlow) and programming language (Python). As a result it can potentially leverage other computational tools implemented in TensorFlow, including less common distributions, machine learning models, differential equation solvers and alternative inference schemes. The automatic differentiation capabilities TensorFlow affords mean TreeFlow can interface with the large and growing collection of models that rely on gradient-based inference. On the other hand, the choice of computational framework incurs a performance cost as evidenced by the results of benchmarking. Blang models can make use of external Java code, but the ecosystem of related software in Java is less developed, and RevBayes does not provide any functionality for interfacing with software that is not implemented in the Rev language.
+}
+
+\DIFadd{The }\DIFaddend combination of flexibility and scalability of libraries like TreeFlow has the potential to be useful for rapid analysis of large modern genetic datasets, such as those assembled for tracking infectious diseases \cite{hadfield2018nextstrain}. For this purpose, TreeFlow's true power would be unlocked with the implementation of improved modelling and inference tools for evolutionary rates and population dynamics.
+
+For principled dating analyses, uncertainty in evolutionary rate parameters must be considered. Posterior distributions involving these parameters may have significant correlation structure which would be ignored by variational inference using a mean-field posterior approximation. These parameters typically receive special treatment in MCMC sampling routines \cite{drummond2006relaxed, zhang2020improving}. As observed in our analysis on the influenza dataset, the mean field approximation fails to accurately capture the posterior distribution on all internal divergence time estimates. Implementing structured posterior approximations for these models could substantially improve the reliability of parameter estimates obtained using variational inference while scaling to extremely large datasets. \DIFaddbegin \DIFadd{For example, the known correlation between the clock rate and tree height could be captured by using a block-diagonal covariance structure in the variational family, or by applying normalizing flows \mbox{%DIFAUXCMD
+\cite{rezende2015variational} }\hskip0pt%DIFAUXCMD
+to model more complex dependencies.
+}\DIFaddend 
+
+Additionally, implementing flexible models for population dynamics, such as nonparametric coalescent models \cite{drummond2005bayesian, minin2008smooth, gill2013improving}, could provide valuable insights from large datasets. These models would result in complex posterior distributions, which would need to be accounted for in a variational inference scheme. If these coalescent models could be made to work effectively in TreeFlow, the probabilistic graphical modelling paradigm would allow for rapid computational experimentation with novel models of time-varying population parameters.
+
+Finally, the most significant functionality for phylogenetic inference missing from TreeFlow is inference of the tree topology. TreeFlow's tree representation could allow for the topology to become an estimated parameter, such as in existing work on variational Bayesian phylogenetic inference \cite{zhang2018variational}. Efficiently implementing the computations required for these algorithms in the TensorFlow framework would \DIFdelbegin \DIFdel{certainly }\DIFdelend be a major computational challenge, but would be supported by TreeFlow's representation of the tree topology as a dynamic variable inside the computational graph. \DIFdelbegin %DIFDELCMD < 
+
+%DIFDELCMD < %%%
+\DIFdel{The probabilistic modelling approach enabled by the TreeFlow Python API in conjunction with TensorFlow Probability has similar goals to other phylogenetic probabilistic modelling software. Two notable examples, RevBayes \mbox{%DIFAUXCMD
+\cite{hohna2016revbayes} }\hskip0pt%DIFAUXCMD
+and Blang \mbox{%DIFAUXCMD
+\cite{bouchard2022blang} }\hskip0pt%DIFAUXCMD
+provide a generic model definition and inference engine which also support phylogenetic models and tree inference. Some notable differences exist between TreeFlow and these which may prove advantageous for certain users. Firstly, RevBayes requires the user to manually specify an MCMC operator scheme, including parameters and weights. This may require substantial user time and expertise to achieve correct and efficient inference. Blang and TreeFlow, on the other hand, are focused on automatic inference methods that require less user input. Secondly, TreeFlowand it's Python model specification API are implemented in a widely used computational framework (TensorFlow) and programming language (Python). As a result it can potentially leverage other computational tools implemented in TensorFlow, including less common distributions, machine learning models, differential equation solvers and alternative inference schemes. The automatic differentiation capabilities TensorFlow affords mean TreeFlow can interface with the large and growing collection of models that rely on gradient-based inference. On the other hand, the choice of computational framework incurs a performance cost as evidenced by the results of benchmarking. Blang models can make use of external Java code, but the ecosystem of related software in Java is less developed, and RevBayes does not provide any functionality for interfacing with software that is not implemented in the Rev language}\DIFdelend \DIFaddbegin \DIFadd{A promising direction would be to combine TreeFlow's existing model components and gradient computations with a variational distribution over tree topologies, such as the subsplit Bayesian network approach \mbox{%DIFAUXCMD
+\cite{zhang2018generalizing}}\hskip0pt%DIFAUXCMD
+, enabling joint inference of topology and continuous parameters}\DIFaddend .
+
+\section{Conclusion}
+
+TreeFlow is a software library that provides tools for statistical modelling and inference on phylogenetic problems. Probabilistic graphical modelling provides flexible model definition involving phylogenetic trees and molecular sequences, and automatic differentiation enables the application of modern scalable inference algorithms with a fixed tree topology. TreeFlow's automatic differentiation-based implementations of core gradient computations provide reasonable performance compared to specialized phylogenetic libraries. These building blocks have the potential to be used in valuable phylogenetic analyses of large and complex genetic datasets, and with the next generation of inference methods that can accelerate the inference of tree topologies using gradient information.
+
+\section{Availability}
+
+TreeFlow is an open-source Python package. Instructions for installing TreeFlow, and examples of using it as a library and command line application can be found at \url{https://github.com/christiaanjs/treeflow}. The manual for TreeFlow can be found at \url{https://treeflow.readthedocs.io}.
+
+\section{Data availability}
+
+Datasets, model definitions, starting values, and BEAST 2 XML files used in the biological examples are available at \url{https://github.com/christiaanjs/treeflow-paper/releases/tag/v0.0.1} or \url{https://doi.org/10.5061/dryad.v6wwpzh0p}.
+
+\section{Conflicts of Interest}
+
+The authors declare that there are no conflicts of interest.
+
+
+%DIF > If you have any acknowledgements, please include them here.
+%DIF > \section{Acknowledgements}
+\DIFaddbegin 
+
+%DIF > If your paper has accompanying supplementary data, please include the below statement in your PDF.
+%DIF > \section{Supplementary Material}
+%DIF > Data available from the Dryad Digital Repository:
+%DIF >  \href{http://dx.doi.org/10.5061/dryad.[NNNN]}%
+%DIF >  {http://dx.doi.org/10.5061/dryad.[NNNN]}.
+%DIF > \url{http://dx.doi.org/10.5061/dryad.[NNNN]}.
+
+\bigskip\bigskip
+
+%DIF >  REFERENCES
+
+%DIF >  The best way to enter references is to use BibTeX.
+
+\DIFaddend \bibliography{main}
+\DIFaddbegin 
+
+%DIF >  Alternatively you could enter them by hand, like this:
+
+%DIF >  1. All authors should be listed i.e. no use of et al.
+%DIF >  2. Dashes should not be used to replace author names in repeat entries
+
+%DIF >  Please include any figure captions on a separate page after the references. Figures themselves should be embedded in the text.
+
+%DIF > \begin{figure}[!p]
+%DIF > \centering\includegraphics{fig1}
+%DIF > \caption{Figure caption}
+%DIF > \label{Fig1}
+%DIF > \end{figure}
+
+
+%DIF > \begin{table}[!p]
+%DIF >  1. Table titles should be in caps and lowercase
+%DIF >  2. Footnotes can be used in Tables (a,b,c)}
+%DIF > \tblcaption{Table title
+%DIF > \label{Table1}}
+%DIF > {\tabcolsep=4.25pt
+%DIF > \begin{tabular}{@{}cccccccccc@{}}
+%DIF > \tblhead{Heading & Heading & Heading & Heading & Heading}
+%DIF > Value & Value & Value & Value & Value 
+%DIF > \lastline
+%DIF > \end{tabular}}
+%DIF > \end{table}
+
+%DIF > If you have any print appendices, please include them at the end of the document.
+\DIFaddend 
+
+\end{document}
