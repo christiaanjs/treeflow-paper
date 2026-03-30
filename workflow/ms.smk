@@ -4,6 +4,7 @@ import pandas as pd
 import treeflow_pipeline.model
 from treeflow_pipeline.util import yaml_input, text_input, text_output
 import treeflow_pipeline.manuscript
+import treeflow_pipeline.diff
 
 import treeflow
 import treeflow_benchmarks
@@ -28,6 +29,7 @@ submission_dir = manuscript_dir / "submission"
 minted_cache_dir = "minted-cache"
 dataset_dir = "{dataset}"
 supplementary_data_dir = pathlib.Path("supplementary-data")
+diff_base_commit = "ecc3dd2fae34bcebf706078be366e863a7f4fc2d"
 
 rule ms:
     input:
@@ -37,6 +39,27 @@ rule ms:
         manuscript_dir / "out" / "response-letter.pdf"
         #supplementary_data_dir / config["flu_dataset"] / "beast.xml",
         #supplementary_data_dir / "carnivores" / "beast.xml",
+
+rule ms_diff:
+    input:
+        manuscript_dir / "out" / "treeflow-diff.pdf"
+
+rule extract_old_treeflow_tex:
+    output: temp(manuscript_dir / "out" / "treeflow-old.tex")
+    params:
+        commit = diff_base_commit,
+        tex_path = "manuscript/out/treeflow.tex"
+    shell:
+        "git show {params.commit}:{params.tex_path} > {output}"
+
+rule latexdiff_treeflow:
+    input:
+        old = manuscript_dir / "out" / "treeflow-old.tex",
+        new = manuscript_dir / "out" / "treeflow.tex"
+    output:
+        manuscript_dir / "out" / "treeflow-diff.tex"
+    run:
+        text_output(treeflow_pipeline.diff.run_latexdiff(input.old, input.new), output[0])
 
 APPROXES = ["mean_field", "scaled"] # TODO: Where to store these in common?
 methods = ["beast"] + expand("variational-samples-{approx}", approx=APPROXES)
@@ -335,6 +358,91 @@ rule treeflow_submission_zip:
         """
         cd {params.submission_dir}
         zip -r {params.output} . -x {params.minted_cache_prefix}* *.pdf
+        """
+
+submission_figures_dir = manuscript_dir / "out" / "figures"
+
+# Ordered mapping of submission figure names to source files.
+# Subfigures within the same figure environment use letter suffixes (e.g. 3a, 3b).
+submission_figures = {
+    "figure-1": manuscript_dir / "out" / "architecture.pdf",
+    "figure-2": manuscript_dir / "figures" / "carnivores-marginals.png",
+    "figure-3": manuscript_dir / "out" / "figure-3.pdf",
+    "figure-4": manuscript_dir / "out" / "figure-4.pdf",
+    "figure-5": manuscript_dir / "figures" / "benchmark-log-scale-plot.png",
+}
+
+rule compile_architecture_figure:
+    input: manuscript_dir / "tex" / "architecture.tex"
+    output: manuscript_dir / "out" / "architecture.pdf"
+    params:
+        output_dir = str(manuscript_dir / "out"),
+        tex_inputs = manuscript_dir / "tex"
+    shell:
+        """
+        export TEXINPUTS=.:{params.tex_inputs}:
+        pdflatex -output-directory={params.output_dir} {input}
+        """
+
+rule extract_compound_figure_3:
+    input: manuscript_dir / "out" / "treeflow.tex"
+    output: manuscript_dir / "out" / "figure-3.tex"
+    run:
+        text_output(treeflow_pipeline.diff.extract_compound_figure_tex(input[0], 0), output[0])
+
+rule extract_compound_figure_4:
+    input: manuscript_dir / "out" / "treeflow.tex"
+    output: manuscript_dir / "out" / "figure-4.tex"
+    run:
+        text_output(treeflow_pipeline.diff.extract_compound_figure_tex(input[0], 1), output[0])
+
+rule compile_compound_figure:
+    input: manuscript_dir / "out" / "figure-{n}.tex"
+    output: manuscript_dir / "out" / "figure-{n}.pdf"
+    params:
+        output_dir = str(manuscript_dir / "out"),
+        tex_inputs = manuscript_dir / "tex"
+    shell:
+        """
+        export TEXINPUTS=.:{params.tex_inputs}:
+        pdflatex -output-directory={params.output_dir} {input}
+        """
+
+ruleorder: compile_compound_figure > compile_ms
+
+rule copy_submission_figures:
+    input:
+        **{name: src for name, src in submission_figures.items()}
+    output:
+        **{name: submission_figures_dir / (name + pathlib.Path(str(src)).suffix)
+           for name, src in submission_figures.items()}
+    run:
+        pathlib.Path(str(submission_figures_dir)).mkdir(parents=True, exist_ok=True)
+        for key in input.keys():
+            shell(f"cp {{input[key]}} {{output[key]}}")
+
+rule ms_figures:
+    input: list(rules.copy_submission_figures.output)
+
+rule extract_benchmark_table:
+    input: manuscript_dir / "out" / "treeflow.tex"
+    output: manuscript_dir / "out" / "table-1.tex"
+    run:
+        text_output(treeflow_pipeline.diff.extract_table_tex(input[0], remove_caption=True), output[0])
+
+rule ms_tables:
+    input: manuscript_dir / "out" / "table-1.pdf"
+
+rule compile_table_tex:
+    input: manuscript_dir / "out" / "table-1.tex"
+    output: manuscript_dir / "out" / "table-1.pdf"
+    params:
+        output_dir = str(manuscript_dir / "out"),
+        tex_inputs = manuscript_dir / "tex"
+    shell:
+        """
+        export TEXINPUTS=.:{params.tex_inputs}:
+        pdflatex -output-directory={params.output_dir} {input}
         """
 
 rule compile_ms:

@@ -1,0 +1,27 @@
+\documentclass{article}
+\usepackage{booktabs}
+\usepackage{multirow}
+\begin{document}
+\begin{table}
+    \centering
+    \begin{tabular}{lllrr}
+\toprule
+ &  &  & Mean time (512 taxa) & log-log slope \\
+Model & Computation & Method &  &  \\
+\midrule
+\multirow[t]{6}{*}{JC} & \multirow[t]{3}{*}{Likelihood} & TreeFlow & 4.16 & 1.19 \\
+ &  & bito/BEAGLE & 0.07 & 1.07 \\
+ &  & JAX & 23.65 & 1.01 \\
+ & \multirow[t]{3}{*}{Gradients} & TreeFlow & 11.98 & 1.36 \\
+ &  & bito/BEAGLE & 0.43 & 1.25 \\
+ &  & JAX & 312.68 & 1.11 \\
+\multirow[t]{6}{*}{GTR/Weibull} & \multirow[t]{3}{*}{Likelihood} & TreeFlow & 10.52 & 1.16 \\
+ &  & bito/BEAGLE & 0.26 & 1.23 \\
+ &  & JAX & 65.39 & 1.27 \\
+ & \multirow[t]{3}{*}{Gradients} & TreeFlow & \bfseries 41.00 & \bfseries 1.27 \\
+ &  & bito/BEAGLE & \bfseries 6.84 & \bfseries 1.31 \\
+ &  & JAX & \bfseries 533.91 & \bfseries 1.17 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\end{document}
