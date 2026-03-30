@@ -409,6 +409,18 @@ rule extract_benchmark_table:
 rule ms_tables:
     input: manuscript_dir / "out" / "table-1.pdf"
 
+rule compile_table_tex:
+    input: manuscript_dir / "out" / "table-1.tex"
+    output: manuscript_dir / "out" / "table-1.pdf"
+    params:
+        output_dir = str(manuscript_dir / "out"),
+        tex_inputs = manuscript_dir / "tex"
+    shell:
+        """
+        export TEXINPUTS=.:{params.tex_inputs}:
+        pdflatex -output-directory={params.output_dir} {input}
+        """
+
 rule compile_ms:
     input:
         main = manuscript_dir / "out" / "{manuscript}.tex",
