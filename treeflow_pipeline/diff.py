@@ -101,13 +101,16 @@ def run_latexdiff(old_tex, new_tex):
     return preamble_m.group(1) + new_header_m.group(1) + diff_body_m.group(1)
 
 
-def extract_table_tex(treeflow_tex):
+def extract_table_tex(treeflow_tex, remove_caption=False):
     """Extract the first table environment from treeflow.tex as a standalone document.
 
     Parameters
     ----------
     treeflow_tex : str
         Path to the compiled treeflow.tex manuscript file.
+    remove_caption : bool
+        If True, strip ``\\caption{...}`` and ``\\label{...}`` from the
+        extracted table body before wrapping.
 
     Returns
     -------
@@ -120,6 +123,11 @@ def extract_table_tex(treeflow_tex):
     if not m:
         raise ValueError(f"No table environment found in {treeflow_tex}")
     table_body = m.group(1)
+    if remove_caption:
+        table_body = re.sub(
+            r"\s*\\caption\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}", "", table_body
+        )
+        table_body = re.sub(r"\s*\\label\{[^{}]*\}", "", table_body)
     return (
         "\\documentclass{article}\n"
         "\\usepackage{booktabs}\n"

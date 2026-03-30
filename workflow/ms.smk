@@ -428,7 +428,7 @@ rule extract_benchmark_table:
     input: manuscript_dir / "out" / "treeflow.tex"
     output: manuscript_dir / "out" / "table-1.tex"
     run:
-        text_output(treeflow_pipeline.diff.extract_table_tex(input[0]), output[0])
+        text_output(treeflow_pipeline.diff.extract_table_tex(input[0], remove_caption=True), output[0])
 
 rule ms_tables:
     input: manuscript_dir / "out" / "table-1.pdf"
