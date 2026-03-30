@@ -425,6 +425,46 @@ rule treeflow_submission_zip:
         zip -r {params.output} . -x {params.minted_cache_prefix}* *.pdf
         """
 
+submission_figures_dir = manuscript_dir / "out" / "figures"
+
+# Ordered mapping of submission figure names to source files.
+# Subfigures within the same figure environment use letter suffixes (e.g. 3a, 3b).
+submission_figures = {
+    "figure-1":  manuscript_dir / "out" / "architecture.pdf",
+    "figure-2":  manuscript_dir / "figures" / "carnivores-marginals.png",
+    "figure-3a": manuscript_dir / "figures" / "carnivores-kappa.png",
+    "figure-3b": manuscript_dir / "figures" / "carnivores-model-trees.png",
+    "figure-4a": manuscript_dir / "figures" / "h3n2-marginals.png",
+    "figure-4b": manuscript_dir / "figures" / "h3n2-trees.png",
+    "figure-5":  manuscript_dir / "figures" / "benchmark-log-scale-plot.png",
+}
+
+rule compile_architecture_figure:
+    input: manuscript_dir / "tex" / "architecture.tex"
+    output: manuscript_dir / "out" / "architecture.pdf"
+    params:
+        output_dir = str(manuscript_dir / "out"),
+        tex_inputs = manuscript_dir / "tex"
+    shell:
+        """
+        export TEXINPUTS=.:{params.tex_inputs}:
+        pdflatex -output-directory={params.output_dir} {input}
+        """
+
+rule copy_submission_figures:
+    input:
+        **{name: src for name, src in submission_figures.items()}
+    output:
+        **{name: submission_figures_dir / (name + pathlib.Path(str(src)).suffix)
+           for name, src in submission_figures.items()}
+    run:
+        pathlib.Path(str(submission_figures_dir)).mkdir(parents=True, exist_ok=True)
+        for key in input.keys():
+            shell(f"cp {{input[key]}} {{output[key]}}")
+
+rule ms_figures:
+    input: list(rules.copy_submission_figures.output)
+
 rule compile_ms:
     input:
         main = manuscript_dir / "out" / "{manuscript}.tex",
