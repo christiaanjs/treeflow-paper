@@ -4,7 +4,7 @@ import pandas as pd
 import treeflow_pipeline.model
 from treeflow_pipeline.util import yaml_input, text_input, text_output
 import treeflow_pipeline.manuscript
-from ms_helpers import run_latexdiff, extract_table_tex
+import treeflow_pipeline.diff
 
 import treeflow
 import treeflow_benchmarks
@@ -59,7 +59,7 @@ rule latexdiff_treeflow:
     output:
         manuscript_dir / "out" / "treeflow-diff.tex"
     run:
-        text_output(run_latexdiff(input.old, input.new), output[0])
+        text_output(treeflow_pipeline.diff.run_latexdiff(input.old, input.new), output[0])
 
 APPROXES = ["mean_field", "scaled"] # TODO: Where to store these in common?
 methods = ["beast"] + expand("variational-samples-{approx}", approx=APPROXES)
@@ -404,7 +404,7 @@ rule extract_benchmark_table:
     input: manuscript_dir / "out" / "treeflow.tex"
     output: manuscript_dir / "out" / "table-1.tex"
     run:
-        text_output(extract_table_tex(input[0]), output[0])
+        text_output(treeflow_pipeline.diff.extract_table_tex(input[0]), output[0])
 
 rule ms_tables:
     input: manuscript_dir / "out" / "table-1.pdf"
