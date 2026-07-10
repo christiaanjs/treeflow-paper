@@ -144,11 +144,14 @@ specify. Is there no variance around the TreeFlow distribution estimates or is
 the variance so small that it is not visible? Please clarify in the caption.
 
 *** RESPONSE: *****************************************************************
-Clarified. The caption now states that the grey band around each BEAST 2 density
-is the Monte Carlo sampling error of the MCMC estimate, obtained by bootstrapping
-the MCMC samples, and that no comparable band is shown for the TreeFlow VI
-densities because the draws from the fitted variational approximation are
-independent, making their Monte Carlo error negligible.
+Clarified, and we have gone further. The caption now states that the grey band
+around each BEAST 2 density is the Monte Carlo sampling error of the MCMC
+estimate, obtained by bootstrapping the MCMC samples. In addition, we now also
+show a Monte Carlo error band for the TreeFlow VI estimates: we ran the
+variational inference four times independently and use the variability between
+the runs as the error estimate, with the plotted curve showing the posterior
+pooled across the runs. This directly answers the reviewer's question about the
+variance around the TreeFlow estimates.
 ******************************************************************************
 
 --------------------------------------------------------------------------------

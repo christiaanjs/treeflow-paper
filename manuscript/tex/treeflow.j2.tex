@@ -178,7 +178,7 @@ In the carnivores dataset, we demonstrate the flexibility of probabilistic model
 \begin{figure}\VAR{figuresuffix}
     \centering
     \VAR{ figures("carnivores_marginals", "[width=\\linewidth]") }
-    \caption{Posterior marginal parameter estimates for the carnivores base model (a single transition/transversion ratio, kappa, shared across the whole tree), comparing TreeFlow variational inference (Treeflow VI, teal) with BEAST 2 MCMC (Beast 2, red). The grey band around each BEAST 2 density represents the Monte Carlo sampling error of the MCMC estimate, obtained by bootstrapping the MCMC samples. No comparable band is shown for the TreeFlow VI densities because the draws from the fitted variational approximation are independent, making their Monte Carlo error negligible.}
+    \caption{Posterior marginal parameter estimates for the carnivores base model (a single transition/transversion ratio, kappa, shared across the whole tree), comparing TreeFlow variational inference (Treeflow VI, teal) with BEAST 2 MCMC (Beast 2, red). The solid curves show the estimated marginal posteriors and the shaded bands represent the Monte Carlo error of each estimate. For BEAST 2 the band is obtained by bootstrapping the MCMC samples; for TreeFlow VI it is estimated from the variability between four independent variational runs, with the curve showing the posterior pooled across those runs.}
     \label{fig:carnivoresmarginals}
 \end{figure}
 

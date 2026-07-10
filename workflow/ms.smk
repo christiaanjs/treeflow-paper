@@ -164,6 +164,23 @@ rule carnivores_tree_plot:
     script:
         "../scripts/carnivores-tree-plot.R"
 
+# The carnivores marginals figure uses the multiple-run base-model samples from
+# the example notebook (annotated with a `run` column) so that a Monte Carlo
+# error band can be shown for TreeFlow from the between-run variability. This
+# takes precedence over the generic data_marginals_plot rule for carnivores.
+ruleorder: carnivores_marginals_plot > data_marginals_plot
+
+rule carnivores_marginals_plot:
+    input:
+        vi_samples = treeflow_dir / "examples" / "demo-out" / "carnivores-base-samples.csv",
+        beast_samples = out_dir / "carnivores" / "beast.log"
+    output:
+        manuscript_dir / "figures" / "carnivores-marginals.png"
+    params:
+        python_executable = sys.executable
+    script:
+        "../scripts/carnivores-marginals-plot.R"
+
 rule data_tree_plot:
     input:
         vi_tree_samples = out_dir / "{dataset}" / "variational-tree-samples.nexus",
