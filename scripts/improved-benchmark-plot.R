@@ -1,21 +1,61 @@
-# plotDataPath <- "/home/christiaan/uni/treeflow-benchmarks/out/plot-data.csv"
-# outFile <- "manuscript/figures/benchmark-log-scale-plot.png"
-# pythonExecutable <- "/home/christiaan/.pyenv/versions/3.8.13/envs/treeflow/bin/python3.8"
+# Regenerates the phylogenetic likelihood benchmark figure (Figure 5).
+#
+# Layout: one panel per benchmarked task (model x computation), with the three
+# software implementations (TreeFlow, bito/BEAGLE, JAX) shown as separate series.
+# This makes the difference in scaling (the slope on log-log axes) between the
+# implementations directly comparable within each task, addressing the reviewer
+# suggestion to split the benchmark results by task rather than by software.
+#
+# Previously this plot faceted by software with the four tasks as coloured lines
+# (via treeflowbenchmarksr::comparisonPlot); it is now self-contained and reads
+# plot-data.csv directly.
 
+library(readr)
+library(dplyr)
+library(ggplot2)
 
 plotDataPath <- snakemake@input[["plot_data"]]
 outFile <- snakemake@output[["plot"]]
-pythonExecutable <- snakemake@params[["python_executable"]]
-reticulate::use_python(pythonExecutable)
-pythonModule <- reticulate::import("treeflow_pipeline.manuscript")
-renameFunc <- pythonModule$get_benchmark_colname
+
 df <- readr::read_csv(plotDataPath, show_col_types = FALSE)
-remappedDf <- pythonModule$remap_and_sort_benchmark_df(df)
-ggsaveArgs <- list(width = 8, height = 3)
-plot <- treeflowbenchmarksr::comparisonPlot(
-    remappedDf,
-    renameFunc = renameFunc,
-    colorFunc = purrr::partial(paste, sep = ", ")
+
+# Display labels matching treeflow_pipeline.manuscript
+methodLabels <- c(
+    treeflow = "TreeFlow",
+    beagle_bito_direct = "bito/BEAGLE",
+    jax = "JAX"
 )
-plot <- plot + ggplot2::guides(colour = ggplot2::guide_legend(reverse = TRUE))
-do.call(ggplot2::ggsave, modifyList(ggsaveArgs, list(filename = outFile, plot = plot)))
+modelLabels <- c(jc = "JC", full = "GTR/Weibull")
+computationLabels <- c(
+    likelihood_time = "Likelihood",
+    phylo_gradients_time = "Gradients"
+)
+
+methodOrdering <- c("TreeFlow", "bito/BEAGLE", "JAX")
+# Panels grouped by model (rows) and computation (columns) when nrow = 2.
+taskOrdering <- c(
+    "Likelihood, JC",
+    "Gradients, JC",
+    "Likelihood, GTR/Weibull",
+    "Gradients, GTR/Weibull"
+)
+
+plotDf <- df %>%
+    mutate(
+        Method = factor(methodLabels[method], levels = methodOrdering),
+        Model = modelLabels[model],
+        Computation = computationLabels[computation],
+        Task = factor(paste(Computation, Model, sep = ", "), levels = taskOrdering)
+    ) %>%
+    group_by(Task, Method, taxon_count) %>%
+    summarise(time = mean(time), .groups = "drop")
+
+plot <- ggplot(plotDf, aes(x = taxon_count, y = time, colour = Method)) +
+    geom_line() +
+    geom_point(size = 1) +
+    facet_wrap(~Task, nrow = 2) +
+    scale_x_continuous(trans = "log2") +
+    scale_y_continuous(trans = "log10") +
+    labs(x = "Taxon count", y = "Time (s)", colour = "Software")
+
+ggplot2::ggsave(filename = outFile, plot = plot, width = 8, height = 6)

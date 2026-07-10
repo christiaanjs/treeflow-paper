@@ -1,0 +1,329 @@
+================================================================================
+RESPONSE TO DECISION LETTER
+Manuscript: USYB-2024-141
+Title: TreeFlow: Probabilistic Modelling and Automatic Differentiation for
+       Phylogenetics
+Authors: Swanepoel, Fourment, Ji, Nasif, Suchard, Matsen IV, Drummond
+================================================================================
+
+We thank the reviewer for the careful reading of the revised manuscript and for
+the constructive suggestions. Below we reproduce the review in full and insert
+our responses after each point. Reviewer text is unchanged and in its original
+order; our responses are set off by lines of asterisks and begin with
+"RESPONSE:". Line numbers (L##) refer to the reviewed PDF.
+
+--------------------------------------------------------------------------------
+Review of TreeFlow: Probabilistic modelling and automatic differentiation for
+phylogenetics
+By: Swanepoel et al.
+For: Systematic Biology
+
+Fredrik Ronquist
+2026-05-29
+
+The paper presents TreeFlow, a python library for probabilistic modelling and
+automatic differentiation with phylogenetic trees. Software that supports more
+flexible probabilistic modelling approaches to statistical phylogenetics
+represents an important and promising research direction, I believe. The paper
+is well written, and I find it fairly easy to follow even though some parts are
+quite technical. The empirical examples indicate some promise with respect to
+the reliability of results from variational inference. Also, the analyses of
+computational speed show that the increased modeling flexibility comes with an
+overhead that is acceptable, especially if optimized software is not available
+for the model of interest.
+
+The one major concern I have is the brief description of the kappa-variation
+model. It leaves a number of uncertainties concerning the structure of the model
+and how to interpret the empirical results obtained from it. See detailed
+comments below for Figure 3 in the manuscript. I would also suggest some
+expansion of the description of the software, like how to install it, and where
+to start if you are interested in learning how to use it. The remaining comments
+and suggestions are minor and should be relatively easy for the authors to
+address.
+
+*** RESPONSE: *****************************************************************
+We thank the reviewer for the positive assessment. We have substantially
+expanded the description of the kappa-variation model, both in the main text and
+in the caption of Figure 3, to make its structure and interpretation
+unambiguous (see our responses to the Figure 3, L362 and L383-386 comments
+below). We have also expanded the description of the software: the manuscript
+now points readers to the online manual, the YAML model-definition reference and
+the online tutorial as a starting point (L120ff), and we have correspondingly
+completed the online documentation of the model-definition format, added a guide
+to monitoring convergence of variational inference, and added a "where to start"
+pointer to the installation instructions.
+******************************************************************************
+
+Comments and suggestions:
+
+--------------------------------------------------------------------------------
+L14: Inconsistent order of references (year or alphabetic?)
+
+*** RESPONSE: *****************************************************************
+Fixed. We have adopted a single, consistent convention throughout the
+manuscript: references within a multiple-citation group are now ordered by year
+(and alphabetically by author for ties). For example the first group now reads
+Huelsenbeck et al. (2001), Lartillot et al. (2009), Drummond et al. (2012).
+******************************************************************************
+
+--------------------------------------------------------------------------------
+L74-78: "In other work ..." This sentence is difficult to read, and seems
+grammatically inconsistent if I understand it correctly. Please rewrite and
+simplify if possible.
+
+*** RESPONSE: *****************************************************************
+Rewritten. The single run-on sentence has been split into two, and the mixed
+grammatical construction removed: "Universal probabilistic programming languages
+have also been used to express generative processes for trees and to
+automatically generate Sequential Monte Carlo inference schemes for complex
+speciation models. This line of work has further proposed how such languages
+might generate inference schemes for other phylogenetic models, including MCMC
+samplers over tree topologies."
+******************************************************************************
+
+--------------------------------------------------------------------------------
+L95-99: I think it might be appropriate to cite the work by Koptagel et al
+(2022) on variational inference of phylogenies here: Koptagel, Hazal, Oskar
+Kviman, Harald Melin, Negar Safinianaini, and Jens Lagergren. 'VaiPhy: A
+Variational Inference Based Algorithm for Phylogeny'. Advances in Neural
+Information Processing Systems 35 (December 2022): 14758-70.
+
+*** RESPONSE: *****************************************************************
+Added. We now cite Koptagel et al. (2022) where variational inference of
+phylogenies is discussed, with a sentence noting that variational inference has
+also been combined with combinatorial sequential Monte Carlo to approximate tree
+topologies and branch lengths jointly. The reference has been added to the
+bibliography.
+******************************************************************************
+
+--------------------------------------------------------------------------------
+L120ff: I think it would be helpful to provide a link here to the online
+documentation of TreeFlow and the YAML format. I also think that readers might
+appreciate a few sentences on how to best get started using TreeFlow. There is
+an online tutorial, I discovered, which might be a good place to start after
+installing the software. Perhaps a note about this?
+
+*** RESPONSE: *****************************************************************
+Added. The user-interface section now states that installation instructions, a
+complete reference for the YAML model-definition format and its available model
+components, and a step-by-step tutorial are provided in the online manual
+(https://treeflow.readthedocs.io), and suggests the "rates and dates" tutorial
+as a helpful starting point after installation. On the software side we have
+completed the online reference for the YAML format (previously marked
+incomplete) and added a "Where to start" section to the installation page.
+******************************************************************************
+
+--------------------------------------------------------------------------------
+Fig. 1. "Developer API" is partly covered by the tensorflow.TensorArray node in
+the graph. Please fix this!
+
+*** RESPONSE: *****************************************************************
+Fixed. In the figure source we moved the "Developer API" label to the top-left
+corner of its box and raised the tensorflow.TensorArray node so that the two no
+longer overlap.
+******************************************************************************
+
+--------------------------------------------------------------------------------
+L212-222: This paragraph is difficult to follow. Is it possible to provide a
+more intuitive explanation for the quadratic cost?
+
+*** RESPONSE: *****************************************************************
+Yes. We have added an intuitive explanation: because a Tensor cannot be modified
+in place, a traversal step that updates one node's value cannot overwrite that
+entry but must produce a whole new copy of the tree-wide state. Repeating this
+for each of the roughly N nodes creates N copies each of size N, and
+differentiating through all of them, so both computation and memory grow with
+the square of the number of nodes -- which is why the write-once TensorArray is
+used instead.
+******************************************************************************
+
+--------------------------------------------------------------------------------
+Fig. 2. Some more details needed in the caption. I assume the gray area
+represents some measure of Monte Carlo error for Beast 2 analyses, please
+specify. Is there no variance around the TreeFlow distribution estimates or is
+the variance so small that it is not visible? Please clarify in the caption.
+
+*** RESPONSE: *****************************************************************
+Clarified. The caption now states that the grey band around each BEAST 2 density
+is the Monte Carlo sampling error of the MCMC estimate, obtained by bootstrapping
+the MCMC samples, and that no comparable band is shown for the TreeFlow VI
+densities because the draws from the fitted variational approximation are
+independent, making their Monte Carlo error negligible.
+******************************************************************************
+
+--------------------------------------------------------------------------------
+L362. With "every lineage", are the authors referring to every branch in the
+tree? Please clarify.
+
+*** RESPONSE: *****************************************************************
+Yes. The text now reads "a separate ratio for every branch of the tree, that is,
+one independent kappa parameter per branch".
+******************************************************************************
+
+--------------------------------------------------------------------------------
+L372-374. I think it would be advantageous to explain the step from importance
+sampling to marginal likelihood estimates in one or two sentences, as this may
+not be clear to all readers.
+
+*** RESPONSE: *****************************************************************
+Added. We now explain the step explicitly: one draws samples from the fitted
+approximation and weights each by the ratio of the model's joint density (the
+likelihood times the prior) to the density of the approximation; the average of
+these importance weights is an unbiased Monte Carlo estimate of the marginal
+likelihood, obtained directly rather than as the lower bound optimised during
+variational inference.
+******************************************************************************
+
+--------------------------------------------------------------------------------
+Fig. 3. Text below the graph needs to be incorporated in the caption. I
+understood kappa to be inferred per branch but this does not seem to be
+consistent with the graphs. Does "lineage age" refer to the time duration
+(length) of the branch? If so, please use "branch length" instead of "lineage
+age", and use "Branch length" on the x axis. If lineage age does not refer to
+branch length, then what does lineage age refer to? Please clarify. Is it that
+"Age" refers to the median or ancestor or child age of the branch, and "Kappa"
+to the kappa estimate for the branch? Or is the "Kappa" value some composite of
+the different values of kappa from the node that represents the age to the tip
+of the tree? Or have I completely misunderstood the model? Does it involve some
+model of change of kappa over time or at speciation events, or is it a completely
+branch-independent kappa values model, as I guessed?
+
+*** RESPONSE: *****************************************************************
+The reviewer's final guess is correct: it is a completely branch-independent
+kappa model. Each branch is assigned its own independent kappa parameter, drawn
+from a shared log-normal prior sampled once per branch; kappa is not shared
+between branches and does not follow any model of change over time or at
+speciation events. We have rewritten the Figure 3 captions to make this explicit
+and to fold the previous sub-caption text into the main caption.
+
+Regarding the axis: "Age" (formerly "lineage age") does NOT refer to branch
+length. Because the tree is estimated in units of expected substitutions per
+site and is not calibrated to time, "Age" is the height of the branch's lineage
+above the present, measured in expected substitutions per site. The caption now
+states this and explicitly notes that it is not the branch length. Each point is
+the posterior median kappa for one branch plotted against that branch's lineage
+age, with 95% credible intervals shown as vertical (kappa) and horizontal (age)
+error bars. We considered relabelling the x-axis "Branch length" as suggested,
+but did not, because that would be incorrect for this quantity; instead we have
+defined "Age" precisely in the caption.
+******************************************************************************
+
+--------------------------------------------------------------------------------
+L383-386: "The growth in uncertainty in kappa estimates deeper in the tree..." I
+think this sentence refers to age estimates and not kappa estimates (for which
+the pattern is the opposite).
+
+*** RESPONSE: *****************************************************************
+The reviewer is correct, and we thank them for catching this. The growth in
+uncertainty deeper in the tree is in the age (lineage) estimates, not the kappa
+estimates, whose uncertainty is in fact largest for the youngest, shortest
+branches. We have rewritten the passage accordingly: the uncertainty in the
+lineage age estimates grows for branches deeper in the tree (consistent with
+Duchene et al. 2015), while the uncertainty in the per-branch kappa estimates
+shows the opposite pattern, being largest for the youngest, shortest branches,
+which accumulate too few substitutions to constrain kappa.
+******************************************************************************
+
+--------------------------------------------------------------------------------
+Fig. 4. Text in the graph needs to be moved to the caption.
+
+*** RESPONSE: *****************************************************************
+Done. The description of the method comparison (TreeFlow VI versus BEAST 2), the
+meaning of the grey Monte Carlo error band, and the meaning of the two node-height
+panels (posterior mean and posterior standard deviation, with the identity line)
+have been moved into the figure caption.
+******************************************************************************
+
+--------------------------------------------------------------------------------
+L412-413. "The uncertainty..." The uncertainty appears to be significantly
+underestimated for tree height and population size, but not for clock rate.
+Please reconsider this summary of the results. Also, the uncertainty in the
+stationary frequency of T seems to be significantly underestimated both in this
+example and the previous example. Any intuition why this might be the case?
+
+*** RESPONSE: *****************************************************************
+Reconsidered and revised. The summary now states that the uncertainty is
+substantially underestimated for the tree height and effective population size,
+but only slightly for the clock rate. We have also added the observation that the
+stationary frequency of T is noticeably underestimated in both examples, whereas
+the other base frequencies are approximated well, and offered an intuition: the
+base frequencies are constrained to sum to one and are represented in the
+variational approximation through a transform in which the final coordinate is
+determined by the others, so the mean-field family cannot capture the dependence
+this induces and tends to compress the marginal variance of that dependent
+coordinate.
+******************************************************************************
+
+--------------------------------------------------------------------------------
+L438-440. "Convergence..." I think users need more instructions on how to
+properly monitor convergence of TreeFlow VI.
+
+*** RESPONSE: *****************************************************************
+Expanded. The text now describes concretely how convergence is monitored in
+TreeFlow: the command line interface reports an ELBO estimate, and the full trace
+of the loss and variational parameters can be saved (with --trace-output) and
+plotted to confirm that the ELBO has reached a stable plateau and that the
+variational parameters have stopped drifting, rerunning with more optimisation
+steps if in doubt. We have also added a dedicated "Monitoring convergence of
+variational inference" page to the online manual, to which the text now refers.
+******************************************************************************
+
+--------------------------------------------------------------------------------
+L440-444. It is difficult to assess the computational efficiency comparison
+without more details. The conclusion that TreeFlow VI provides "substantial speed
+improvements" does not seem to be consistent with the reported time durations,
+unless the multiple preliminary runs in Beast took a substantial amount of time
+(which might be the case for what I know). Perhaps some more detailed
+justification of this conclusion?
+
+*** RESPONSE: *****************************************************************
+We have revised this conclusion. We agree that the single-run wall-clock times do
+not by themselves support a claim of substantial speed improvement, and we have
+removed that wording. The text now states that the single variational run is of
+the same order as, and somewhat longer than, the reported BEAST 2 runtime, and
+explains that the two figures are not directly comparable: the BEAST 2 time is
+for the production run only and excludes the multiple preliminary runs that were
+needed to tune operator weights and reach acceptable effective sample sizes,
+whereas the variational analysis was run once and required no such manual tuning.
+We now describe TreeFlow VI as a viable option whose optimisation-based approach
+is expected to scale more favourably than random-walk MCMC as datasets grow,
+rather than as being substantially faster in this example.
+******************************************************************************
+
+--------------------------------------------------------------------------------
+Fig. 5: As a suggestion, would it not be better to show these results in four
+different plots instead, one for each model, with the three different
+computational software as a separate line in each plot? This would visualize the
+critical differences in slope between the different software more clearly, I
+think.
+
+*** RESPONSE: *****************************************************************
+Adopted. We have restructured Figure 5 so that each panel corresponds to one of
+the four benchmarked tasks (likelihood and gradient evaluation, under the JC and
+the GTR/Weibull models), with TreeFlow, bito/BEAGLE and JAX shown as separate
+series within each panel. This makes the differences in slope between the
+implementations directly comparable, as suggested. The caption has been updated
+to describe the new layout.
+******************************************************************************
+
+--------------------------------------------------------------------------------
+L533-534. "TreeFlow's scaling is certainly not worse..." But Table 1 gives a
+slope of 1.36 for TreeFlow and 1.25 for bito/BEAGLE, which is worse as far as I
+can tell. But maybe the difference is regarded as insignificant by the authors?
+Please justify the conclusion.
+
+*** RESPONSE: *****************************************************************
+Revised. We have removed the "certainly not worse" wording. The text now
+acknowledges that TreeFlow's empirical slope for the JC branch-gradient benchmark
+is slightly steeper than that of bito/BEAGLE, and justifies our conclusion:
+both slopes are close to one and far below the value of two that a naive
+quadratic implementation would produce, so we regard the difference as small and
+within the noise of the log-log fits. The point we intend is that the
+TensorArray-based implementation achieves near-linear-time branch gradients,
+matching the scaling (though not the constant factor) of the hand-derived
+analytical gradient.
+******************************************************************************
+
+================================================================================
+End of response.
+================================================================================
