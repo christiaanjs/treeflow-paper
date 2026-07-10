@@ -277,7 +277,12 @@ TSWLatexianTemp*
 
 .ipynb_checkpoints/
 __pycache__/
-/out/
+/out/*
+!/out/h3n2/
+/out/h3n2/*
+!/out/h3n2/beast.log
+!/out/h3n2/beast.trees
+!/out/h3n2/timing-data.csv
 .snakemake/
 *.egg-info/
 *xml.state
