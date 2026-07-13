@@ -19,9 +19,14 @@ outFile <- snakemake@output[["plot"]]
 
 df <- readr::read_csv(plotDataPath, show_col_types = FALSE)
 
-# Display labels matching treeflow_pipeline.manuscript
+# Display labels matching treeflow_pipeline.manuscript. The inlined
+# treeflow/experiments benchmark adds the native C++-op series (treeflow_native)
+# and names the direct BEAGLE benchmarkable "beagle_bito"; "beagle_bito_direct"
+# is kept for the old pipeline's output.
 methodLabels <- c(
     treeflow = "TreeFlow",
+    treeflow_native = "TreeFlow (native)",
+    beagle_bito = "bito/BEAGLE",
     beagle_bito_direct = "bito/BEAGLE",
     jax = "JAX"
 )
@@ -31,7 +36,7 @@ computationLabels <- c(
     phylo_gradients_time = "Gradients"
 )
 
-methodOrdering <- c("TreeFlow", "bito/BEAGLE", "JAX")
+methodOrdering <- c("TreeFlow", "TreeFlow (native)", "bito/BEAGLE", "JAX")
 # Panels grouped by model (rows) and computation (columns) when nrow = 2.
 taskOrdering <- c(
     "Likelihood, JC",
@@ -47,6 +52,9 @@ plotDf <- df %>%
         Computation = computationLabels[computation],
         Task = factor(paste(Computation, Model, sep = ", "), levels = taskOrdering)
     ) %>%
+    # Drop any method not in methodLabels (e.g. jax_jit, which the manuscript
+    # export excludes) so it never becomes a stray NA series.
+    filter(!is.na(Method)) %>%
     group_by(Task, Method, taxon_count) %>%
     summarise(time = mean(time), .groups = "drop")
 

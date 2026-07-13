@@ -155,7 +155,11 @@ inverse_colname_mapping = {value: key for key, value in colname_mapping.items()}
 model_mapping = {"jc": "JC", "full": "GTR/Weibull"}
 method_mapping = {
     "treeflow": "TreeFlow",
+    "treeflow_native": "TreeFlow (native)",
     "jax": "JAX",
+    # The inlined treeflow/experiments benchmark names the direct BEAGLE
+    # benchmarkable "beagle_bito"; keep "beagle_bito_direct" for the old pipeline.
+    "beagle_bito": "bito/BEAGLE",
     "beagle_bito_direct": "bito/BEAGLE",
 }
 computation_mapping = {
@@ -171,7 +175,7 @@ index_columns = ["model", "computation", "method"]
 
 computation_ordering = ["Likelihood", "Gradients"]
 model_ordering = ["JC", "GTR/Weibull"]
-method_ordering = ["TreeFlow", "bito/BEAGLE", "JAX"]
+method_ordering = ["TreeFlow", "TreeFlow (native)", "bito/BEAGLE", "JAX"]
 
 orderings_dict = dict(
     Method=method_ordering, Computation=computation_ordering, Model=model_ordering
