@@ -32,7 +32,7 @@
     \begin{pgfonlayer}{background}
     \node[apifitbox, fit=(priors)(tree)(evolution)(io)(traversal)(bijectors)(approximation)(vi)] (developerapi) {};
     \end{pgfonlayer}
-    \node[label, above=0.5em of developerapi] {\textbf{Developer API}};
+    \node[label, anchor=south west] at ([xshift=0.5em, yshift=0.4em]developerapi.north west) {\textbf{Developer API}};
 
     % Nodes for User Interface
     \node[box, below=4em of developerapi.south, anchor=north, xshift=-4.5em] (phylomodel) {\texttt{treeflow.model.phylo\_model} \\ \small{Model specification}};
@@ -45,7 +45,7 @@
     \node[label, above=0.5em of userinterface] {\textbf{User interface}};
 
     % TensorFlow and TensorFlow Probability nodes
-    \node[depbox, above=1em of traversal.north, anchor=south] (tensorarray) {\texttt{tensorflow.TensorArray}};
+    \node[depbox, above=2.2em of traversal.north, anchor=south] (tensorarray) {\texttt{tensorflow.TensorArray}};
     \node[depbox, below=4.5em of evolution.south, anchor=north, xshift=-2em] (tfp) {\texttt{tensorflow\_probability.distributions}};
 
     % Connections
