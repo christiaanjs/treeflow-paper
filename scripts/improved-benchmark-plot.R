@@ -20,13 +20,13 @@ outFile <- snakemake@output[["plot"]]
 df <- readr::read_csv(plotDataPath, show_col_types = FALSE)
 
 # Display labels matching treeflow_pipeline.manuscript. The inlined
-# treeflow/experiments benchmark adds the native C++-op series (treeflow_native)
-# and names the direct BEAGLE benchmarkable "beagle_bito"; "beagle_bito_direct"
-# is kept for the old pipeline's output.
+# treeflow/experiments benchmark adds the native C++-op series (treeflow_native).
+# For bito/BEAGLE only the direct benchmarkable (beagle_bito_direct, which drives
+# the bito instance without the TensorFlow wrapper) is shown; the wrapper-overhead
+# variant (beagle_bito) is left to the benchmark's own exploratory plots.
 methodLabels <- c(
     treeflow = "TreeFlow",
     treeflow_native = "TreeFlow (native)",
-    beagle_bito = "bito/BEAGLE",
     beagle_bito_direct = "bito/BEAGLE",
     jax = "JAX"
 )

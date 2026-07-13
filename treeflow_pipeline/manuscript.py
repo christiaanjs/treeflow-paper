@@ -157,9 +157,9 @@ method_mapping = {
     "treeflow": "TreeFlow",
     "treeflow_native": "TreeFlow (native)",
     "jax": "JAX",
-    # The inlined treeflow/experiments benchmark names the direct BEAGLE
-    # benchmarkable "beagle_bito"; keep "beagle_bito_direct" for the old pipeline.
-    "beagle_bito": "bito/BEAGLE",
+    # Only the direct BEAGLE benchmarkable (bito driven without the TensorFlow
+    # wrapper) is shown as bito/BEAGLE; the wrapper-overhead variant
+    # (beagle_bito) stays in the benchmark's own exploratory plots.
     "beagle_bito_direct": "bito/BEAGLE",
 }
 computation_mapping = {
