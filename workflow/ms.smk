@@ -7,9 +7,11 @@ import treeflow_pipeline.manuscript
 import treeflow_pipeline.diff
 
 import treeflow
-import treeflow_benchmarks
-treeflow_benchmarks_dir = pathlib.Path(treeflow_benchmarks.__file__).parents[1]
 treeflow_dir = pathlib.Path(treeflow.__file__).parents[1]
+# The benchmark was inlined into the treeflow repo (experiments/benchmarks); its
+# notebook writes the manuscript-schema CSVs and config consumed below. This
+# replaces the previously separate ``treeflow_benchmarks`` package.
+treeflow_benchmark_data_dir = treeflow_dir / "experiments" / "benchmarks" / "data"
 
 configfile: "config/ms-config.yaml"
 model = treeflow_pipeline.model.Model(yaml_input(config["model_file"]))
@@ -119,8 +121,8 @@ rule template_relaxed_clock_ms:
 
 rule benchmark_summary_table:
     input:
-        plot_data = treeflow_benchmarks_dir / "out" / "plot-data.csv",
-        fit_table = treeflow_benchmarks_dir / "out" / "fit-table.csv"
+        plot_data = treeflow_benchmark_data_dir / "manuscript-plot-data.csv",
+        fit_table = treeflow_benchmark_data_dir / "manuscript-fit-table.csv"
     output:
         tex = manuscript_dir / "tables" / "benchmark-table.tex"
     run:
@@ -128,7 +130,7 @@ rule benchmark_summary_table:
 
 rule benchmark_plot:
     input:
-        plot_data = treeflow_benchmarks_dir / "out" / "plot-data.csv",
+        plot_data = treeflow_benchmark_data_dir / "manuscript-plot-data.csv",
     output:
         plot = manuscript_dir / "figures" / "benchmark-log-scale-plot.png"
     params:
@@ -203,7 +205,7 @@ rule template_treeflow_ms:
     input:
         template = tex_template,
         body_template = manuscript_dir / "tex" / "treeflow.j2.tex",
-        treeflow_benchmarks_config = treeflow_benchmarks_dir / "config.yaml",
+        treeflow_benchmarks_config = treeflow_benchmark_data_dir / "benchmark-config.yaml",
         benchmark_plot = rules.benchmark_plot.output.plot,
         benchmark_summary_table = rules.benchmark_summary_table.output[0],
         carnivores_marginals_plot = manuscript_dir / "figures" / "carnivores-marginals.png",
@@ -280,7 +282,7 @@ rule template_treeflow_submission_ms:
     input:
         template = tex_template,
         body_template = manuscript_dir / "tex" / "treeflow.j2.tex",
-        treeflow_benchmarks_config = treeflow_benchmarks_dir / "config.yaml",
+        treeflow_benchmarks_config = treeflow_benchmark_data_dir / "benchmark-config.yaml",
         benchmark_plot = rules.treeflow_submission_dir.output.benchmark_plot,
         benchmark_summary_table = rules.benchmark_summary_table.output[0],
         carnivores_marginals_plot = rules.treeflow_submission_dir.output.carnivores_marginals_plot,
