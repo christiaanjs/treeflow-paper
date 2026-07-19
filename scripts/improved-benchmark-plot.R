@@ -28,7 +28,8 @@ methodLabels <- c(
     treeflow = "TreeFlow",
     treeflow_native = "TreeFlow (native)",
     beagle_bito_direct = "bito/BEAGLE",
-    jax = "JAX"
+    jax = "JAX",
+    jax_jit = "JAX (JIT)"
 )
 modelLabels <- c(jc = "JC", full = "GTR/Weibull")
 computationLabels <- c(
@@ -36,7 +37,7 @@ computationLabels <- c(
     phylo_gradients_time = "Gradients"
 )
 
-methodOrdering <- c("TreeFlow", "TreeFlow (native)", "bito/BEAGLE", "JAX")
+methodOrdering <- c("TreeFlow", "TreeFlow (native)", "bito/BEAGLE", "JAX", "JAX (JIT)")
 # Panels grouped by model (rows) and computation (columns) when nrow = 2.
 taskOrdering <- c(
     "Likelihood, JC",

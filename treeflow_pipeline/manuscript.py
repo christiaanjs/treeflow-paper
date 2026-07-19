@@ -157,6 +157,7 @@ method_mapping = {
     "treeflow": "TreeFlow",
     "treeflow_native": "TreeFlow (native)",
     "jax": "JAX",
+    "jax_jit": "JAX (JIT)",
     # Only the direct BEAGLE benchmarkable (bito driven without the TensorFlow
     # wrapper) is shown as bito/BEAGLE; the wrapper-overhead variant
     # (beagle_bito) stays in the benchmark's own exploratory plots.
@@ -175,7 +176,7 @@ index_columns = ["model", "computation", "method"]
 
 computation_ordering = ["Likelihood", "Gradients"]
 model_ordering = ["JC", "GTR/Weibull"]
-method_ordering = ["TreeFlow", "TreeFlow (native)", "bito/BEAGLE", "JAX"]
+method_ordering = ["TreeFlow", "TreeFlow (native)", "bito/BEAGLE", "JAX", "JAX (JIT)"]
 
 orderings_dict = dict(
     Method=method_ordering, Computation=computation_ordering, Model=model_ordering

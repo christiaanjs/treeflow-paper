@@ -24,13 +24,14 @@
     \node[box, right=1em of priors.east, anchor=west] (io) {\texttt{treeflow.tree.io} \\ \small{Tree reading and writing}};
     \node[box, above=1em of io.north, anchor=south] (tree) {\texttt{treeflow.tree} \\ \small{Tree representation}};
     \node[box, right=1em of tree.east, anchor=west] (traversal) {\texttt{treeflow.traversal} \\ \small{Tree traversals}};
+    \node[box, right=1.5em of traversal.east, anchor=west] (native) {\texttt{treeflow.acceleration.native} \\ \small{Native likelihood and ratio transform ops}};
     \node[box, right=1em of io.east, anchor=west] (bijectors) {\texttt{treeflow.bijectors} \\ \small{Bijections on times on trees}};
     \node[box, below=1em of bijectors.south, anchor=north] (approximation) {\texttt{treeflow.model.approximation} \\ \small{Tree posterior approximations}};
     \node[box, below=1em of approximation.south, anchor=north] (vi) {\texttt{treeflow.vi} \\ \small{Fixed topology variational inference}};
 
     % Fitting box for Developer API
     \begin{pgfonlayer}{background}
-    \node[apifitbox, fit=(priors)(tree)(evolution)(io)(traversal)(bijectors)(approximation)(vi)] (developerapi) {};
+    \node[apifitbox, fit=(priors)(tree)(evolution)(io)(traversal)(native)(bijectors)(approximation)(vi)] (developerapi) {};
     \end{pgfonlayer}
     \node[label, anchor=south west] at ([xshift=0.5em, yshift=0.4em]developerapi.north west) {\textbf{Developer API}};
 
@@ -63,6 +64,7 @@
     \draw[arrow] (phylomodel) -- (cli);
 
     \draw[arrow] (tensorarray) -- (traversal);
+    \draw[arrow] (native) -- (traversal);
     \draw[arrow] (tfp) -- (phylomodel);
     \draw[arrow] ([xshift=-2.9em]tfp.north) -- ([xshift=0.8em]priors.south west);
     \draw[arrow] (tfp.north) -- ([xshift=-1.4em]evolution.south);
