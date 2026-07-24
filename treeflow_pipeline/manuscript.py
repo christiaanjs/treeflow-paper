@@ -352,7 +352,7 @@ def get_treeflow_manuscript_vars(
             float(carnivores_marginal_likelihoods["lineage_variation"]), 1
         ),
         minted_cache_dir=minted_cache_dir,
-        minted_cache_option="frozencache" if frozen_minted_cache else "finalizecache",
+        minted_cache_option="frozencache," if frozen_minted_cache else "",
         bibliography=str(pathlib.Path(bibliography_file).stem),
         **get_treeflow_timing_vars(timing_csv_file),
     )
