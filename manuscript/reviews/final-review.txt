@@ -1,0 +1,86 @@
+Review of TreeFlow: Probabilistic modelling and automatic differentiation for phylogenetics
+By: Swanepoel et al.
+For: Systematic Biology
+
+Fredrik Ronquist
+2026-05-29
+
+The paper presents TreeFlow, a python library for probabilistic modelling and automatic
+differentiation with phylogenetic trees. Software that supports more flexible probabilistic
+modelling approaches to statistical phylogenetics represents an important and promising
+research direction, I believe. The paper is well written, and I find it fairly easy to follow even
+though some parts are quite technical. The empirical examples indicate some promise with
+respect to the reliability of results from variational inference. Also, the analyses of
+computational speed show that the increased modeling flexibility comes with an overhead that
+is acceptable, especially if optimized software is not available for the model of interest.
+
+The one major concern I have is the brief description of the kappa-variation model. It leaves a
+number of uncertainties concerning the structure of the model and how to interpret the
+empirical results obtained from it. See detailed comments below for Figure 3 in the
+manuscript. I would also suggest some expansion of the description of the software, like how
+to install it, and where to start if you are interested in learning how to use it.
+The remaining comments and suggestions are minor and should be relatively easy for the
+authors to address.
+
+Comments and suggestions:
+L14: Inconsistent order of references (year or alphabetic?)
+L74-78: “In other work …” This sentence is difficult to read, and seems grammatically
+inconsistent if I understand it correctly. Please rewrite and simplify if possible.
+L95-99: I think it might be appropriate to cite the work by Koptagel et al (2022) on
+variational inference of phylogenies here: Koptagel, Hazal, Oskar Kviman, Harald Melin,
+Negar Safinianaini, and Jens Lagergren. ‘VaiPhy: A Variational Inference Based Algorithm
+for Phylogeny’. Advances in Neural Information Processing Systems 35 (December 2022):
+14758–70.
+
+L120ff: I think it would be helpful to provide a link here to the online documentation of
+TreeFlow and the YAML format. I also think that readers might appreciate a few sentences on
+how to best get started using TreeFlow. There is an online tutorial, I discovered, which might
+be a good place to start after installing the software. Perhaps a note about this?
+Fig. 1. “Developer API” is partly covered by the tensorflow.TensorArray node in the graph.
+Please fix this!
+L212-222: This paragraph is difficult to follow. Is it possible to provide a more intuitive
+explanation for the quadratic cost?
+Fig. 2. Some more details needed in the caption. I assume the gray area represents some
+measure of Monte Carlo error for Beast 2 analyses, please specify. Is there no variance around
+the TreeFlow distribution estimates or is the variance so small that it is not visible? Please
+clarify in the caption.
+L362. With “every lineage”, are the authors referring to every branch in the tree? Please
+clarify.
+L372-374. I think it would be advantageous to explain the step from importance sampling to
+marginal likelihood estimates in one or two sentences, as this may not be clear to all readers.
+Fig. 3. Text below the graph needs to be incorporated in the caption. I understood kappa to be
+inferred per branch but this does not seem to be consistent with the graphs. Does “lineage
+age” refer to the time duration (length) of the branch? If so, please use “branch length”
+instead of “lineage age”, and use “Branch length” on the x axis. If lineage age does not refer
+to branch length, then what does lineage age refer to? Please clarify. Is it that “Age” refers to
+the median or ancestor or child age of the branch, and “Kappa” to the kappa estimate for the
+branch? Or is the “Kappa” value some composite of the different values of kappa from the
+node that represents the age to the tip of the tree? Or have I completely misunderstood the
+model? Does it involve some model of change of kappa over time or at speciation events, or is
+it a completely branch-independent kappa values model, as I guessed?
+L383-386: “The growth in uncertainty in kappa estimates deeper in the tree…” I think this
+sentence refers to age estimates and not kappa estimates (for which the pattern is the
+opposite).
+Fig. 4. Text in the graph needs to be moved to the caption.
+L412-413. “The uncertainty…” The uncertainty appears to be significantly underestimated for
+tree height and population size, but not for clock rate. Please reconsider this summary of the
+results. Also, the uncertainty in the stationary frequency of T seems to be significantly
+underestimated both in this example and the previous example. Any intuition why this might
+be the case?
+
+L438-440. “Convergence…” I think users need more instructions on how to properly monitor
+convergence of TreeFlow VI.
+L440-444. It is difficult to assess the computational efficiency comparison without more
+details. The conclusion that TreeFlow VI provides “substantial speed improvements” does not
+seem to be consistent with the reported time durations, unless the multiple preliminary runs in
+Beast took a substantial amount of time (which might be the case for what I know). Perhaps
+some more detailed justification of this conclusion?
+Fig. 5: As a suggestion, would it not be better to show these results in four different plots
+instead, one for each model, with the three different computational software as a separate line
+in each plot? This would visualize the critical differences in slope between the different
+software more clearly, I think.
+L533-534. “TreeFlow’s scaling is certainly not worse…” But Table 1 gives a slope of 1.36 for
+TreeFlow and 1.25 for bito/BEAGLE, which is worse as far as I can tell. But maybe the
+difference is regarded as insignificant by the authors? Please justify the conclusion.
+
+
