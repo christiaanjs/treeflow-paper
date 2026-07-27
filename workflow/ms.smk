@@ -31,16 +31,17 @@ submission_dir = manuscript_dir / "submission"
 minted_cache_dir = "minted-cache"
 dataset_dir = "{dataset}"
 supplementary_data_dir = pathlib.Path("supplementary-data")
-diff_base_commit = "ecc3dd2fae34bcebf706078be366e863a7f4fc2d"
+diff_base_commit = "07911c7c8a71461e9a912dc4baad6066fa27e8d1"
 
 rule ms:
     input:
         #manuscript_dir / "out" / "submission.zip",
         manuscript_dir / "out" / "treeflow.pdf",
         manuscript_dir / "out" / "supplementary.pdf",
-        manuscript_dir / "out" / "response-letter.pdf"
+        manuscript_dir / "out" / "response-letter.pdf",
         #supplementary_data_dir / config["flu_dataset"] / "beast.xml",
         #supplementary_data_dir / "carnivores" / "beast.xml",
+        manuscript_dir / "out" / "treeflow-diff.pdf"
 
 rule ms_diff:
     input:
