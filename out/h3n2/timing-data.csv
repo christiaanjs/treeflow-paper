@@ -1,0 +1,6 @@
+iteration,value,time,variable,method
+0,0.0,0.0,converged,vi
+22000,1.0,37844.30466666666,converged,vi
+30000,1.0,51605.87,converged,vi
+0,0.0,0.0,min_ess,beast
+30000000,103.28293883597895,22898.83,min_ess,beast
