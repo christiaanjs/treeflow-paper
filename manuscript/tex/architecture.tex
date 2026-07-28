@@ -47,20 +47,20 @@
 
     % TensorFlow and TensorFlow Probability nodes
     \node[depbox, above=2.2em of traversal.north, anchor=south] (tensorarray) {\texttt{tensorflow.TensorArray}};
-    \node[depbox, below=1.5em of developerapi.south west, anchor=north west, xshift=1.5em] (tfp) {\texttt{tensorflow\_probability.distributions}};
+    \node[depbox, below=1.5em of developerapi.south west, anchor=north west, xshift=1em] (tfp) {\texttt{tensorflow\_probability.distributions}};
 
     % Connections
     \draw[arrow] (tree) -- (priors);
-    \draw[arrow] (priors) |- ($ (priors) !.5! (evolution) $) -| ([xshift=1.5em]phylomodel.north);
+    \draw[arrow] (priors) |- ($ (priors) !.5! (evolution) $) -| ([xshift=-0.75em]phylomodel.north);
     \draw[arrow] (tree) -- (io);
     \draw[arrow] (tree) -- (traversal);
     \draw[arrow] (traversal) -- (bijectors);
     \draw[arrow] (bijectors) -- (approximation);
     \draw[arrow] (approximation) -- (vi);
-    \draw[arrow] (io) |- ([yshift=-0.5em,xshift=2em]developerapi.south) -| (cli);
-    \draw[arrow] (evolution) |- ($ (evolution) !.5! (phylomodel) $) -|  ([xshift=0.5em]phylomodel.north);
+    \draw[arrow] ([xshift=1em]io.south) |- ([yshift=-1em,xshift=2em]developerapi.south) -| (cli);
+    \draw[arrow] ([xshift=1em]evolution.south) |- ($ (evolution) !.2! (phylomodel) $) -|  ([xshift=-1.5em]phylomodel.north);
 
-    \draw[arrow] ([xshift=2.5em]vi.south) -- ([xshift=3em]cli.north);
+    \draw[arrow] ([xshift=2.5em]vi.south) -- ([xshift=1.5em]cli.north);
     \draw[arrow] (phylomodel) -- (cli);
 
     \draw[arrow] (tensorarray) -- (traversal);
