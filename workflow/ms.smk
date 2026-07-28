@@ -213,6 +213,8 @@ rule template_treeflow_ms:
         carnivores_kappa_plot = rules.carnivores_kappa_plot.output[0],
         carnivores_tree_plot = rules.carnivores_tree_plot.output[0],
         carnivores_marginal_likelihoods = treeflow_dir / "examples" / "demo-out" / "carnivores-marginal-log-likelihoods.yaml",
+        carnivores_vi_samples = rules.carnivores_marginals_plot.input.vi_samples,
+        carnivores_beast_log = rules.carnivores_marginals_plot.input.beast_samples,
         flu_marginals_plot = manuscript_dir / "figures" / f"{config['flu_dataset']}-marginals.png",
         flu_tree_plot = manuscript_dir / "figures" / f"{config['flu_dataset']}-trees.png",
         flu_timing_csv = out_dir / config["flu_dataset"] / "timing-data.csv",
@@ -244,6 +246,8 @@ rule template_treeflow_ms:
                         flu_model_file=input.flu_model_file,
                         flu_tree_file=input.flu_tree_file,
                         carnivores_marginal_likelihoods=yaml_input(input.carnivores_marginal_likelihoods),
+                        carnivores_vi_samples_file=input.carnivores_vi_samples,
+                        carnivores_beast_log_file=input.carnivores_beast_log,
                         minted_cache_dir=params.output_dir / "minted-cache",
                         bibliography_file=input.bib
                     ),

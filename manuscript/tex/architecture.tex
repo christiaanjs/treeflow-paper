@@ -24,9 +24,9 @@
     \node[box, right=1em of priors.east, anchor=west] (io) {\texttt{treeflow.tree.io} \\ \small{Tree reading and writing}};
     \node[box, above=1em of io.north, anchor=south] (tree) {\texttt{treeflow.tree} \\ \small{Tree representation}};
     \node[box, right=1em of tree.east, anchor=west] (traversal) {\texttt{treeflow.traversal} \\ \small{Tree traversals}};
-    \node[box, right=1.5em of traversal.east, anchor=west] (native) {\texttt{treeflow.acceleration.native} \\ \small{Native likelihood and ratio transform ops}};
+    \node[box, right=1.5em of traversal.east, anchor=west] (native) {\texttt{treeflow.acceleration.native} \\ \small{Native likelihood and} \\ \small{ratio transform ops}};
     \node[box, right=1em of io.east, anchor=west] (bijectors) {\texttt{treeflow.bijectors} \\ \small{Bijections on times on trees}};
-    \node[box, below=1em of bijectors.south, anchor=north] (approximation) {\texttt{treeflow.model.approximation} \\ \small{Tree posterior approximations}};
+    \node[box, below=1em of bijectors.south, anchor=north, xshift=4em] (approximation) {\texttt{treeflow.model.approximation} \\ \small{Tree posterior approximations}};
     \node[box, below=1em of approximation.south, anchor=north] (vi) {\texttt{treeflow.vi} \\ \small{Fixed topology variational inference}};
 
     % Fitting box for Developer API
@@ -47,7 +47,7 @@
 
     % TensorFlow and TensorFlow Probability nodes
     \node[depbox, above=2.2em of traversal.north, anchor=south] (tensorarray) {\texttt{tensorflow.TensorArray}};
-    \node[depbox, below=4.5em of evolution.south, anchor=north, xshift=-2em] (tfp) {\texttt{tensorflow\_probability.distributions}};
+    \node[depbox, below=1.5em of developerapi.south west, anchor=north west, xshift=1.5em] (tfp) {\texttt{tensorflow\_probability.distributions}};
 
     % Connections
     \draw[arrow] (tree) -- (priors);
@@ -66,8 +66,8 @@
     \draw[arrow] (tensorarray) -- (traversal);
     \draw[arrow] (native) -- (traversal);
     \draw[arrow] (tfp) -- (phylomodel);
-    \draw[arrow] ([xshift=-2.9em]tfp.north) -- ([xshift=0.8em]priors.south west);
-    \draw[arrow] (tfp.north) -- ([xshift=-1.4em]evolution.south);
+    \draw[arrow] ([xshift=0.8em]tfp.north west) -- ([xshift=0.8em]priors.south west);
+    \draw[arrow] ([xshift=8em]tfp.north west) -- ([xshift=-1.4em]evolution.south);
 
 \end{tikzpicture}
 

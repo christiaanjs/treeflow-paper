@@ -359,12 +359,38 @@ def get_treeflow_timing_vars(timing_csv_file):
     )
 
 
+CARNIVORES_SD_RATIO_VARIABLES = ("tree_height", "tree_length")
+
+
+def get_carnivores_dispersion_vars(vi_samples_file, beast_log_file, burn_in=0.1):
+    """Ratio of the TreeFlow VI posterior standard deviation to the BEAST 2 one.
+
+    The VI samples are those pooled across the independent runs written by the
+    carnivores example notebook, so the ratio reflects the spread of the pooled
+    variational posterior relative to the MCMC posterior. A ratio above one means
+    the variational approximation is over-dispersed for that quantity.
+    """
+    vi_samples = pd.read_csv(vi_samples_file)
+    beast_samples = pd.read_csv(beast_log_file, sep="\t", comment="#").rename(
+        columns={"tree.height": "tree_height", "tree.treeLength": "tree_length"}
+    )
+    beast_samples = beast_samples.iloc[int(len(beast_samples) * burn_in) :]
+    return {
+        f"carnivores_{name}_sd_ratio": round(
+            float(vi_samples[name].std() / beast_samples[name].std()), 1
+        )
+        for name in CARNIVORES_SD_RATIO_VARIABLES
+    }
+
+
 def get_treeflow_manuscript_vars(
     treeflow_benchmarks_config,
     timing_csv_file,
     flu_model_file,
     flu_tree_file,
     carnivores_marginal_likelihoods,
+    carnivores_vi_samples_file,
+    carnivores_beast_log_file,
     minted_cache_dir,
     bibliography_file,
     frozen_minted_cache=False,
@@ -395,6 +421,9 @@ def get_treeflow_manuscript_vars(
         minted_cache_option="frozencache," if frozen_minted_cache else "",
         bibliography=str(pathlib.Path(bibliography_file).stem),
         **get_treeflow_timing_vars(timing_csv_file),
+        **get_carnivores_dispersion_vars(
+            carnivores_vi_samples_file, carnivores_beast_log_file
+        ),
     )
 
 
