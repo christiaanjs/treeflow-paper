@@ -28,9 +28,14 @@ In treeflow-paper it also has `origin/master` merged in, which restores
 `out/h3n2/{beast.log,beast.trees,timing-data.csv}` — PR #17 predates the commit
 that added them, so a two-dot diff makes them look deleted. They are not.
 
-> **Not yet pushed.** Commit `2f8e465` (treeflow-paper) and the `full_rank.py`
-> fix (treeflow) exist only on the Intel Mac. Push both before switching
-> machines, or redo the work.
+Both are pushed to `origin/revisions-fullrank`, so on a new machine:
+
+```bash
+git clone -b revisions-fullrank https://github.com/christiaanjs/treeflow-paper.git
+git clone -b revisions-fullrank https://github.com/christiaanjs/treeflow.git
+```
+
+Neither has a PR yet, and neither touches Christiaan's PR branches.
 
 ## Environment
 
@@ -165,13 +170,12 @@ convergence — VI is currently ~1.65x *slower*.
 
 ## Loose ends
 
-- **`treeflow`, uncommitted:** `treeflow/model/approximation/full_rank.py`
-  collected variables via `distribution.trainable_variables`, which walks the
-  whole bijector chain and dies with `Error processing property
-  '_bijectors_trackable'` on TF 2.16 / Python 3.12. Taking `loc_var` / `raw_var`
-  directly is equivalent and version-proof. May not reproduce on TF 2.20, but
-  the fix is worth keeping. **`mean_field.py:158` has the identical pattern**
-  and will fail the same way — fix both.
+- **`mean_field.py:158` still needs the same fix** applied to
+  `full_rank.py` in treeflow commit `9ecb768`: collecting variables via
+  `distribution.trainable_variables` walks the whole bijector chain and dies
+  with `Error processing property '_bijectors_trackable'` on TF 2.16 /
+  Python 3.12. Taking the variables directly is equivalent and version-proof.
+  May not reproduce on TF 2.20, but it is worth fixing for parity.
 - **Manuscript never built here.** No snakemake/jinja2 environment on the Intel
   Mac and `demo-out/` is not committed, so the LaTeX edits above are unverified
   beyond confirming every `\VAR{}` name resolves to something
