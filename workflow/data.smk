@@ -5,10 +5,13 @@ from treeflow_pipeline.model import build_init_values_string
 from treeflow_pipeline.results import (
     extract_trace_plot_data,
     compute_empirical_nucleotide_frequencies,
-    assemble_timing_data
+    assemble_timing_data,
+    get_runtime_from_benchmark_file,
 )
 from treeflow_pipeline.data import convert_dates_to_numeric, extract_xml_sequences, remove_identical_sequences
 import pathlib
+import pandas as pd
+import dendropy
 
 configfile: "config/data-config.yaml"
 
@@ -21,6 +24,23 @@ models = { dataset: PhyloModel(all_models[dataset]["model"]) for dataset in data
 dataset_dir = "{dataset}"
 data_dir = pathlib.Path("data")
 default_out_dir = pathlib.Path("out")
+
+# The flu (H3N2) VI fit is run multiple times with different seeds -- like
+# examples/h3n2-vi-multi-run.sh in the treeflow repo -- so the manuscript figure
+# can show a pooled posterior estimate with an inter-run Monte Carlo error band,
+# the same treatment the carnivores base-model figure gets from repeated runs of
+# the example notebook.
+FLU_DATASET = "h3n2"
+FLU_VI_SEEDS = [1, 2, 3, 4]
+FLU_VI_NUM_STEPS = 60000
+# full_rank's trace records its whole D x D scale matrix (D ~= 990 free dimensions
+# for this dataset) at every step by default, which is infeasible at 60,000 steps
+# (empirically ~1.5TB). --max-trace-coords bounds the trace to a fixed number of
+# sampled coordinates per variable instead, which keeps memory to a few GB
+# (empirically verified: ~5GB extrapolated at 60,000 steps) without changing the
+# optimisation itself.
+FLU_VI_MAX_TRACE_COORDS = 50
+flu_multi_run_dir = wd / FLU_DATASET / "variational-multi-run"
 
 rule data:
     input:
@@ -174,7 +194,7 @@ rule variational_fit:
         wd / dataset_dir / "variational-log.txt"
     shell:
         '''
-        treeflow_vi -s {config[seed]} \
+        treeflow_vi run -s {config[seed]} \
             -i {input.fasta} \
             -m {input.model_file} \
             -t {input.topology} \
@@ -187,6 +207,102 @@ rule variational_fit:
             --n-output-samples {config[n_variational_samples]} \
             2>&1 | tee {log}
         '''
+
+rule flu_variational_fit_run:
+    input:
+        fasta = lambda wildcards: all_models[FLU_DATASET]["alignment"],
+        topology = wd / FLU_DATASET / "topology.nwk",
+        starting_values = wd / FLU_DATASET / "starting-values.yaml",
+        model_file = wd / FLU_DATASET / "model.yaml"
+    params:
+        starting_values_string = lambda wildcards, input: build_init_values_string(
+            {k: v for k, v in yaml_input(input.starting_values).items() if k in models[FLU_DATASET].free_params()}
+        ),
+        num_steps = FLU_VI_NUM_STEPS,
+        max_trace_coords = FLU_VI_MAX_TRACE_COORDS
+    output:
+        trace = flu_multi_run_dir / "trace-run{run}.pickle",
+        samples = flu_multi_run_dir / "samples-run{run}.csv",
+        tree_samples = flu_multi_run_dir / "tree-samples-run{run}.nexus"
+    benchmark:
+        flu_multi_run_dir / "benchmark-run{run}.txt"
+    log:
+        flu_multi_run_dir / "log-run{run}.txt"
+    shell:
+        '''
+        treeflow_vi run -s {wildcards.run} \
+            -i {input.fasta} \
+            -m {input.model_file} \
+            -t {input.topology} \
+            -n {params.num_steps} \
+            --learning-rate 0.001 \
+            --init-values "{params.starting_values_string}" \
+            --max-trace-coords {params.max_trace_coords} \
+            --trace-output {output.trace} \
+            --samples-output {output.samples} \
+            --tree-samples-output {output.tree_samples} \
+            --n-output-samples {config[n_variational_samples]} \
+            2>&1 | tee {log}
+        '''
+
+rule flu_variational_multi_run_samples:
+    # Pools the per-run parameter samples into one table annotated with a `run`
+    # column, matching the format the carnivores example notebook writes for its
+    # own multi-run posterior (examples/carnivores.ipynb), so the same plotting
+    # code can show a pooled density plus an inter-run error band.
+    input:
+        samples = expand(flu_multi_run_dir / "samples-run{run}.csv", run=FLU_VI_SEEDS)
+    output:
+        flu_multi_run_dir / "samples.csv"
+    run:
+        frames = []
+        for run, path in zip(FLU_VI_SEEDS, input.samples):
+            frame = pd.read_csv(path)
+            frame.insert(0, "run", run)
+            frames.append(frame)
+        pd.concat(frames, ignore_index=True).to_csv(output[0], index=False)
+
+rule flu_variational_multi_run_tree_samples:
+    # Pools the per-run tree samples into one Nexus file so downstream summary
+    # statistics (e.g. per-node height mean/SD) reflect both within- and
+    # between-run variability, the same way the carnivores tree plot benefits
+    # from being computed over all trees in its (already multi-run) input file.
+    input:
+        tree_samples = expand(flu_multi_run_dir / "tree-samples-run{run}.nexus", run=FLU_VI_SEEDS)
+    output:
+        flu_multi_run_dir / "tree-samples.nexus"
+    run:
+        combined = dendropy.TreeList()
+        for path in input.tree_samples:
+            trees = dendropy.TreeList.get(
+                path=path, schema="nexus", taxon_namespace=combined.taxon_namespace
+            )
+            combined.extend(trees)
+        combined.write(path=output[0], schema="nexus")
+
+rule flu_variational_multi_run_timing:
+    input:
+        benchmarks = expand(flu_multi_run_dir / "benchmark-run{run}.txt", run=FLU_VI_SEEDS)
+    output:
+        flu_multi_run_dir / "timing.csv"
+    params:
+        seeds = FLU_VI_SEEDS,
+        num_steps = FLU_VI_NUM_STEPS
+    run:
+        pd.DataFrame([
+            dict(
+                seed=seed,
+                num_steps=params.num_steps,
+                elapsed_seconds=get_runtime_from_benchmark_file(benchmark_file)
+            )
+            for seed, benchmark_file in zip(params.seeds, input.benchmarks)
+        ]).to_csv(output[0], index=False)
+
+rule flu_variational_multi_run:
+    input:
+        samples = rules.flu_variational_multi_run_samples.output[0],
+        tree_samples = rules.flu_variational_multi_run_tree_samples.output[0],
+        timing = rules.flu_variational_multi_run_timing.output[0]
 
 
 rule ml_fit:

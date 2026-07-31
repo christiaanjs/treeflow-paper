@@ -1,11 +1,13 @@
-# Carnivores marginals figure.
+# Multi-run marginals figure, shared by the carnivores and flu (H3N2) datasets.
 #
 # Compared with the shared data marginals plot, this version also shows a Monte
 # Carlo error band for the TreeFlow VI estimates, built from the variability
-# between the independent VI runs produced by the carnivores example notebook
-# (examples/carnivores.ipynb). The notebook writes its pooled samples annotated
-# with a `run` column; we group on that column to estimate the band, analogous
-# to the bootstrap band used for the BEAST 2 MCMC estimates.
+# between several independent VI runs (for carnivores, produced by the example
+# notebook examples/carnivores.ipynb; for flu, produced by the
+# flu_variational_fit_run/flu_variational_multi_run_samples rules in
+# workflow/data.smk). The `vi_samples` input is the pooled samples from all runs
+# annotated with a `run` column; we group on that column to estimate the band,
+# analogous to the bootstrap band used for the BEAST 2 MCMC estimates.
 
 library(magrittr)
 

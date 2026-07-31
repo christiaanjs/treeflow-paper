@@ -182,7 +182,25 @@ rule carnivores_marginals_plot:
     params:
         python_executable = sys.executable
     script:
-        "../scripts/carnivores-marginals-plot.R"
+        "../scripts/multi-run-marginals-plot.R"
+
+# The flu marginals figure gets the same multi-run treatment as carnivores
+# (rule flu_variational_multi_run_samples in workflow/data.smk runs the VI fit
+# 4 times at 60,000 iterations each with different seeds and pools the samples
+# with a `run` column), so it takes precedence over the generic
+# data_marginals_plot rule for the flu dataset too.
+ruleorder: flu_marginals_plot > data_marginals_plot
+
+rule flu_marginals_plot:
+    input:
+        vi_samples = out_dir / config["flu_dataset"] / "variational-multi-run" / "samples.csv",
+        beast_samples = out_dir / config["flu_dataset"] / "beast.log"
+    output:
+        manuscript_dir / "figures" / f"{config['flu_dataset']}-marginals.png"
+    params:
+        python_executable = sys.executable
+    script:
+        "../scripts/multi-run-marginals-plot.R"
 
 rule data_tree_plot:
     input:
@@ -190,6 +208,21 @@ rule data_tree_plot:
         beast_tree_samples = out_dir / "{dataset}" / "beast.trees"
     output:
         plot = manuscript_dir / "figures" / "{dataset}-trees.png"
+    script:
+        "../scripts/data-tree-plot.R"
+
+# Analogous to flu_marginals_plot above: use the pooled multi-run tree samples
+# (all 4 runs' trees combined into one file) so the per-node height mean/SD
+# comparison against BEAST reflects between-run as well as within-run
+# variability. Takes precedence over the generic data_tree_plot rule for flu.
+ruleorder: flu_tree_plot > data_tree_plot
+
+rule flu_tree_plot:
+    input:
+        vi_tree_samples = out_dir / config["flu_dataset"] / "variational-multi-run" / "tree-samples.nexus",
+        beast_tree_samples = out_dir / config["flu_dataset"] / "beast.trees"
+    output:
+        plot = manuscript_dir / "figures" / f"{config['flu_dataset']}-trees.png"
     script:
         "../scripts/data-tree-plot.R"
 

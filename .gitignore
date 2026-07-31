@@ -284,6 +284,7 @@ __pycache__/
 
 scratch/
 .vscode
+.python-version
 
 manuscript/submission
 PLAN.md
