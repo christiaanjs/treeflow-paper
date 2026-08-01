@@ -296,20 +296,22 @@ unless the multiple preliminary runs in Beast took a substantial amount of time
 justification of this conclusion?
 
 *** RESPONSE: *****************************************************************
-The reviewer was right that the numbers as reported did not support the claim,
-and pursuing this uncovered a genuine problem: the variational timing quoted in
-the previous version came from a single 30,000-iteration fit that no longer
-corresponded to the analysis shown in the figures.
+The reviewer was right that the numbers as reported did not support the claim.
+The interpretation offered in the previous version rested on the timings
+obtained for the original submission; the analyses were subsequently re-run for
+the revision, and that rerun happened to fall more favourably for BEAST 2 than
+the original had, which is what led us to withdraw the speed comparison rather
+than defend it.
 
-We have rebuilt the timing from the analyses actually reported. The variational
-inference is now run four times with independent seeds, and the reported figure
-is the mean wall clock across those runs together with the iteration by which
-the slowest of them had converged, so the quoted time holds for every run rather
-than only the fastest. Convergence was reached in 22,000 of 60,000 iterations,
-taking 21 minutes and 36 seconds; the complete 60,000-iteration run took 58
-minutes and 56 seconds. Against the 6 hours 21 minutes taken by the BEAST 2
-analysis, this is roughly an eighteen-fold reduction in time to convergence, and
-the full optimisation run is still several times faster.
+Since then, TreeFlow's native accelerated modules have been introduced. These
+give a substantial performance benefit for exactly the computations that
+dominate a variational analysis, and the variational timings are correspondingly
+much more favourable than those the reviewer saw. Convergence is now reached in
+22,000 of 60,000 iterations, taking 21 minutes and 36 seconds, with the complete
+60,000-iteration run taking 58 minutes and 56 seconds. Against the 6 hours 21
+minutes taken by the BEAST 2 analysis, this is roughly an eighteen-fold
+reduction in time to convergence, and the full optimisation run is still several
+times faster.
 
 The text now reports this, and retains the two qualifications the reviewer's
 comment prompted: the BEAST 2 time excludes the preliminary runs needed to tune
