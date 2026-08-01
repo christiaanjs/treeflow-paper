@@ -245,16 +245,29 @@ stationary frequency of T seems to be significantly underestimated both in this
 example and the previous example. Any intuition why this might be the case?
 
 *** RESPONSE: *****************************************************************
-Reconsidered and revised. The summary now states that the uncertainty is
-substantially underestimated for the tree height and effective population size,
-but only slightly for the clock rate. We have also added the observation that the
-stationary frequency of T is noticeably underestimated in both examples, whereas
-the other base frequencies are approximated well, and offered an intuition: the
-base frequencies are constrained to sum to one and are represented in the
-variational approximation through a transform in which the final coordinate is
-determined by the others, so the mean-field family cannot capture the dependence
-this induces and tends to compress the marginal variance of that dependent
-coordinate.
+Reconsidered and revised, and the cause has since been identified and fixed.
+
+Our intuition was that the base frequencies are constrained to sum to one and
+are represented through a transform in which the final coordinate is determined
+by the others, so the mean-field family cannot represent that dependence and
+compresses the marginal variance of the dependent coordinate. Related reasoning
+covers the first half of the comment: the tree height and effective population
+size are strongly correlated with the clock rate, because the data constrain the
+product of rate and time better than either separately, which is why the clock
+rate itself is affected only slightly.
+
+We then tested this. A new structured family, "root full rank", places a full
+covariance block over the model parameters and the tree's root height, leaving
+the node-height ratios independent; it represents both dependencies at a cost
+linear rather than quadratic in the number of taxa. As predicted, it resolves
+the T frequency on both datasets while leaving the other three unchanged. All
+main-text analyses now use it, and Supplementary Appendix Figures S3 and S4 and
+Tables S1 and S2 compare all three families against BEAST 2.
+
+The tree height posterior remains too concentrated. That is skew rather than
+missing correlation -- the root height is inside the covariance block, but no
+affine transform of a Normal base distribution reproduces an arbitrary skew --
+and the text now points to normalizing flows as the remedy.
 ******************************************************************************
 
 --------------------------------------------------------------------------------
