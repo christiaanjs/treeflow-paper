@@ -264,10 +264,13 @@ the T frequency on both datasets while leaving the other three unchanged. All
 main-text analyses now use it, and Supplementary Appendix Figures S3 and S4 and
 Tables S1 and S2 compare all three families against BEAST 2.
 
-The tree height posterior remains too concentrated. That is skew rather than
-missing correlation -- the root height is inside the covariance block, but no
-affine transform of a Normal base distribution reproduces an arbitrary skew --
-and the text now points to normalizing flows as the remedy.
+We should be equally clear about what this does not fix: the tree height and
+effective population size are still underestimated. Since both sit inside the
+covariance block, the residual error is not missing correlation but skew -- both
+MCMC posteriors are right-skewed, and no affine transform of a Normal base
+distribution reproduces an arbitrary skew -- compounded by the mode-seeking
+behaviour of the KL objective. The text says this, and points to normalizing
+flows as the remedy.
 ******************************************************************************
 
 --------------------------------------------------------------------------------
@@ -293,17 +296,26 @@ unless the multiple preliminary runs in Beast took a substantial amount of time
 justification of this conclusion?
 
 *** RESPONSE: *****************************************************************
-We have revised this conclusion. We agree that the single-run wall-clock times do
-not by themselves support a claim of substantial speed improvement, and we have
-removed that wording. The text now states that the single variational run is of
-the same order as, and somewhat longer than, the reported BEAST 2 runtime, and
-explains that the two figures are not directly comparable: the BEAST 2 time is
-for the production run only and excludes the multiple preliminary runs that were
-needed to tune operator weights and reach acceptable effective sample sizes,
-whereas the variational analysis was run once and required no such manual tuning.
-We now describe TreeFlow VI as a viable option whose optimisation-based approach
-is expected to scale more favourably than random-walk MCMC as datasets grow,
-rather than as being substantially faster in this example.
+The reviewer was right that the numbers as reported did not support the claim,
+and pursuing this uncovered a genuine problem: the variational timing quoted in
+the previous version came from a single 30,000-iteration fit that no longer
+corresponded to the analysis shown in the figures.
+
+We have rebuilt the timing from the analyses actually reported. The variational
+inference is now run four times with independent seeds, and the reported figure
+is the mean wall clock across those runs together with the iteration by which
+the slowest of them had converged, so the quoted time holds for every run rather
+than only the fastest. Convergence was reached in 22,000 of 60,000 iterations,
+taking 21 minutes and 36 seconds; the complete 60,000-iteration run took 58
+minutes and 56 seconds. Against the 6 hours 21 minutes taken by the BEAST 2
+analysis, this is roughly an eighteen-fold reduction in time to convergence, and
+the full optimisation run is still several times faster.
+
+The text now reports this, and retains the two qualifications the reviewer's
+comment prompted: the BEAST 2 time excludes the preliminary runs needed to tune
+operator weights, and it stops at a minimum effective sample size below the
+value of 200 usually preferred, so both work in the same direction and the
+comparison understates rather than overstates the difference.
 ******************************************************************************
 
 --------------------------------------------------------------------------------

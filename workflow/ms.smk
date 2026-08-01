@@ -331,6 +331,17 @@ rule flu_tree_plot:
     script:
         "../scripts/data-tree-plot.R"
 
+# The per-node agreement statistics quoted in the text alongside flu_tree_plot,
+# computed from the same inputs so the two cannot disagree.
+rule flu_tree_stats:
+    input:
+        vi_tree_samples = out_dir / config["flu_dataset"] / "variational-multi-run" / MAIN_APPROX / "tree-samples.nexus",
+        beast_tree_samples = out_dir / config["flu_dataset"] / "beast.trees"
+    output:
+        out_dir / config["flu_dataset"] / "tree-comparison-stats.yaml"
+    script:
+        "../scripts/tree-comparison-stats.R"
+
 rule nf_data_tree_plot:
     input:
         vi_tree_samples = out_dir / "{dataset}" / "nf-tree-samples.nexus",
@@ -354,6 +365,7 @@ rule template_treeflow_ms:
         flu_marginals_plot = manuscript_dir / "figures" / f"{config['flu_dataset']}-marginals.png",
         flu_tree_plot = manuscript_dir / "figures" / f"{config['flu_dataset']}-trees.png",
         flu_timing_csv = out_dir / config["flu_dataset"] / "timing-data.csv",
+        flu_tree_stats = rules.flu_tree_stats.output[0],
         flu_model_file = out_dir / config["flu_dataset"] / "model.yaml",
         flu_tree_file = out_dir / config["flu_dataset"] / "topology.nwk",
         bib = manuscript_dir / "tex" / "main.bib",
@@ -386,6 +398,7 @@ rule template_treeflow_ms:
                         bibliography_file=input.bib
                     ),
                     output_dir = params.output_dir,
+                    **yaml_input(input.flu_tree_stats),
                 ),
                 submission=config["submission"]
             ),
@@ -430,6 +443,7 @@ rule template_treeflow_submission_ms:
         flu_marginals_plot = rules.treeflow_submission_dir.output.flu_marginals_plot,
         flu_tree_plot = rules.treeflow_submission_dir.output.flu_tree_plot,
         flu_timing_csv = out_dir / config["flu_dataset"] / "timing-data.csv",
+        flu_tree_stats = rules.flu_tree_stats.output[0],
         flu_model_file = rules.treeflow_submission_dir.output.flu_model_file,
         flu_tree_file = out_dir / config["flu_dataset"] / "topology.nwk",
         bib = rules.treeflow_submission_dir.output.bib
