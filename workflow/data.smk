@@ -459,6 +459,74 @@ rule marginals_plot:
     script:
         "../scripts/data-marginals-plot.R"
 
+# The H3N2 timing comparison quoted in the manuscript uses the multi-run
+# root_full_rank campaign -- the same runs the main-text figures come from --
+# rather than the single 30,000-iteration full_rank fit the generic timing_data
+# rule uses. The BEAST 2 side is read from recorded values (see
+# config/h3n2-beast-timing.yaml) because re-running it is not part of this
+# workflow.
+ruleorder: flu_timing_data > timing_data
+
+rule flu_timing_data:
+    input:
+        vi_benchmarks = expand(
+            wd / "h3n2" / "variational-multi-run" / "root_full_rank" / "benchmark-run{run}.txt",
+            run=MULTI_RUN_SEEDS
+        ),
+        vi_traces = expand(
+            wd / "h3n2" / "variational-multi-run" / "root_full_rank" / "trace-run{run}.pickle",
+            run=MULTI_RUN_SEEDS
+        ),
+        beast_timing = "config/h3n2-beast-timing.yaml"
+    output:
+        wd / "h3n2" / "timing-data.csv"
+    run:
+        from treeflow_pipeline.results import compute_variational_convergence
+
+        runtimes = [get_runtime_from_benchmark_file(f) for f in input.vi_benchmarks]
+        converged_iters = []
+        vi_iters = []
+        for trace_file in input.vi_traces:
+            trace = pickle_input(trace_file)
+            converged_iters.append(compute_variational_convergence(trace))
+            vi_iters.append(len(trace.loss))
+        if len(set(vi_iters)) != 1:
+            raise ValueError(f"Runs have differing iteration counts: {vi_iters}")
+        vi_iter = vi_iters[0]
+        # Mean wall clock over the independent runs, and the iteration by which
+        # the slowest of them had converged -- so "converged in N iterations
+        # taking T" holds for every run rather than only the luckiest one.
+        vi_runtime = sum(runtimes) / len(runtimes)
+        vi_converged_iter = max(converged_iters)
+        print(
+            f"VI runtimes (s): {runtimes}; mean {vi_runtime:.1f}\n"
+            f"Convergence iterations: {converged_iters}; using {vi_converged_iter}"
+        )
+
+        beast_timing = yaml_input(input.beast_timing)
+        vi_df = pd.DataFrame(
+            dict(iteration=[0, vi_converged_iter, vi_iter], value=[0.0, 1.0, 1.0])
+        )
+        vi_df = vi_df.assign(
+            time=vi_runtime * vi_df["iteration"] / vi_iter,
+            variable="converged",
+            method="vi",
+        )
+        beast_df = pd.DataFrame(
+            dict(
+                iteration=[0, beast_timing["iterations"]],
+                value=[0.0, beast_timing["min_ess"]],
+            )
+        )
+        beast_df = beast_df.assign(
+            time=beast_timing["runtime_seconds"]
+            * beast_df["iteration"]
+            / beast_timing["iterations"],
+            variable="min_ess",
+            method="beast",
+        )
+        pd.concat([vi_df, beast_df], ignore_index=True).to_csv(output[0], index=False)
+
 rule timing_data:
     input:
         vi_benchmark = wd / dataset_dir / "variational-benchmark.txt",
