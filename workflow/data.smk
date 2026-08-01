@@ -181,7 +181,12 @@ rule beast_run:
     log:
         wd / dataset_dir / "beast-log.txt"
     shell:
-        "beast -seed {config[seed]} {input} 2>&1 | tee {log}"
+        # -beagle_CPU pins BEAGLE to the CPU resource. BEAGLE also exposes the
+        # GPU via OpenCL on this machine, and letting it choose would make the
+        # runtime depend on what hardware happened to be visible; the CPU
+        # resource is what the reported timing comparison is based on, and
+        # matches the single-threaded MCMC the manuscript describes.
+        "beast -seed {config[seed]} -beagle_CPU {input} 2>&1 | tee {log}"
 
 rule variational_fit:
     input:
