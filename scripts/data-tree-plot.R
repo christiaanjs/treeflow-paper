@@ -79,5 +79,10 @@ fig <- ggplot(plotDf, aes(x = `BEAST 2`, y = `Treeflow VI`, colour = Approximati
     ylab("TreeFlow VI") +
     facet_wrap(~Statistic, scales = "free")
 
+if (length(viHeightsByMethod) == 1) {
+    # Nothing to distinguish -- a one-entry "Approximation" legend is just noise
+    fig <- fig + ggplot2::guides(colour = "none")
+}
+
 outputFile <- snakemake@output[[1]]
 ggplot2::ggsave(outputFile, fig, width = 8, height = (4 * 11.7 / 12.5))

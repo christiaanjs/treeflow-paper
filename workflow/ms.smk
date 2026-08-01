@@ -287,6 +287,26 @@ rule approximation_comparison_table:
             output[0],
         )
 
+# Accessory convergence diagnostic, not a manuscript figure: the variational
+# parameter traces for each seed of the main-text H3N2 campaign, so the
+# "parameters have stopped drifting" check described in the Scalable inference
+# section can be reproduced.
+MULTI_RUN_SEEDS = [1, 2, 3, 4]
+
+rule flu_multi_run_trace_plot:
+    input:
+        traces = expand(
+            out_dir / config["flu_dataset"] / "variational-multi-run" / MAIN_APPROX / "trace-run{run}.pickle",
+            run=MULTI_RUN_SEEDS
+        )
+    output:
+        manuscript_dir / "figures" / f"{config['flu_dataset']}-multi-run-traces.png"
+    params:
+        seeds = MULTI_RUN_SEEDS,
+        approx = MAIN_APPROX
+    script:
+        "../scripts/h3n2-multi-run-trace-plot.py"
+
 rule data_tree_plot:
     input:
         vi_tree_samples = out_dir / "{dataset}" / "variational-tree-samples.nexus",
