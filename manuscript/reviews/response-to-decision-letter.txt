@@ -308,10 +308,10 @@ give a substantial performance benefit for exactly the computations that
 dominate a variational analysis, and the variational timings are correspondingly
 much more favourable than those the reviewer saw. Convergence is now reached in
 22,000 of 60,000 iterations, taking 21 minutes and 36 seconds, with the complete
-60,000-iteration run taking 58 minutes and 56 seconds. Against the 6 hours 21
-minutes taken by the BEAST 2 analysis, this is roughly an eighteen-fold
-reduction in time to convergence, and the full optimisation run is still several
-times faster.
+60,000-iteration run taking 58 minutes and 56 seconds. Against the 3 hours 58
+minutes taken by the BEAST 2 analysis, this is roughly an elevenfold reduction
+in time to convergence, and the full optimisation run is still several times
+faster.
 
 The text now reports this, and retains the two qualifications the reviewer's
 comment prompted: the BEAST 2 time excludes the preliminary runs needed to tune
