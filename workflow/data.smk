@@ -10,8 +10,12 @@ from treeflow_pipeline.results import (
 )
 from treeflow_pipeline.data import convert_dates_to_numeric, extract_xml_sequences, remove_identical_sequences
 import pathlib
+import sys
 import pandas as pd
 import dendropy
+
+import treeflow
+treeflow_dir = pathlib.Path(treeflow.__file__).parents[1]
 
 configfile: "config/data-config.yaml"
 
@@ -25,22 +29,27 @@ dataset_dir = "{dataset}"
 data_dir = pathlib.Path("data")
 default_out_dir = pathlib.Path("out")
 
-# The flu (H3N2) VI fit is run multiple times with different seeds -- like
-# examples/h3n2-vi-multi-run.sh in the treeflow repo -- so the manuscript figure
-# can show a pooled posterior estimate with an inter-run Monte Carlo error band,
-# the same treatment the carnivores base-model figure gets from repeated runs of
-# the example notebook.
-FLU_DATASET = "h3n2"
-FLU_VI_SEEDS = [1, 2, 3, 4]
-FLU_VI_NUM_STEPS = 60000
+# Both the flu (H3N2) and carnivores base-model VI fits are run multiple times
+# with different seeds -- like examples/h3n2-vi-multi-run.sh in the treeflow
+# repo, and matching the settings the carnivores example notebook uses for its
+# own multi-run posterior (num_steps=60000, 4 runs, learning rate 0.001) -- so
+# the manuscript figures can show a pooled posterior estimate with an inter-run
+# Monte Carlo error band. root_full_rank is the approximation used for the
+# main-text figures; full_rank and mean_field are fit as well so the
+# supplementary material can compare the three families (see
+# approximation_comparison_plot in workflow/ms.smk, which uses run 1 of each).
+MULTI_RUN_DATASETS = ["h3n2", "carnivores"]
+MULTI_RUN_APPROXES = ["full_rank", "mean_field", "root_full_rank"]
+MULTI_RUN_SEEDS = [1, 2, 3, 4]
+MULTI_RUN_NUM_STEPS = 60000
 # full_rank's trace records its whole D x D scale matrix (D ~= 990 free dimensions
-# for this dataset) at every step by default, which is infeasible at 60,000 steps
-# (empirically ~1.5TB). --max-trace-coords bounds the trace to a fixed number of
-# sampled coordinates per variable instead, which keeps memory to a few GB
-# (empirically verified: ~5GB extrapolated at 60,000 steps) without changing the
-# optimisation itself.
-FLU_VI_MAX_TRACE_COORDS = 50
-flu_multi_run_dir = wd / FLU_DATASET / "variational-multi-run"
+# for the H3N2 model) at every step by default, which is infeasible at 60,000
+# steps (empirically ~1.5TB). --max-trace-coords bounds the trace to a fixed
+# number of sampled coordinates per variable instead, which keeps memory to a
+# few GB (empirically verified: ~5GB extrapolated at 60,000 steps for H3N2)
+# without changing the optimisation itself. Applied to mean_field too for
+# consistency, though its trace is much smaller regardless.
+MULTI_RUN_MAX_TRACE_COORDS = 50
 
 rule data:
     input:
@@ -208,29 +217,33 @@ rule variational_fit:
             2>&1 | tee {log}
         '''
 
-rule flu_variational_fit_run:
+wildcard_constraints:
+    approx = "|".join(MULTI_RUN_APPROXES)
+
+rule multi_run_variational_fit:
     input:
-        fasta = lambda wildcards: all_models[FLU_DATASET]["alignment"],
-        topology = wd / FLU_DATASET / "topology.nwk",
-        starting_values = wd / FLU_DATASET / "starting-values.yaml",
-        model_file = wd / FLU_DATASET / "model.yaml"
+        fasta = lambda wildcards: all_models[wildcards.dataset]["alignment"],
+        topology = wd / dataset_dir / "topology.nwk",
+        starting_values = wd / dataset_dir / "starting-values.yaml",
+        model_file = wd / dataset_dir / "model.yaml"
     params:
         starting_values_string = lambda wildcards, input: build_init_values_string(
-            {k: v for k, v in yaml_input(input.starting_values).items() if k in models[FLU_DATASET].free_params()}
+            {k: v for k, v in yaml_input(input.starting_values).items() if k in models[wildcards.dataset].free_params()}
         ),
-        num_steps = FLU_VI_NUM_STEPS,
-        max_trace_coords = FLU_VI_MAX_TRACE_COORDS
+        num_steps = MULTI_RUN_NUM_STEPS,
+        max_trace_coords = MULTI_RUN_MAX_TRACE_COORDS
     output:
-        trace = flu_multi_run_dir / "trace-run{run}.pickle",
-        samples = flu_multi_run_dir / "samples-run{run}.csv",
-        tree_samples = flu_multi_run_dir / "tree-samples-run{run}.nexus"
+        trace = wd / dataset_dir / "variational-multi-run" / "{approx}" / "trace-run{run}.pickle",
+        samples = wd / dataset_dir / "variational-multi-run" / "{approx}" / "samples-run{run}.csv",
+        tree_samples = wd / dataset_dir / "variational-multi-run" / "{approx}" / "tree-samples-run{run}.nexus"
     benchmark:
-        flu_multi_run_dir / "benchmark-run{run}.txt"
+        wd / dataset_dir / "variational-multi-run" / "{approx}" / "benchmark-run{run}.txt"
     log:
-        flu_multi_run_dir / "log-run{run}.txt"
+        wd / dataset_dir / "variational-multi-run" / "{approx}" / "log-run{run}.txt"
     shell:
         '''
         treeflow_vi run -s {wildcards.run} \
+            -va {wildcards.approx} \
             -i {input.fasta} \
             -m {input.model_file} \
             -t {input.topology} \
@@ -245,32 +258,37 @@ rule flu_variational_fit_run:
             2>&1 | tee {log}
         '''
 
-rule flu_variational_multi_run_samples:
+rule multi_run_variational_samples:
     # Pools the per-run parameter samples into one table annotated with a `run`
-    # column, matching the format the carnivores example notebook writes for its
-    # own multi-run posterior (examples/carnivores.ipynb), so the same plotting
-    # code can show a pooled density plus an inter-run error band.
+    # column, matching the format the carnivores example notebook originally
+    # used for its own multi-run posterior (examples/carnivores.ipynb), so the
+    # same plotting code can show a pooled density plus an inter-run error band.
     input:
-        samples = expand(flu_multi_run_dir / "samples-run{run}.csv", run=FLU_VI_SEEDS)
+        samples = expand(
+            wd / dataset_dir / "variational-multi-run" / "{approx}" / "samples-run{run}.csv",
+            run=MULTI_RUN_SEEDS, allow_missing=True
+        )
     output:
-        flu_multi_run_dir / "samples.csv"
+        wd / dataset_dir / "variational-multi-run" / "{approx}" / "samples.csv"
     run:
         frames = []
-        for run, path in zip(FLU_VI_SEEDS, input.samples):
+        for run, path in zip(MULTI_RUN_SEEDS, input.samples):
             frame = pd.read_csv(path)
             frame.insert(0, "run", run)
             frames.append(frame)
         pd.concat(frames, ignore_index=True).to_csv(output[0], index=False)
 
-rule flu_variational_multi_run_tree_samples:
+rule multi_run_variational_tree_samples:
     # Pools the per-run tree samples into one Nexus file so downstream summary
     # statistics (e.g. per-node height mean/SD) reflect both within- and
-    # between-run variability, the same way the carnivores tree plot benefits
-    # from being computed over all trees in its (already multi-run) input file.
+    # between-run variability.
     input:
-        tree_samples = expand(flu_multi_run_dir / "tree-samples-run{run}.nexus", run=FLU_VI_SEEDS)
+        tree_samples = expand(
+            wd / dataset_dir / "variational-multi-run" / "{approx}" / "tree-samples-run{run}.nexus",
+            run=MULTI_RUN_SEEDS, allow_missing=True
+        )
     output:
-        flu_multi_run_dir / "tree-samples.nexus"
+        wd / dataset_dir / "variational-multi-run" / "{approx}" / "tree-samples.nexus"
     run:
         combined = dendropy.TreeList()
         for path in input.tree_samples:
@@ -280,14 +298,17 @@ rule flu_variational_multi_run_tree_samples:
             combined.extend(trees)
         combined.write(path=output[0], schema="nexus")
 
-rule flu_variational_multi_run_timing:
+rule multi_run_variational_timing:
     input:
-        benchmarks = expand(flu_multi_run_dir / "benchmark-run{run}.txt", run=FLU_VI_SEEDS)
+        benchmarks = expand(
+            wd / dataset_dir / "variational-multi-run" / "{approx}" / "benchmark-run{run}.txt",
+            run=MULTI_RUN_SEEDS, allow_missing=True
+        )
     output:
-        flu_multi_run_dir / "timing.csv"
+        wd / dataset_dir / "variational-multi-run" / "{approx}" / "timing.csv"
     params:
-        seeds = FLU_VI_SEEDS,
-        num_steps = FLU_VI_NUM_STEPS
+        seeds = MULTI_RUN_SEEDS,
+        num_steps = MULTI_RUN_NUM_STEPS
     run:
         pd.DataFrame([
             dict(
@@ -298,11 +319,75 @@ rule flu_variational_multi_run_timing:
             for seed, benchmark_file in zip(params.seeds, input.benchmarks)
         ]).to_csv(output[0], index=False)
 
-rule flu_variational_multi_run:
+rule multi_run_variational:
     input:
-        samples = rules.flu_variational_multi_run_samples.output[0],
-        tree_samples = rules.flu_variational_multi_run_tree_samples.output[0],
-        timing = rules.flu_variational_multi_run_timing.output[0]
+        samples = rules.multi_run_variational_samples.output[0],
+        tree_samples = rules.multi_run_variational_tree_samples.output[0],
+        timing = rules.multi_run_variational_timing.output[0]
+
+rule multi_run_variational_all:
+    # Convenience target: every approximation's full 4-seed campaign on both
+    # datasets. The main text only needs `main_approximation_runs` below; this
+    # target additionally runs all 4 seeds of the two comparison families,
+    # which the supplementary figures do not use.
+    input:
+        expand(
+            wd / dataset_dir / "variational-multi-run" / "{approx}" / "{output}",
+            dataset=MULTI_RUN_DATASETS,
+            approx=MULTI_RUN_APPROXES,
+            output=["samples.csv", "tree-samples.nexus", "timing.csv"]
+        )
+
+MAIN_APPROX = "root_full_rank"
+
+rule main_approximation_runs:
+    # Convenience target: the 4-seed root_full_rank campaign behind the
+    # main-text marginals and tree figures, for both datasets.
+    input:
+        expand(
+            wd / dataset_dir / "variational-multi-run" / MAIN_APPROX / "{output}",
+            dataset=MULTI_RUN_DATASETS,
+            output=["samples.csv", "tree-samples.nexus", "timing.csv"]
+        )
+
+rule approximation_comparison_runs:
+    # Convenience target: the single (seed 1) run of each approximation family
+    # behind the supplementary comparison figures and tables.
+    input:
+        expand(
+            wd / dataset_dir / "variational-multi-run" / "{approx}" / "samples-run1.csv",
+            dataset=MULTI_RUN_DATASETS,
+            approx=MULTI_RUN_APPROXES
+        )
+
+# The carnivores example notebook is the source of the per-lineage kappa model
+# results: the manuscript's kappa-vs-branch-age figure, the base/alt tree
+# comparison figure, and the marginal likelihoods quoted in the text. It is a
+# notebook rather than a CLI analysis because the per-lineage kappa model is
+# specified through TreeFlow's Python API (it cannot be expressed in the YAML
+# model format), which is itself one of the points the figure makes. This rule
+# executes it non-interactively so those outputs are reproducible from the
+# workflow.
+rule carnivores_example_notebook:
+    input:
+        notebook = treeflow_dir / "examples" / "carnivores.ipynb",
+        alignment = treeflow_dir / "examples" / "demo-data" / "carnivores.fasta",
+        newick = treeflow_dir / "examples" / "demo-data" / "carnivores.newick"
+    output:
+        base_samples = treeflow_dir / "examples" / "demo-out" / "carnivores-base-samples.csv",
+        base_trees = treeflow_dir / "examples" / "demo-out" / "carnivores-base-trees.nexus",
+        alt_samples = treeflow_dir / "examples" / "demo-out" / "carnivores-alt-samples.csv",
+        alt_trees = treeflow_dir / "examples" / "demo-out" / "carnivores-alt-trees.nexus",
+        marginal_likelihoods = treeflow_dir / "examples" / "demo-out" / "carnivores-marginal-log-likelihoods.yaml"
+    benchmark:
+        wd / "carnivores" / "example-notebook-benchmark.txt"
+    log:
+        wd / "carnivores" / "example-notebook-log.txt"
+    params:
+        runner = treeflow_dir / "examples" / "run_example.py",
+        python_executable = sys.executable
+    shell:
+        "{params.python_executable} {params.runner} {input.notebook} --inplace 2>&1 | tee {log}"
 
 
 rule ml_fit:

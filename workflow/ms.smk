@@ -167,15 +167,21 @@ rule carnivores_tree_plot:
     script:
         "../scripts/carnivores-tree-plot.R"
 
-# The carnivores marginals figure uses the multiple-run base-model samples from
-# the example notebook (annotated with a `run` column) so that a Monte Carlo
-# error band can be shown for TreeFlow from the between-run variability. This
-# takes precedence over the generic data_marginals_plot rule for carnivores.
+# The main-text marginals figures compare BEAST 2 against TreeFlow VI fit with
+# the root_full_rank approximation, run 4 times independently (rule
+# multi_run_variational_fit in workflow/data.smk, matching the settings the
+# carnivores example notebook uses: num_steps 60,000, learning rate 0.001) so a
+# Monte Carlo error band can be shown. The comparison against the mean-field and
+# full-rank approximations is a supplementary figure
+# (approximation_comparison_plot below). This takes precedence over the generic
+# data_marginals_plot rule.
+MAIN_APPROX = "root_full_rank"
+
 ruleorder: carnivores_marginals_plot > data_marginals_plot
 
 rule carnivores_marginals_plot:
     input:
-        vi_samples = treeflow_dir / "examples" / "demo-out" / "carnivores-base-samples.csv",
+        vi_samples_root_full_rank = out_dir / "carnivores" / "variational-multi-run" / MAIN_APPROX / "samples.csv",
         beast_samples = out_dir / "carnivores" / "beast.log"
     output:
         manuscript_dir / "figures" / "carnivores-marginals.png"
@@ -184,16 +190,14 @@ rule carnivores_marginals_plot:
     script:
         "../scripts/multi-run-marginals-plot.R"
 
-# The flu marginals figure gets the same multi-run treatment as carnivores
-# (rule flu_variational_multi_run_samples in workflow/data.smk runs the VI fit
-# 4 times at 60,000 iterations each with different seeds and pools the samples
-# with a `run` column), so it takes precedence over the generic
-# data_marginals_plot rule for the flu dataset too.
+# The flu marginals figure gets the same multi-run treatment as carnivores, so
+# it takes precedence over the generic data_marginals_plot rule for the flu
+# dataset too.
 ruleorder: flu_marginals_plot > data_marginals_plot
 
 rule flu_marginals_plot:
     input:
-        vi_samples = out_dir / config["flu_dataset"] / "variational-multi-run" / "samples.csv",
+        vi_samples_root_full_rank = out_dir / config["flu_dataset"] / "variational-multi-run" / MAIN_APPROX / "samples.csv",
         beast_samples = out_dir / config["flu_dataset"] / "beast.log"
     output:
         manuscript_dir / "figures" / f"{config['flu_dataset']}-marginals.png"
@@ -201,6 +205,87 @@ rule flu_marginals_plot:
         python_executable = sys.executable
     script:
         "../scripts/multi-run-marginals-plot.R"
+
+# Supplementary: how the choice of variational approximation family affects the
+# fitted posterior. One run (seed 1) of each of mean_field, full_rank and
+# root_full_rank, against the same BEAST 2 reference. Single runs, so no
+# inter-run band -- this figure is about the systematic differences between the
+# families, not their Monte Carlo error.
+COMPARISON_APPROXES = ["mean_field", "full_rank", "root_full_rank"]
+
+rule approximation_comparison_plot:
+    input:
+        vi_samples = expand(
+            out_dir / "{{dataset}}" / "variational-multi-run" / "{approx}" / "samples-run1.csv",
+            approx=COMPARISON_APPROXES
+        ),
+        beast_samples = out_dir / "{dataset}" / "beast.log"
+    output:
+        manuscript_dir / "figures" / "{dataset}-approximation-comparison.png"
+    params:
+        python_executable = sys.executable,
+        approxes = COMPARISON_APPROXES
+    script:
+        "../scripts/approximation-comparison-plot.R"
+
+# Companion to approximation_comparison_plot: the fitted ELBO and wall-clock
+# runtime of the same runs, so the visual comparison can be read alongside the
+# quantity being optimised. ELBOs are comparable within a dataset but not
+# across datasets -- the log likelihood sums over alignment patterns, of which
+# carnivores has far more than H3N2 despite having far fewer taxa.
+rule approximation_comparison_table:
+    input:
+        logs = expand(
+            out_dir / "{{dataset}}" / "variational-multi-run" / "{approx}" / "log-run1.txt",
+            approx=COMPARISON_APPROXES
+        ),
+        benchmarks = expand(
+            out_dir / "{{dataset}}" / "variational-multi-run" / "{approx}" / "benchmark-run1.txt",
+            approx=COMPARISON_APPROXES
+        )
+    output:
+        manuscript_dir / "tables" / "{dataset}-approximation-comparison.tex"
+    params:
+        approxes = COMPARISON_APPROXES,
+        # `treeflow_vi run` prints the *sum* of the last --elbo-samples per-step
+        # loss values, so divide by that to recover a per-step ELBO estimate.
+        elbo_samples = 100
+    run:
+        import re
+        labels = {
+            "mean_field": "Mean field",
+            "full_rank": "Full rank",
+            "root_full_rank": "Root full rank",
+        }
+        rows = []
+        for approx, log_path, benchmark_path in zip(
+            params.approxes, input.logs, input.benchmarks
+        ):
+            elbo_matches = re.findall(
+                r"ELBO estimate: (\S+)", pathlib.Path(log_path).read_text()
+            )
+            if not elbo_matches:
+                raise ValueError(f"No ELBO estimate found in {log_path}")
+            elbo = float(elbo_matches[-1]) / params.elbo_samples
+            seconds = float(
+                pathlib.Path(benchmark_path).read_text().splitlines()[1].split("\t")[0]
+            )
+            rows.append(
+                f"{labels.get(approx, approx)} & {elbo:,.0f} & {seconds / 60:.1f} \\\\"
+            )
+        text_output(
+            "\n".join(
+                [
+                    r"\begin{tabular}{lrr}",
+                    r"\hline",
+                    r"Approximation & ELBO & Runtime (minutes) \\",
+                    r"\hline",
+                ]
+                + rows
+                + [r"\hline", r"\end{tabular}"]
+            ),
+            output[0],
+        )
 
 rule data_tree_plot:
     input:
@@ -212,14 +297,14 @@ rule data_tree_plot:
         "../scripts/data-tree-plot.R"
 
 # Analogous to flu_marginals_plot above: use the pooled multi-run tree samples
-# (all 4 runs' trees combined into one file) so the per-node height mean/SD
+# (all 4 runs' trees combined into one file), so the per-node height mean/SD
 # comparison against BEAST reflects between-run as well as within-run
 # variability. Takes precedence over the generic data_tree_plot rule for flu.
 ruleorder: flu_tree_plot > data_tree_plot
 
 rule flu_tree_plot:
     input:
-        vi_tree_samples = out_dir / config["flu_dataset"] / "variational-multi-run" / "tree-samples.nexus",
+        vi_tree_samples_root_full_rank = out_dir / config["flu_dataset"] / "variational-multi-run" / MAIN_APPROX / "tree-samples.nexus",
         beast_tree_samples = out_dir / config["flu_dataset"] / "beast.trees"
     output:
         plot = manuscript_dir / "figures" / f"{config['flu_dataset']}-trees.png"
@@ -524,7 +609,15 @@ rule compile_ms:
 
 rule compile_supplementary:
     input:
-        tex = manuscript_dir / "tex" / "supplementary.tex"
+        tex = manuscript_dir / "tex" / "supplementary.tex",
+        approximation_comparison_plots = expand(
+            manuscript_dir / "figures" / "{dataset}-approximation-comparison.png",
+            dataset=["carnivores", config["flu_dataset"]]
+        ),
+        approximation_comparison_tables = expand(
+            manuscript_dir / "tables" / "{dataset}-approximation-comparison.tex",
+            dataset=["carnivores", config["flu_dataset"]]
+        )
     output:
         manuscript_dir / "out" / "supplementary.pdf"
     params:

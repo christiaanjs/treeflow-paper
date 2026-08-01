@@ -1,19 +1,27 @@
 # Multi-run marginals figure, shared by the carnivores and flu (H3N2) datasets.
 #
-# Compared with the shared data marginals plot, this version also shows a Monte
-# Carlo error band for the TreeFlow VI estimates, built from the variability
-# between several independent VI runs (for carnivores, produced by the example
-# notebook examples/carnivores.ipynb; for flu, produced by the
-# flu_variational_fit_run/flu_variational_multi_run_samples rules in
-# workflow/data.smk). The `vi_samples` input is the pooled samples from all runs
-# annotated with a `run` column; we group on that column to estimate the band,
-# analogous to the bootstrap band used for the BEAST 2 MCMC estimates.
+# Compares BEAST 2 MCMC against TreeFlow VI, each run independently 4 times
+# (see the multi_run_variational_fit rule in workflow/data.smk) so a Monte
+# Carlo error band can be shown for each method: a bootstrap band for BEAST 2's
+# MCMC samples, and an inter-run band (the spread of the per-run kernel density
+# estimates) for the VI approximation. The `vi_samples_*` inputs are each the
+# pooled samples from all 4 runs of one approximation, annotated with a `run`
+# column; the main-text figures pass only root_full_rank, but the script takes
+# any subset of the approximation families.
 
 library(magrittr)
 
 pythonExecutable <- snakemake@params[["python_executable"]]
 reticulate::use_python(pythonExecutable)
 pythonModule <- reticulate::import("treeflow_pipeline.manuscript")
+
+# Named list mapping a display label to the VI approximation's snakemake@input
+# key, e.g. list(`Treeflow VI (full rank)` = "vi_samples_full_rank", ...).
+viMethodInputs <- list(
+    `Treeflow VI` = "vi_samples_root_full_rank",
+    `Treeflow VI (full rank)` = "vi_samples_full_rank",
+    `Treeflow VI (mean field)` = "vi_samples_mean_field"
+)
 
 readBeastTrace <- function(filename, columns, burnIn = 0.1) {
     raw <- readr::read_tsv(filename, comment = "#")
@@ -50,7 +58,7 @@ bootstrapDensityBands <- function(x, n_boot = 200, n_grid = 512, ci = 0.95) {
     )
 }
 
-# Monte Carlo error band for the VI estimate: the range of the per-run kernel
+# Monte Carlo error band for a VI estimate: the range of the per-run kernel
 # density estimates across the independent runs.
 interRunDensityBands <- function(x, run, n_grid = 512) {
     rng <- range(x)
@@ -68,14 +76,24 @@ interRunDensityBands <- function(x, run, n_grid = 512) {
     )
 }
 
-viRaw <- readr::read_csv(snakemake@input[["vi_samples"]])
-stopifnot("run" %in% colnames(viRaw))
-viColumns <- setdiff(colnames(viRaw), "run")
-viTrace <- dplyr::select(viRaw, tidyselect::all_of(viColumns))
+# Load each available VI approximation's pooled samples (all four runs,
+# annotated with `run`); a dataset may not have every approximation available.
+viRawByMethod <- Filter(Negate(is.null), lapply(viMethodInputs, function(inputKey) {
+    path <- snakemake@input[[inputKey]]
+    if (is.null(path)) {
+        return(NULL)
+    }
+    raw <- readr::read_csv(path)
+    stopifnot("run" %in% colnames(raw))
+    raw
+}))
+stopifnot(length(viRawByMethod) > 0)
 
-dfs <- list(
-    `Beast 2` = readBeastTrace(snakemake@input[["beast_samples"]], viColumns),
-    `Treeflow VI` = viTrace
+viColumns <- setdiff(colnames(viRawByMethod[[1]]), "run")
+
+dfs <- c(
+    list(`Beast 2` = readBeastTrace(snakemake@input[["beast_samples"]], viColumns)),
+    lapply(viRawByMethod, function(raw) dplyr::select(raw, tidyselect::all_of(viColumns)))
 )
 
 stacked <- dplyr::bind_rows(dfs, .id = "Method")
@@ -93,16 +111,19 @@ beastRibbon <- do.call(rbind, lapply(variables, function(v) {
     bands
 }))
 
-# TreeFlow VI Monte Carlo error band (variability between independent runs)
-viRenamed <- pythonModule$rename_marginal_df(viRaw)
-tfRibbon <- do.call(rbind, lapply(variables, function(v) {
-    bands <- interRunDensityBands(viRenamed[[v]], viRenamed$run)
-    bands$variable <- v
-    bands$Method <- "Treeflow VI"
-    bands
+# TreeFlow VI Monte Carlo error bands (variability between independent runs),
+# one per approximation.
+viRibbons <- do.call(rbind, lapply(names(viRawByMethod), function(methodLabel) {
+    viRenamed <- pythonModule$rename_marginal_df(viRawByMethod[[methodLabel]])
+    do.call(rbind, lapply(variables, function(v) {
+        bands <- interRunDensityBands(viRenamed[[v]], viRenamed$run)
+        bands$variable <- v
+        bands$Method <- methodLabel
+        bands
+    }))
 }))
 
-ribbonDf <- rbind(beastRibbon, tfRibbon)
+ribbonDf <- rbind(beastRibbon, viRibbons)
 
 postFig <- ggplot2::ggplot(pivoted) +
     ggplot2::geom_ribbon(
@@ -115,4 +136,4 @@ postFig <- ggplot2::ggplot(pivoted) +
     ggplot2::scale_x_continuous(n.breaks = 4) +
     ggplot2::facet_wrap(~variable, scales = "free")
 
-ggplot2::ggsave(snakemake@output[[1]], postFig, width = 8, height = 6)
+ggplot2::ggsave(snakemake@output[[1]], postFig, width = 9, height = 7)
