@@ -350,12 +350,20 @@ def get_treeflow_timing_vars(timing_csv_file):
     final_beast_data = beast_data.iloc[-1]
     vi_data = timing_df[timing_df["method"] == "vi"]
     vi_converged_data = vi_data[vi_data["value"] == 1.0].iloc[0]
+    # How much faster the variational analysis reached convergence than the
+    # MCMC analysis reached its reported effective sample size. Quoted in the
+    # manuscript, so it is derived here rather than written out by hand and
+    # left to go stale when either run is repeated.
+    vi_speedup = final_beast_data["time"] / vi_converged_data["time"]
     return dict(
         flu_beast_iterations=format_integer(final_beast_data["iteration"]),
         flu_min_ess=format_integer(final_beast_data["value"]),
         flu_beast_time=format_time(final_beast_data["time"]),
         flu_convergence_iterations=format_integer(vi_converged_data["iteration"]),
         flu_vi_time=format_time(vi_converged_data["time"]),
+        flu_vi_iterations=format_integer(vi_data["iteration"].max()),
+        flu_vi_full_run_time=format_time(vi_data["time"].max()),
+        flu_vi_speedup=f"{vi_speedup:.0f}",
     )
 
 

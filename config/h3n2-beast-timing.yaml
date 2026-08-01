@@ -10,8 +10,10 @@
 # The TreeFlow side of the comparison IS recomputed, from the multi-run
 # variational campaign (rule flu_timing_data), and therefore reflects the
 # machine the variational analyses were last run on rather than the original
-# environment. The two sides are consequently not measured on the same hardware
-# -- see the Scalable inference section of the manuscript, which states this.
+# environment. The two sides are consequently not currently measured on the
+# same hardware. These BEAST 2 numbers stand in until the MCMC analysis is
+# re-run alongside the variational ones; replacing the three values below is
+# all that is needed to rebuild the comparison from a matched pair.
 iterations: 30000000
 min_ess: 103.28293883597895
 runtime_seconds: 22898.83
