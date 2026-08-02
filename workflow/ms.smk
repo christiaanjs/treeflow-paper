@@ -1,4 +1,5 @@
 import pathlib
+import shutil
 import sys
 import pandas as pd
 import treeflow_pipeline.model
@@ -589,9 +590,12 @@ rule copy_submission_figures:
         **{name: submission_figures_dir / (name + pathlib.Path(str(src)).suffix)
            for name, src in submission_figures.items()}
     run:
+        # Copy in Python rather than via shell(): a shell() format string is
+        # expanded by snakemake, where "{input[key]}" indexes with the literal
+        # string "key" rather than with this loop variable's value.
         pathlib.Path(str(submission_figures_dir)).mkdir(parents=True, exist_ok=True)
         for key in input.keys():
-            shell(f"cp {{input[key]}} {{output[key]}}")
+            shutil.copy(input[key], output[key])
 
 rule ms_figures:
     input: list(rules.copy_submission_figures.output)
