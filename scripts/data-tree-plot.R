@@ -22,10 +22,10 @@ beastHeights <- getHeightDf(beastTrees)
 # each compared against the same BEAST 2 trees. Only the inputs the invoking
 # rule actually declares are used.
 viMethodInputs <- list(
-    `Treeflow VI (root full rank)` = "vi_tree_samples_root_full_rank",
-    `Treeflow VI (full rank)` = "vi_tree_samples_full_rank",
-    `Treeflow VI (mean field)` = "vi_tree_samples_mean_field",
-    `Treeflow VI` = "vi_tree_samples"
+    `TreeFlow VI (root full rank)` = "vi_tree_samples_root_full_rank",
+    `TreeFlow VI (full rank)` = "vi_tree_samples_full_rank",
+    `TreeFlow VI (mean field)` = "vi_tree_samples_mean_field",
+    `TreeFlow VI` = "vi_tree_samples"
 )
 
 viHeightsByMethod <- Filter(Negate(is.null), lapply(viMethodInputs, function(inputKey) {
@@ -69,10 +69,10 @@ plotDf <- longForm %>%
     tidyr::pivot_longer(
         cols = tidyselect::any_of(names(viHeightsByMethod)),
         names_to = "Approximation",
-        values_to = "Treeflow VI"
+        values_to = "TreeFlow VI"
     )
 
-fig <- ggplot(plotDf, aes(x = `BEAST 2`, y = `Treeflow VI`, colour = Approximation)) +
+fig <- ggplot(plotDf, aes(x = `BEAST 2`, y = `TreeFlow VI`, colour = Approximation)) +
     geom_abline(slope = 1, intercept = 0, linetype = "dotted") +
     geom_point(alpha = 0.6) +
     geom_blank(data = limits, aes(x = value, y = value, colour = NULL)) +

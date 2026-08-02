@@ -27,7 +27,7 @@ includePointEsts <- includeMl || includeEmp
 
 mlPivoted <- if (includeMl) {
   mlTrace <- readViTrace(snakemake@input["ml_variables"])
-  dplyr::mutate(mlTrace, Method = "Treeflow ML") %>%
+  dplyr::mutate(mlTrace, Method = "TreeFlow ML") %>%
     tidyr::pivot_longer(!Method, names_to = "variable")
 } else {
   NULL
@@ -35,8 +35,8 @@ mlPivoted <- if (includeMl) {
 
 
 dfs <- list(
-  `Beast 2` = readBeastTrace(snakemake@input["beast_samples"], colnames(viTrace)),
-  `Treeflow VI` = viTrace
+  `BEAST 2` = readBeastTrace(snakemake@input["beast_samples"], colnames(viTrace)),
+  `TreeFlow VI` = viTrace
 )
 
 stacked <- dplyr::bind_rows(dfs, .id = "Method")

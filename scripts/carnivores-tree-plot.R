@@ -37,13 +37,20 @@ summaryFuncs <- list(
     mean = mean
 )
 
+# Summarise each internal node's own height. Summarising the children's
+# `parentHeight` instead emits every internal node twice (once per child), which
+# duplicated every point and error bar in the plot. In this representation tips
+# are the nodes that never appear in the `parent` column; every other node
+# (including the root, which is its own parent) is internal.
+internalNodes <- unique(heightsDf$parent)
+
 summaryDf <- heightsDf %>%
-    filter(parentHeight != height) %>%
+    filter(node %in% internalNodes) %>%
     group_by(node, model) %>%
     summarise(
-        lo = quantile(parentHeight, probs = loP),
-        up = quantile(parentHeight, probs = upP),
-        Age = mean(parentHeight)
+        lo = quantile(height, probs = loP),
+        up = quantile(height, probs = upP),
+        Age = mean(height)
     )
 maxAge <- max(summaryDf$up)
 plotDf <- tidyr::pivot_wider(
@@ -56,6 +63,10 @@ plotDf <- tidyr::pivot_wider(
         `Age in base model` = `Age Base`,
         `Age in kappa variation model` = `Age Kappa variation`
     )
+
+# One row per internal node: 62 taxa => 61 internal nodes.
+print(paste("Internal nodes per model:", nrow(plotDf)))
+stopifnot(nrow(plotDf) == length(internalNodes))
 
 fig <- ggplot(plotDf, aes(x = `Age in base model`, y = `Age in kappa variation model`)) +
     geom_errorbar(aes(ymin = `lo Kappa variation`, ymax = `up Kappa variation`, color = "95% posterior quantile interval"), alpha = 0.5) +

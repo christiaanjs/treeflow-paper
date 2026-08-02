@@ -16,11 +16,11 @@ reticulate::use_python(pythonExecutable)
 pythonModule <- reticulate::import("treeflow_pipeline.manuscript")
 
 # Named list mapping a display label to the VI approximation's snakemake@input
-# key, e.g. list(`Treeflow VI (full rank)` = "vi_samples_full_rank", ...).
+# key, e.g. list(`TreeFlow VI (full rank)` = "vi_samples_full_rank", ...).
 viMethodInputs <- list(
-    `Treeflow VI` = "vi_samples_root_full_rank",
-    `Treeflow VI (full rank)` = "vi_samples_full_rank",
-    `Treeflow VI (mean field)` = "vi_samples_mean_field"
+    `TreeFlow VI` = "vi_samples_root_full_rank",
+    `TreeFlow VI (full rank)` = "vi_samples_full_rank",
+    `TreeFlow VI (mean field)` = "vi_samples_mean_field"
 )
 
 readBeastTrace <- function(filename, columns, burnIn = 0.1) {
@@ -92,7 +92,7 @@ stopifnot(length(viRawByMethod) > 0)
 viColumns <- setdiff(colnames(viRawByMethod[[1]]), "run")
 
 dfs <- c(
-    list(`Beast 2` = readBeastTrace(snakemake@input[["beast_samples"]], viColumns)),
+    list(`BEAST 2` = readBeastTrace(snakemake@input[["beast_samples"]], viColumns)),
     lapply(viRawByMethod, function(raw) dplyr::select(raw, tidyselect::all_of(viColumns)))
 )
 
@@ -103,11 +103,11 @@ pivoted <- tidyr::pivot_longer(renamed, !Method, names_to = "variable", values_t
 variables <- setdiff(colnames(renamed), "Method")
 
 # BEAST 2 Monte Carlo error band (bootstrap of the MCMC samples)
-beastData <- dplyr::filter(renamed, Method == "Beast 2")
+beastData <- dplyr::filter(renamed, Method == "BEAST 2")
 beastRibbon <- do.call(rbind, lapply(variables, function(v) {
     bands <- bootstrapDensityBands(beastData[[v]])
     bands$variable <- v
-    bands$Method <- "Beast 2"
+    bands$Method <- "BEAST 2"
     bands
 }))
 

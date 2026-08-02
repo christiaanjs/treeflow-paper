@@ -45,7 +45,7 @@ viByMethod <- stats::setNames(
 viColumns <- colnames(viByMethod[[1]])
 
 dfs <- c(
-    list(`Beast 2` = readBeastTrace(snakemake@input[["beast_samples"]], viColumns)),
+    list(`BEAST 2` = readBeastTrace(snakemake@input[["beast_samples"]], viColumns)),
     viByMethod
 )
 
@@ -55,7 +55,7 @@ pivoted <- tidyr::pivot_longer(renamed, !Method, names_to = "variable", values_t
 
 # BEAST 2 is the reference the approximations are being judged against, so give
 # it a visually distinct (dashed, black) line rather than another colour.
-methodLevels <- c("Beast 2", unname(approxLabels[approxes]))
+methodLevels <- c("BEAST 2", unname(approxLabels[approxes]))
 pivoted$Method <- factor(pivoted$Method, levels = methodLevels)
 
 fig <- ggplot2::ggplot(pivoted) +
