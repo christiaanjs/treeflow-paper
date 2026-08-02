@@ -48,7 +48,7 @@ in the caption of Figure 3, to make its structure and interpretation
 unambiguous (see our responses to the Figure 3, L362 and L383-386 comments
 below). We have also expanded the description of the software: the manuscript
 now points readers to the online manual, the YAML model-definition reference and
-the online tutorial as a starting point (L120ff), and we have correspondingly
+the online tutorial as a starting point, and we have correspondingly
 completed the online documentation of the model-definition format, added a guide
 to monitoring convergence of variational inference, and added a "where to start"
 pointer to the installation instructions.
@@ -91,8 +91,7 @@ L14: Inconsistent order of references (year or alphabetic?)
 *** RESPONSE: *****************************************************************
 Fixed. We have adopted a single, consistent convention throughout the
 manuscript: references within a multiple-citation group are now ordered by year
-(and alphabetically by author for ties). For example the first group now reads
-Huelsenbeck et al. (2001), Lartillot et al. (2009), Drummond et al. (2012).
+(and alphabetically by author for ties).
 ******************************************************************************
 
 --------------------------------------------------------------------------------
@@ -101,13 +100,7 @@ grammatically inconsistent if I understand it correctly. Please rewrite and
 simplify if possible.
 
 *** RESPONSE: *****************************************************************
-Rewritten. The single run-on sentence has been split into two, and the mixed
-grammatical construction removed: "Universal probabilistic programming languages
-have also been used to express generative processes for trees and to
-automatically generate Sequential Monte Carlo inference schemes for complex
-speciation models. It has been proposed that the same languages could generate
-inference schemes for other phylogenetic models, including MCMC samplers over
-tree topologies."
+Rewritten.
 ******************************************************************************
 
 --------------------------------------------------------------------------------
@@ -118,8 +111,7 @@ Variational Inference Based Algorithm for Phylogeny'. Advances in Neural
 Information Processing Systems 35 (December 2022): 14758-70.
 
 *** RESPONSE: *****************************************************************
-Added. We now cite Koptagel et al. (2022) where variational inference of
-phylogenies is discussed, and have added the reference to the bibliography.
+Added.
 ******************************************************************************
 
 --------------------------------------------------------------------------------
@@ -144,9 +136,7 @@ Fig. 1. "Developer API" is partly covered by the tensorflow.TensorArray node in
 the graph. Please fix this!
 
 *** RESPONSE: *****************************************************************
-Fixed. In the figure source we moved the "Developer API" label to the top-left
-corner of its box and raised the tensorflow.TensorArray node so that the two no
-longer overlap.
+We have substantially improved the layout of the diagram.
 ******************************************************************************
 
 --------------------------------------------------------------------------------
@@ -154,13 +144,7 @@ L212-222: This paragraph is difficult to follow. Is it possible to provide a
 more intuitive explanation for the quadratic cost?
 
 *** RESPONSE: *****************************************************************
-Yes. We have added an intuitive explanation: because a Tensor cannot be modified
-in place, a traversal step that updates one node's value cannot overwrite that
-entry but must produce a whole new copy of the tree-wide state. Repeating this
-for each of the roughly N nodes creates N copies each of size N, and
-differentiating through all of them, so both computation and memory grow with
-the square of the number of nodes -- which is why the write-once TensorArray is
-used instead.
+We have added an intuitive explanation.
 ******************************************************************************
 
 --------------------------------------------------------------------------------
@@ -170,14 +154,13 @@ specify. Is there no variance around the TreeFlow distribution estimates or is
 the variance so small that it is not visible? Please clarify in the caption.
 
 *** RESPONSE: *****************************************************************
-Clarified, and we have gone further. The caption now states that the grey band
+Clarified - the caption now states that the grey band
 around each BEAST 2 density is the Monte Carlo sampling error of the MCMC
 estimate, obtained by bootstrapping the MCMC samples. In addition, we now also
 show a Monte Carlo error band for the TreeFlow VI estimates: we ran the
 variational inference four times independently and use the variability between
 the runs as the error estimate, with the plotted curve showing the posterior
-pooled across the runs. This directly answers the reviewer's question about the
-variance around the TreeFlow estimates.
+pooled across the runs.
 ******************************************************************************
 
 --------------------------------------------------------------------------------
@@ -218,14 +201,13 @@ model of change of kappa over time or at speciation events, or is it a completel
 branch-independent kappa values model, as I guessed?
 
 *** RESPONSE: *****************************************************************
-The reviewer's final guess is correct: it is a completely branch-independent
-kappa model. Each branch is assigned its own independent kappa parameter, drawn
+Each branch is assigned its own independent kappa parameter, drawn
 from a shared log-normal prior sampled once per branch; kappa is not shared
 between branches and does not follow any model of change over time or at
 speciation events. We have rewritten the Figure 3 captions to make this explicit
 and to fold the previous sub-caption text into the main caption.
 
-Regarding the axis, the reviewer's suspicion was well founded and led us to a
+Regarding the axis, the reviewer's comment led us to a
 genuine error. The quantity plotted was intended to be the age of the branch,
 but the plotting code computed the difference between the branch's two endpoint
 heights, that is, the branch length, while labelling it "Age". We have fixed
@@ -233,12 +215,8 @@ this: the axis now shows the height of the branch's midpoint above the present,
 which is what was intended. Because the tree is estimated in units of expected
 substitutions per site and is not calibrated to time, this age is measured in
 expected substitutions per site rather than in time units, and the caption now
-says so explicitly and notes that it is not the branch length. Each point is the
-posterior mean kappa for one branch, on a logarithmic scale, plotted against
-that branch's age, with 95% credible intervals shown as vertical (kappa) and
-horizontal (age) error bars. We are grateful to the reviewer for catching this,
-and Figure 3 has been regenerated accordingly. The decline of kappa with age is
-considerably clearer in the corrected figure than in the one the reviewer saw.
+says so explicitly. The decline of kappa with age is
+considerably clearer in the corrected figure.
 ******************************************************************************
 
 --------------------------------------------------------------------------------
@@ -247,19 +225,8 @@ think this sentence refers to age estimates and not kappa estimates (for which
 the pattern is the opposite).
 
 *** RESPONSE: *****************************************************************
-The reviewer's reading was correct for the figure as it stood, and pursuing it
-led us to the axis error described above, in which the x-axis was plotting
-branch length while labelled as an age. With that fixed, the picture changes.
-Kappa uncertainty is now greatest for the oldest branches, which carry the
-widest credible intervals in the figure and where the point estimates also fall
-furthest, while remaining substantial on the youngest, shortest branches, which
-accumulate too few substitutions to constrain kappa. Uncertainty in the age
-estimates likewise grows with depth. We have rewritten the passage to describe
-both patterns against the corrected figure, and we note that the deepest
-branches carrying both the lowest and the least certain kappa estimates is a
-closer fit to the conclusions of Duchene et al. (2015) than either earlier
-version of this text. We thank the reviewer, whose comment is what uncovered the
-underlying error.
+With the correction to the figure described above, the interpretation is now more
+reasonable.
 ******************************************************************************
 
 --------------------------------------------------------------------------------
@@ -280,18 +247,12 @@ stationary frequency of T seems to be significantly underestimated both in this
 example and the previous example. Any intuition why this might be the case?
 
 *** RESPONSE: *****************************************************************
-Reconsidered and revised, and the cause has since been identified and fixed.
-
 Our intuition was that the base frequencies are constrained to sum to one and
 are represented through a transform in which the final coordinate is determined
 by the others, so the mean-field family cannot represent that dependence and
-compresses the marginal variance of the dependent coordinate. Related reasoning
-covers the first half of the comment: the tree height and effective population
-size are strongly correlated with the clock rate, because the data constrain the
-product of rate and time better than either separately, which is why the clock
-rate itself is affected only slightly.
+compresses the marginal variance of the dependent coordinate.
 
-We then tested this. A new structured family, "root full rank", places a full
+We implemented a new structured family, "root full rank", which places a full
 covariance block over the model parameters and the tree's root height, leaving
 the node-height ratios independent; it represents both dependencies at a cost
 linear rather than quadratic in the number of taxa. As predicted, it resolves
@@ -299,13 +260,9 @@ the T frequency on both datasets while leaving the other three unchanged. All
 main-text analyses now use it, and Supplementary Appendix Figures S3 and S4 and
 Tables S1 and S2 compare all three families against BEAST 2.
 
-We should be equally clear about what this does not fix: the tree height and
-effective population size are still underestimated. Since both sit inside the
-covariance block, the residual error is not missing correlation but skew -- both
-MCMC posteriors are right-skewed, and no affine transform of a Normal base
-distribution reproduces an arbitrary skew -- compounded by the mode-seeking
-behaviour of the KL objective. The text says this, and points to normalizing
-flows as the remedy.
+This also improves the estimation of tree and clock rate parameters, but there
+is still divergence from the BEAST posterior apparent. We have updated the
+interpretation of the marginal estimates to better reflect the plot.
 ******************************************************************************
 
 --------------------------------------------------------------------------------
@@ -335,27 +292,18 @@ The reviewer was right that the numbers as reported did not support the claim.
 The interpretation offered in the previous version rested on the timings
 obtained for the original submission; the analyses were subsequently re-run for
 the revision, and that rerun happened to fall more favourably for BEAST 2 than
-the original had, which is what led us to withdraw the speed comparison rather
-than defend it.
+the original had.
 
 Since then, TreeFlow's native accelerated modules have been introduced. These
 give a substantial performance benefit for exactly the computations that
 dominate a variational analysis, and the variational timings are correspondingly
 much more favourable than those the reviewer saw. Variational inference now
 reaches convergence in a small fraction of the wall-clock time taken by the
-BEAST 2 analysis, and even completing the full optimization run, well past the
-point at which the ELBO has plateaued, takes considerably less time than the
-MCMC. The revised text reports the timings for both, alongside the effective
+BEAST 2 analysis. The revised text reports the timings for both, alongside the effective
 sample sizes the BEAST 2 analysis attained, so that the comparison can be
 assessed directly. We have also made explicit that the BEAST 2 analysis was run
 with the BEAGLE library, so that both sides of the comparison are using their
 respective accelerated likelihood implementations.
-
-We would note two respects in which the comparison remains conservative. The
-BEAST 2 time is for the single production run only and excludes the preliminary
-runs needed to tune operator weights, whereas the variational analysis was run
-once and required no such tuning. The BEAST 2 analysis also stops at a minimum
-effective sample size below the value of 200 usually preferred.
 ******************************************************************************
 
 --------------------------------------------------------------------------------
@@ -397,14 +345,9 @@ Instead we have made the comparison against a measured reference point. The
 revised table includes a JIT-compiled JAX implementation, which exhibits the
 quadratic scaling that a naive automatic-differentiation traversal incurs, with
 fitted slopes above two for all four computations. Against that reference,
-TreeFlow and bito/BEAGLE are both firmly sub-quadratic, and TreeFlow's compiled
-native operation in fact has a shallower slope than bito/BEAGLE's analytical
-gradient. The claim we intend, and now make explicitly, is that the TensorArray
+TreeFlow and bito/BEAGLE are both firmly sub-quadratic.
+The claim we now make is that the TensorArray
 implementation attains sub-quadratic scaling for branch gradients through
 automatic differentiation, not that it matches bito/BEAGLE's constant factor or
 its exact empirical slope.
 ******************************************************************************
-
-================================================================================
-End of response.
-================================================================================
