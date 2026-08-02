@@ -16,7 +16,9 @@ addHeights <- function(tree) {
 }
 
 withHeightsDf <- bind_rows(lapply(trees, addHeights), .id = "index")
-withMid <- mutate(withHeightsDf, midHeight = parentHeight - height)
+# Height of the branch's midpoint above the present (not the branch length --
+# `parentHeight - height` would be the latter, and the x axis is an age).
+withMid <- mutate(withHeightsDf, midHeight = (parentHeight + height) / 2)
 
 loP <- 0.025
 upP <- 0.975

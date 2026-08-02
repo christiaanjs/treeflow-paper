@@ -1,0 +1,27 @@
+# BEAST 2 runtime and convergence for the H3N2 analysis.
+#
+# These values are combined from two runs of the same 30,000,000-state analysis,
+# and the workflow does not regenerate them, so they are recorded here.
+#
+# runtime_seconds comes from the run of 2026-08-01 on the current machine, kept
+# whole in out/h3n2/beast-run-2026-08-01/ (BEAST 2.7.7, arm64, BEAGLE 4.0.1 on
+# the CPU resource; rule beast_run). Wall clock for a fixed state count is set
+# by the number of likelihood evaluations, which the operator weights fix in
+# advance, so it is not sensitive to how well that particular chain happened to
+# mix.
+#
+# iterations and min_ess come from the earlier run preserved as
+# out/h3n2/beast-original-2026-03-11.{log,trees}, which is also the reference
+# posterior every figure is drawn against. The 2026-08-01 chain mixed poorly for
+# the tree and coalescent parameters -- the UpDownOperator accepted 135 of
+# 546,792 proposals, so the chain could barely move along the rate/time axis --
+# giving a minimum ESS of 15 against the earlier run's 103. Its posterior is
+# therefore not used.
+#
+# To put both sides on one footing, re-run with the operator scale factors BEAST
+# recommends at the end of out/h3n2/beast-run-2026-08-01/beast-log.txt (UpDown
+# 0.837, tree scaler 0.941, root scaler 0.772) and, if the minimum ESS clears
+# 200, take all three values below from that single run.
+iterations: 30000000
+min_ess: 103.28293883597895
+runtime_seconds: 14319.99

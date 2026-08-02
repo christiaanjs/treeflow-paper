@@ -46,16 +46,16 @@ bootstrapDensityBands <- function(x, n_boot = 200, n_grid = 512, ci = 0.95) {
 viTrace <- readViTrace(snakemake@input[["vi_samples"]])
 
 dfs <- list(
-    `Beast 2` = readBeastTrace(snakemake@input[["beast_samples"]], colnames(viTrace)),
-    `Treeflow VI` = viTrace
+    `BEAST 2` = readBeastTrace(snakemake@input[["beast_samples"]], colnames(viTrace)),
+    `TreeFlow VI` = viTrace
 )
 
 stacked <- dplyr::bind_rows(dfs, .id = "Method")
 renamed <- pythonModule$rename_marginal_df(stacked)
 pivoted <- tidyr::pivot_longer(renamed, !Method, names_to = "variable", values_to = "Value")
 
-# Compute bootstrap bands for Beast 2 densities
-beastData <- dplyr::filter(renamed, Method == "Beast 2")
+# Compute bootstrap bands for BEAST 2 densities
+beastData <- dplyr::filter(renamed, Method == "BEAST 2")
 variables <- setdiff(colnames(renamed), "Method")
 ribbonDf <- do.call(rbind, lapply(variables, function(v) {
     bands <- bootstrapDensityBands(beastData[[v]])

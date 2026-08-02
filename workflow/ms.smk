@@ -1,4 +1,5 @@
 import pathlib
+import shutil
 import sys
 import pandas as pd
 import treeflow_pipeline.model
@@ -7,9 +8,11 @@ import treeflow_pipeline.manuscript
 import treeflow_pipeline.diff
 
 import treeflow
-import treeflow_benchmarks
-treeflow_benchmarks_dir = pathlib.Path(treeflow_benchmarks.__file__).parents[1]
 treeflow_dir = pathlib.Path(treeflow.__file__).parents[1]
+# The benchmark was inlined into the treeflow repo (experiments/benchmarks); its
+# notebook writes the manuscript-schema CSVs and config consumed below. This
+# replaces the previously separate ``treeflow_benchmarks`` package.
+treeflow_benchmark_data_dir = treeflow_dir / "experiments" / "benchmarks" / "data"
 
 configfile: "config/ms-config.yaml"
 model = treeflow_pipeline.model.Model(yaml_input(config["model_file"]))
@@ -29,16 +32,17 @@ submission_dir = manuscript_dir / "submission"
 minted_cache_dir = "minted-cache"
 dataset_dir = "{dataset}"
 supplementary_data_dir = pathlib.Path("supplementary-data")
-diff_base_commit = "ecc3dd2fae34bcebf706078be366e863a7f4fc2d"
+diff_base_commit = "07911c7c8a71461e9a912dc4baad6066fa27e8d1"
 
 rule ms:
     input:
         #manuscript_dir / "out" / "submission.zip",
         manuscript_dir / "out" / "treeflow.pdf",
         manuscript_dir / "out" / "supplementary.pdf",
-        manuscript_dir / "out" / "response-letter.pdf"
+        manuscript_dir / "out" / "response-letter.pdf",
         #supplementary_data_dir / config["flu_dataset"] / "beast.xml",
         #supplementary_data_dir / "carnivores" / "beast.xml",
+        manuscript_dir / "out" / "treeflow-diff.pdf"
 
 rule ms_diff:
     input:
@@ -119,8 +123,8 @@ rule template_relaxed_clock_ms:
 
 rule benchmark_summary_table:
     input:
-        plot_data = treeflow_benchmarks_dir / "out" / "plot-data.csv",
-        fit_table = treeflow_benchmarks_dir / "out" / "fit-table.csv"
+        plot_data = treeflow_benchmark_data_dir / "manuscript-plot-data.csv",
+        fit_table = treeflow_benchmark_data_dir / "manuscript-fit-table.csv"
     output:
         tex = manuscript_dir / "tables" / "benchmark-table.tex"
     run:
@@ -128,7 +132,7 @@ rule benchmark_summary_table:
 
 rule benchmark_plot:
     input:
-        plot_data = treeflow_benchmarks_dir / "out" / "plot-data.csv",
+        plot_data = treeflow_benchmark_data_dir / "manuscript-plot-data.csv",
     output:
         plot = manuscript_dir / "figures" / "benchmark-log-scale-plot.png"
     params:
@@ -164,6 +168,146 @@ rule carnivores_tree_plot:
     script:
         "../scripts/carnivores-tree-plot.R"
 
+# The main-text marginals figures compare BEAST 2 against TreeFlow VI fit with
+# the root_full_rank approximation, run 4 times independently (rule
+# multi_run_variational_fit in workflow/data.smk, matching the settings the
+# carnivores example notebook uses: num_steps 60,000, learning rate 0.001) so a
+# Monte Carlo error band can be shown. The comparison against the mean-field and
+# full-rank approximations is a supplementary figure
+# (approximation_comparison_plot below). This takes precedence over the generic
+# data_marginals_plot rule.
+MAIN_APPROX = "root_full_rank"
+
+ruleorder: carnivores_marginals_plot > data_marginals_plot
+
+rule carnivores_marginals_plot:
+    input:
+        vi_samples_root_full_rank = out_dir / "carnivores" / "variational-multi-run" / MAIN_APPROX / "samples.csv",
+        beast_samples = out_dir / "carnivores" / "beast.log"
+    output:
+        manuscript_dir / "figures" / "carnivores-marginals.png"
+    params:
+        python_executable = sys.executable
+    script:
+        "../scripts/multi-run-marginals-plot.R"
+
+# The flu marginals figure gets the same multi-run treatment as carnivores, so
+# it takes precedence over the generic data_marginals_plot rule for the flu
+# dataset too.
+ruleorder: flu_marginals_plot > data_marginals_plot
+
+rule flu_marginals_plot:
+    input:
+        vi_samples_root_full_rank = out_dir / config["flu_dataset"] / "variational-multi-run" / MAIN_APPROX / "samples.csv",
+        beast_samples = out_dir / config["flu_dataset"] / "beast.log"
+    output:
+        manuscript_dir / "figures" / f"{config['flu_dataset']}-marginals.png"
+    params:
+        python_executable = sys.executable
+    script:
+        "../scripts/multi-run-marginals-plot.R"
+
+# Supplementary: how the choice of variational approximation family affects the
+# fitted posterior. One run (seed 1) of each of mean_field, full_rank and
+# root_full_rank, against the same BEAST 2 reference. Single runs, so no
+# inter-run band -- this figure is about the systematic differences between the
+# families, not their Monte Carlo error.
+COMPARISON_APPROXES = ["mean_field", "full_rank", "root_full_rank"]
+
+rule approximation_comparison_plot:
+    input:
+        vi_samples = expand(
+            out_dir / "{{dataset}}" / "variational-multi-run" / "{approx}" / "samples-run1.csv",
+            approx=COMPARISON_APPROXES
+        ),
+        beast_samples = out_dir / "{dataset}" / "beast.log"
+    output:
+        manuscript_dir / "figures" / "{dataset}-approximation-comparison.png"
+    params:
+        python_executable = sys.executable,
+        approxes = COMPARISON_APPROXES
+    script:
+        "../scripts/approximation-comparison-plot.R"
+
+# Companion to approximation_comparison_plot: the fitted ELBO and wall-clock
+# runtime of the same runs, so the visual comparison can be read alongside the
+# quantity being optimised. ELBOs are comparable within a dataset but not
+# across datasets -- the log likelihood sums over alignment patterns, of which
+# carnivores has far more than H3N2 despite having far fewer taxa.
+rule approximation_comparison_table:
+    input:
+        logs = expand(
+            out_dir / "{{dataset}}" / "variational-multi-run" / "{approx}" / "log-run1.txt",
+            approx=COMPARISON_APPROXES
+        ),
+        benchmarks = expand(
+            out_dir / "{{dataset}}" / "variational-multi-run" / "{approx}" / "benchmark-run1.txt",
+            approx=COMPARISON_APPROXES
+        )
+    output:
+        manuscript_dir / "tables" / "{dataset}-approximation-comparison.tex"
+    params:
+        approxes = COMPARISON_APPROXES,
+        # `treeflow_vi run` prints the *sum* of the last --elbo-samples per-step
+        # loss values, so divide by that to recover a per-step ELBO estimate.
+        elbo_samples = 100
+    run:
+        import re
+        labels = {
+            "mean_field": "Mean field",
+            "full_rank": "Full rank",
+            "root_full_rank": "Root full rank",
+        }
+        rows = []
+        for approx, log_path, benchmark_path in zip(
+            params.approxes, input.logs, input.benchmarks
+        ):
+            elbo_matches = re.findall(
+                r"ELBO estimate: (\S+)", pathlib.Path(log_path).read_text()
+            )
+            if not elbo_matches:
+                raise ValueError(f"No ELBO estimate found in {log_path}")
+            elbo = float(elbo_matches[-1]) / params.elbo_samples
+            seconds = float(
+                pathlib.Path(benchmark_path).read_text().splitlines()[1].split("\t")[0]
+            )
+            rows.append(
+                f"{labels.get(approx, approx)} & {elbo:,.0f} & {seconds / 60:.1f} \\\\"
+            )
+        text_output(
+            "\n".join(
+                [
+                    r"\begin{tabular}{lrr}",
+                    r"\hline",
+                    r"Approximation & ELBO & Runtime (minutes) \\",
+                    r"\hline",
+                ]
+                + rows
+                + [r"\hline", r"\end{tabular}"]
+            ),
+            output[0],
+        )
+
+# Accessory convergence diagnostic, not a manuscript figure: the variational
+# parameter traces for each seed of the main-text H3N2 campaign, so the
+# "parameters have stopped drifting" check described in the Scalable inference
+# section can be reproduced.
+MULTI_RUN_SEEDS = [1, 2, 3, 4]
+
+rule flu_multi_run_trace_plot:
+    input:
+        traces = expand(
+            out_dir / config["flu_dataset"] / "variational-multi-run" / MAIN_APPROX / "trace-run{run}.pickle",
+            run=MULTI_RUN_SEEDS
+        )
+    output:
+        manuscript_dir / "figures" / f"{config['flu_dataset']}-multi-run-traces.png"
+    params:
+        seeds = MULTI_RUN_SEEDS,
+        approx = MAIN_APPROX
+    script:
+        "../scripts/h3n2-multi-run-trace-plot.py"
+
 rule data_tree_plot:
     input:
         vi_tree_samples = out_dir / "{dataset}" / "variational-tree-samples.nexus",
@@ -172,6 +316,32 @@ rule data_tree_plot:
         plot = manuscript_dir / "figures" / "{dataset}-trees.png"
     script:
         "../scripts/data-tree-plot.R"
+
+# Analogous to flu_marginals_plot above: use the pooled multi-run tree samples
+# (all 4 runs' trees combined into one file), so the per-node height mean/SD
+# comparison against BEAST reflects between-run as well as within-run
+# variability. Takes precedence over the generic data_tree_plot rule for flu.
+ruleorder: flu_tree_plot > data_tree_plot
+
+rule flu_tree_plot:
+    input:
+        vi_tree_samples_root_full_rank = out_dir / config["flu_dataset"] / "variational-multi-run" / MAIN_APPROX / "tree-samples.nexus",
+        beast_tree_samples = out_dir / config["flu_dataset"] / "beast.trees"
+    output:
+        plot = manuscript_dir / "figures" / f"{config['flu_dataset']}-trees.png"
+    script:
+        "../scripts/data-tree-plot.R"
+
+# The per-node agreement statistics quoted in the text alongside flu_tree_plot,
+# computed from the same inputs so the two cannot disagree.
+rule flu_tree_stats:
+    input:
+        vi_tree_samples = out_dir / config["flu_dataset"] / "variational-multi-run" / MAIN_APPROX / "tree-samples.nexus",
+        beast_tree_samples = out_dir / config["flu_dataset"] / "beast.trees"
+    output:
+        out_dir / config["flu_dataset"] / "tree-comparison-stats.yaml"
+    script:
+        "../scripts/tree-comparison-stats.R"
 
 rule nf_data_tree_plot:
     input:
@@ -186,7 +356,7 @@ rule template_treeflow_ms:
     input:
         template = tex_template,
         body_template = manuscript_dir / "tex" / "treeflow.j2.tex",
-        treeflow_benchmarks_config = treeflow_benchmarks_dir / "config.yaml",
+        treeflow_benchmarks_config = treeflow_benchmark_data_dir / "benchmark-config.yaml",
         benchmark_plot = rules.benchmark_plot.output.plot,
         benchmark_summary_table = rules.benchmark_summary_table.output[0],
         carnivores_marginals_plot = manuscript_dir / "figures" / "carnivores-marginals.png",
@@ -196,6 +366,7 @@ rule template_treeflow_ms:
         flu_marginals_plot = manuscript_dir / "figures" / f"{config['flu_dataset']}-marginals.png",
         flu_tree_plot = manuscript_dir / "figures" / f"{config['flu_dataset']}-trees.png",
         flu_timing_csv = out_dir / config["flu_dataset"] / "timing-data.csv",
+        flu_tree_stats = rules.flu_tree_stats.output[0],
         flu_model_file = out_dir / config["flu_dataset"] / "model.yaml",
         flu_tree_file = out_dir / config["flu_dataset"] / "topology.nwk",
         bib = manuscript_dir / "tex" / "main.bib",
@@ -228,6 +399,7 @@ rule template_treeflow_ms:
                         bibliography_file=input.bib
                     ),
                     output_dir = params.output_dir,
+                    **yaml_input(input.flu_tree_stats),
                 ),
                 submission=config["submission"]
             ),
@@ -263,7 +435,7 @@ rule template_treeflow_submission_ms:
     input:
         template = tex_template,
         body_template = manuscript_dir / "tex" / "treeflow.j2.tex",
-        treeflow_benchmarks_config = treeflow_benchmarks_dir / "config.yaml",
+        treeflow_benchmarks_config = treeflow_benchmark_data_dir / "benchmark-config.yaml",
         benchmark_plot = rules.treeflow_submission_dir.output.benchmark_plot,
         benchmark_summary_table = rules.benchmark_summary_table.output[0],
         carnivores_marginals_plot = rules.treeflow_submission_dir.output.carnivores_marginals_plot,
@@ -272,6 +444,7 @@ rule template_treeflow_submission_ms:
         flu_marginals_plot = rules.treeflow_submission_dir.output.flu_marginals_plot,
         flu_tree_plot = rules.treeflow_submission_dir.output.flu_tree_plot,
         flu_timing_csv = out_dir / config["flu_dataset"] / "timing-data.csv",
+        flu_tree_stats = rules.flu_tree_stats.output[0],
         flu_model_file = rules.treeflow_submission_dir.output.flu_model_file,
         flu_tree_file = out_dir / config["flu_dataset"] / "topology.nwk",
         bib = rules.treeflow_submission_dir.output.bib
@@ -417,9 +590,12 @@ rule copy_submission_figures:
         **{name: submission_figures_dir / (name + pathlib.Path(str(src)).suffix)
            for name, src in submission_figures.items()}
     run:
+        # Copy in Python rather than via shell(): a shell() format string is
+        # expanded by snakemake, where "{input[key]}" indexes with the literal
+        # string "key" rather than with this loop variable's value.
         pathlib.Path(str(submission_figures_dir)).mkdir(parents=True, exist_ok=True)
         for key in input.keys():
-            shell(f"cp {{input[key]}} {{output[key]}}")
+            shutil.copy(input[key], output[key])
 
 rule ms_figures:
     input: list(rules.copy_submission_figures.output)
@@ -471,7 +647,15 @@ rule compile_ms:
 
 rule compile_supplementary:
     input:
-        tex = manuscript_dir / "tex" / "supplementary.tex"
+        tex = manuscript_dir / "tex" / "supplementary.tex",
+        approximation_comparison_plots = expand(
+            manuscript_dir / "figures" / "{dataset}-approximation-comparison.png",
+            dataset=["carnivores", config["flu_dataset"]]
+        ),
+        approximation_comparison_tables = expand(
+            manuscript_dir / "tables" / "{dataset}-approximation-comparison.tex",
+            dataset=["carnivores", config["flu_dataset"]]
+        )
     output:
         manuscript_dir / "out" / "supplementary.pdf"
     params:

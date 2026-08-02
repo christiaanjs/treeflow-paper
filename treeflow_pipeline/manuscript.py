@@ -1,4 +1,5 @@
 from functools import reduce
+import math
 import pathlib
 import typing as tp
 import numpy as np
@@ -155,7 +156,12 @@ inverse_colname_mapping = {value: key for key, value in colname_mapping.items()}
 model_mapping = {"jc": "JC", "full": "GTR/Weibull"}
 method_mapping = {
     "treeflow": "TreeFlow",
+    "treeflow_native": "TreeFlow (native)",
     "jax": "JAX",
+    "jax_jit": "JAX (JIT)",
+    # Only the direct BEAGLE benchmarkable (bito driven without the TensorFlow
+    # wrapper) is shown as bito/BEAGLE; the wrapper-overhead variant
+    # (beagle_bito) stays in the benchmark's own exploratory plots.
     "beagle_bito_direct": "bito/BEAGLE",
 }
 computation_mapping = {
@@ -171,7 +177,7 @@ index_columns = ["model", "computation", "method"]
 
 computation_ordering = ["Likelihood", "Gradients"]
 model_ordering = ["JC", "GTR/Weibull"]
-method_ordering = ["TreeFlow", "bito/BEAGLE", "JAX"]
+method_ordering = ["TreeFlow", "TreeFlow (native)", "bito/BEAGLE", "JAX", "JAX (JIT)"]
 
 orderings_dict = dict(
     Method=method_ordering, Computation=computation_ordering, Model=model_ordering
@@ -233,6 +239,27 @@ def rename_marginal_df(df: pd.DataFrame):
     return df.rename(columns=param_name_mapping)
 
 
+# Prose rendering of the reduction the benchmark applies across repeated timings
+# (the `timing_stat` recorded in benchmark-config.yaml).
+timing_stat_mapping = {"min": "minimum", "mean": "mean"}
+
+BENCHMARK_TIME_SIGNIFICANT_FIGURES = 3
+
+
+def format_significant(x, figures: int = BENCHMARK_TIME_SIGNIFICANT_FIGURES) -> str:
+    """Format ``x`` to ``figures`` significant figures in positional (non-
+    exponential) notation. ``%g`` gives the significant-figure rounding but
+    switches to exponent form for small magnitudes, so the rounded value is
+    re-formatted with however many decimal places it needs."""
+    if pd.isna(x):
+        return ""
+    rounded = float(f"%.{figures}g" % x)
+    if rounded == 0:
+        return "0"
+    decimals = max(0, figures - 1 - math.floor(math.log10(abs(rounded))))
+    return f"{rounded:.{decimals}f}"
+
+
 def benchmark_summary_table(
     plot_data_path, fit_table_path, output_path, taxon_counts=(512,)
 ):
@@ -248,12 +275,10 @@ def benchmark_summary_table(
     )
     times_pivoted = time_summaries.pivot(index=index_columns, columns="taxon_count")
 
-    times_pivoted_renamed = times_pivoted.set_axis(
-        times_pivoted.columns.to_flat_index().map(
-            lambda var_name: f"Mean time ({var_name[1]} taxa)"
-        ),
-        axis=1,
-    ).reset_index()
+    time_colnames = times_pivoted.columns.to_flat_index().map(
+        lambda var_name: f"Time per evaluation, s ({var_name[1]} taxa)"
+    )
+    times_pivoted_renamed = times_pivoted.set_axis(time_colnames, axis=1).reset_index()
     merged = times_pivoted_renamed.merge(fit_table[list(colname_mapping.keys())])
     improved = merged.replace(
         dict(
@@ -276,7 +301,21 @@ def benchmark_summary_table(
         else:
             return ["" for x in row]
 
-    styled = indexed.style.apply(style_func, axis=1).format(precision=2)
+    # The reported times are now per-evaluation rather than the total for a
+    # batch, so they span roughly four orders of magnitude (~5e-4 s for the
+    # native op on the JC likelihood up to ~9 s for eager JAX). A fixed number
+    # of decimal places collapses the fast end to "0.00", so times are formatted
+    # to a fixed number of *significant figures* instead; the log-log slopes are
+    # all O(1) and keep fixed decimal places.
+    formatters = {
+        colname: (
+            format_significant
+            if colname in set(time_colnames)
+            else (lambda x: f"{x:.2f}")
+        )
+        for colname in indexed.columns
+    }
+    styled = indexed.style.apply(style_func, axis=1).format(formatters)
     styled.to_latex(output_path, convert_css=True, multirow_align="t", hrules=True)
 
 
@@ -311,12 +350,20 @@ def get_treeflow_timing_vars(timing_csv_file):
     final_beast_data = beast_data.iloc[-1]
     vi_data = timing_df[timing_df["method"] == "vi"]
     vi_converged_data = vi_data[vi_data["value"] == 1.0].iloc[0]
+    # How much faster the variational analysis reached convergence than the
+    # MCMC analysis reached its reported effective sample size. Quoted in the
+    # manuscript, so it is derived here rather than written out by hand and
+    # left to go stale when either run is repeated.
+    vi_speedup = final_beast_data["time"] / vi_converged_data["time"]
     return dict(
         flu_beast_iterations=format_integer(final_beast_data["iteration"]),
         flu_min_ess=format_integer(final_beast_data["value"]),
         flu_beast_time=format_time(final_beast_data["time"]),
         flu_convergence_iterations=format_integer(vi_converged_data["iteration"]),
         flu_vi_time=format_time(vi_converged_data["time"]),
+        flu_vi_iterations=format_integer(vi_data["iteration"].max()),
+        flu_vi_full_run_time=format_time(vi_data["time"].max()),
+        flu_vi_speedup=f"{vi_speedup:.0f}",
     )
 
 
@@ -337,7 +384,13 @@ def get_treeflow_manuscript_vars(
         max_sequence_count=max(treeflow_benchmarks_config["full_taxon_counts"]),
         sequence_length=treeflow_benchmarks_config["sequence_length"],
         replicate_count=treeflow_benchmarks_config["replicates"],
-        sample_count=treeflow_benchmarks_config["sample_count"],
+        # The benchmark times each computation `repeat_count` times on a single
+        # fixed input and reduces across those repeats with `timing_stat`, so
+        # the reported figure is the cost of one evaluation. (The old pipeline's
+        # `sample_count` was the size of a batch timed as a single loop, making
+        # its reported figure the total for the whole batch.)
+        repeat_count=treeflow_benchmarks_config["repeat_count"],
+        timing_stat=timing_stat_mapping[treeflow_benchmarks_config["timing_stat"]],
         flu_yaml_file=flu_model_file,
         flu_taxon_count=flu_tree.taxon_count,
         carnivores_base_log_marginal_likelihood=round(
@@ -347,7 +400,7 @@ def get_treeflow_manuscript_vars(
             float(carnivores_marginal_likelihoods["lineage_variation"]), 1
         ),
         minted_cache_dir=minted_cache_dir,
-        minted_cache_option="frozencache" if frozen_minted_cache else "finalizecache",
+        minted_cache_option="frozencache," if frozen_minted_cache else "",
         bibliography=str(pathlib.Path(bibliography_file).stem),
         **get_treeflow_timing_vars(timing_csv_file),
     )

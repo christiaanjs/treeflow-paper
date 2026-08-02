@@ -5,14 +5,14 @@
 \begin{figure}
     \centering
     \begin{subfigure}[b]{\linewidth}
-        \includegraphics[width=\linewidth]{manuscript/figures/h3n2-marginals}
-        \caption{Parameter marginal posterior distributions}
+        \includegraphics[width=0.85\linewidth]{manuscript/figures/h3n2-marginals}
+        \caption{Marginal posterior distributions for the model parameters, comparing TreeFlow variational inference (TreeFlow VI, teal) with BEAST 2 MCMC (BEAST 2, red). Shaded bands are Monte Carlo error, obtained as in Figure \ref{fig:carnivoresmarginals} by bootstrapping for BEAST 2 and from four independent variational runs for TreeFlow VI, whose pooled posterior is the plotted curve. The variational runs use the root full rank approximation; Supplementary Appendix Figure S4 gives the corresponding comparison of all three approximation families.}
         \label{fig:flumarginals}
     \end{subfigure}
 
     \begin{subfigure}[b]{\linewidth}
-        \includegraphics[width=\linewidth]{manuscript/figures/h3n2-trees}
-        \caption{Node height posterior distribution statistics}
+        \includegraphics[width=0.85\linewidth]{manuscript/figures/h3n2-trees}
+        \caption{Per-node summaries of the internal node height posteriors, plotting the TreeFlow VI estimate against the BEAST 2 estimate for each node. The left panel compares the posterior means and the right panel the posterior standard deviations; the dotted line in each panel is the identity. Points above the identity in the right panel are node heights whose posterior uncertainty the variational approximation overestimates relative to BEAST 2, and points below it are ones it underestimates. The two occur together: the approximation is over-dispersed for the nodes BEAST 2 estimates most precisely, near the origin, and under-dispersed for the most uncertain ones.}
         \label{fig:flutree}
     \end{subfigure}
 

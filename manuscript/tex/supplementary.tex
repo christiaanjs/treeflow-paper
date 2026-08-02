@@ -3,9 +3,15 @@
 \usepackage{minted}
 \usepackage{caption}
 \usepackage{url}
+\usepackage{graphicx}
 \usepackage[T1]{fontenc}
 
 \setminted{baselinestretch=0.9}
+
+% Number supplementary floats S1, S2, ... so cross-references from the main
+% text ("Supplementary Appendix Figure S1") match what is printed here.
+\renewcommand{\thefigure}{S\arabic{figure}}
+\renewcommand{\thetable}{S\arabic{table}}
 
 \title{Supplementary Appendix\\
 \large TreeFlow: Probabilistic Modelling and Automatic Differentiation for Phylogenetics}
@@ -138,5 +144,45 @@ model = JointDistributionNamed(dict(
 \end{figure}
 
 For further examples and a detailed tutorial on using TreeFlow's Python API and command line interfaces, see the TreeFlow documentation at \url{https://treeflow.readthedocs.io}.
+
+\section*{Choice of variational approximation family}
+
+TreeFlow provides three variational approximation families for fixed-topology models. The \emph{mean field} family treats every coordinate of the (unconstrained) parameter vector as independent. The \emph{full rank} family places a full covariance over the whole parameter vector, including every node height. The \emph{root full rank} family, used for the analyses in the main text, places a full covariance over the substitution, clock and tree-prior parameters together with the tree's root height, and treats the remaining node-height ratios as independent.
+
+Figures \ref{fig:carnivorescomparison} and \ref{fig:h3n2comparison} show the fitted posterior marginals for one run of each family on the carnivores and influenza datasets respectively, against the same BEAST 2 reference posterior. Tables \ref{tab:carnivorescomparison} and \ref{tab:h3n2comparison} give the corresponding evidence lower bound and wall-clock runtime. ELBO values are comparable between approximations fitted to the same dataset, but not between datasets: the log likelihood is a sum over alignment patterns, of which the carnivores alignment has substantially more than the influenza alignment despite having far fewer taxa.
+
+An approximation which achieves a higher ELBO should be an indication of a better fit to the posterior, but in practice the quality of the marginal posterior estimates may differ between approximations with similar ELBOs. For instance, on the carnivores dataset, the mean field and root full rank approximations have similar ELBOs, but the mean field approximation produces a posterior on the tree height that is substantially different from the BEAST 2 reference. The root full rank approximation, which captures correlations between the tree height and other parameters, produces a posterior that is much closer to the reference.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{manuscript/figures/carnivores-approximation-comparison.png}
+    \caption{Posterior marginals for the carnivores dataset under each of TreeFlow's three variational approximation families (solid lines), against the BEAST 2 reference posterior (dashed). One variational run per family.}
+    \label{fig:carnivorescomparison}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{manuscript/figures/h3n2-approximation-comparison.png}
+    \caption{Posterior marginals for the influenza (H3N2) dataset under each of TreeFlow's three variational approximation families (solid lines), against the BEAST 2 reference posterior (dashed). One variational run per family.}
+    \label{fig:h3n2comparison}
+\end{figure}
+
+\begin{table}[ht]
+    \centering
+    \input{manuscript/tables/carnivores-approximation-comparison.tex}
+    \caption{Evidence lower bound and wall-clock runtime for each variational approximation family on the carnivores dataset, for the runs shown in Figure \ref{fig:carnivorescomparison}. Each run is 60,000 optimization iterations.}
+    \label{tab:carnivorescomparison}
+\end{table}
+
+\begin{table}[ht]
+    \centering
+    \input{manuscript/tables/h3n2-approximation-comparison.tex}
+    \caption{Evidence lower bound and wall-clock runtime for each variational approximation family on the influenza (H3N2) dataset, for the runs shown in Figure \ref{fig:h3n2comparison}. Each run is 60,000 optimization iterations.}
+    \label{tab:h3n2comparison}
+\end{table}
+
+\section*{Parameters that grow with the tree}
+
+The root full rank family confines its covariance block to parameters that are shared across the whole tree. A model may also have parameters that are replicated per branch, whose dimension grows with the tree in the same way the node heights do. Examples are an uncorrelated relaxed clock and the per-lineage transition-transversion ratio of the carnivores model in Figure \ref{fig:carnivorescode}. Including these in the covariance block would restore the $O(n^2)$ cost the family exists to avoid, so TreeFlow's approximation constructor takes a \texttt{mean\_field\_vars} argument naming the variables to exclude from the block; they are then approximated independently, alongside the node-height ratios. Any posterior correlation between such a parameter and the rest of the model, for instance between a branch's rate and the heights of the nodes it separates, is therefore not captured by this family, and remains a target for future work.
 
 \end{document}

@@ -99,6 +99,34 @@ snakemake -s workflow/data.smk out/carnivores/variational-samples.csv --cores 1
 snakemake -s workflow/data.smk out/h3n2/beast.xml --cores 1
 ```
 
+#### H3N2 multi-run VI fit
+
+For the manuscript figure, the H3N2 VI fit is run 4 times (60,000 iterations each,
+different seeds) rather than once, so a pooled posterior estimate with an inter-run
+Monte Carlo error band can be shown -- the same treatment the carnivores base-model
+figure gets from repeated runs of its example notebook. This is a separate target
+from the single-run `out/h3n2/variational-samples.csv` above (which is still produced
+and used for the quick local `marginals.png`/`traces.png`/`timing-data.csv`
+diagnostics):
+
+```bash
+snakemake -s workflow/data.smk \
+    out/h3n2/variational-multi-run/samples.csv \
+    out/h3n2/variational-multi-run/tree-samples.nexus \
+    out/h3n2/variational-multi-run/timing.csv \
+    --cores 1
+```
+
+This produces, per seed, `variational-multi-run/{trace,samples,tree-samples}-run{1..4}.pickle|csv|nexus`
+plus a `variational-benchmark.txt`-style timing file per run, and pools them into:
+- `variational-multi-run/samples.csv` -- all runs' parameter samples, annotated with a `run` column
+- `variational-multi-run/tree-samples.nexus` -- all runs' tree samples, concatenated
+- `variational-multi-run/timing.csv` -- per-run seed/iteration-count/wall-clock-time
+
+`workflow/ms.smk`'s `flu_marginals_plot`/`flu_tree_plot` rules consume these directly
+(taking precedence over the generic single-run `data_marginals_plot`/`data_tree_plot`
+rules for the H3N2 dataset).
+
 ### Manuscript pipeline (`workflow/ms.smk`)
 
 Generates publication figures and compiles the manuscript. Depends on outputs from the data pipeline and the treeflow-benchmarks pipeline.

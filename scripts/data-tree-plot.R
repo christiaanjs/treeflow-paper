@@ -1,18 +1,6 @@
 library(dplyr)
 library(ggplot2)
 
-print("Loading beast trees...")
-# beastTreesPath <- "out/dengue/beast.trees"
-beastTreesPath <- snakemake@input[["beast_tree_samples"]]
-beastTrees <- treeio::read.beast(beastTreesPath)
-
-print("Loading variational trees...")
-# variationalTreesPath <- "out/dengue/variational-tree-samples.nexus"
-variationalTreesPath <- snakemake@input[["vi_tree_samples"]]
-variationalTrees <- treeio::read.beast(variationalTreesPath)
-
-print("Done")
-
 addHeights <- function(tree) {
     treeDf <- tibble::as_tibble(tree)
     depths <- ape::node.depth.edgelength(ape::as.phylo(tree))
@@ -24,9 +12,38 @@ getHeightDf <- function(trees) {
     bind_rows(lapply(trees, addHeights), .id = "index")
 }
 
-heightsDf <- tibble::as_tibble(bind_rows(`BEAST 2` = getHeightDf(beastTrees), `TreeFlow VI` = getHeightDf(variationalTrees), .id = "method"))
+print("Loading beast trees...")
+beastTreesPath <- snakemake@input[["beast_tree_samples"]]
+beastTrees <- treeio::read.beast(beastTreesPath)
+beastHeights <- getHeightDf(beastTrees)
 
+# Supports either a single `vi_tree_samples` input (the generic per-dataset
+# comparison, one VI method) or one or more `vi_tree_samples_<approx>` inputs,
+# each compared against the same BEAST 2 trees. Only the inputs the invoking
+# rule actually declares are used.
+viMethodInputs <- list(
+    `TreeFlow VI (root full rank)` = "vi_tree_samples_root_full_rank",
+    `TreeFlow VI (full rank)` = "vi_tree_samples_full_rank",
+    `TreeFlow VI (mean field)` = "vi_tree_samples_mean_field",
+    `TreeFlow VI` = "vi_tree_samples"
+)
 
+viHeightsByMethod <- Filter(Negate(is.null), lapply(viMethodInputs, function(inputKey) {
+    path <- snakemake@input[[inputKey]]
+    if (is.null(path)) {
+        return(NULL)
+    }
+    print(paste("Loading variational trees:", inputKey))
+    getHeightDf(treeio::read.beast(path))
+}))
+stopifnot(length(viHeightsByMethod) > 0)
+
+print("Done")
+
+heightsDf <- tibble::as_tibble(bind_rows(
+    c(list(`BEAST 2` = beastHeights), viHeightsByMethod),
+    .id = "method"
+))
 
 summaryDf <- heightsDf %>%
     filter(is.na(label)) %>%
@@ -48,14 +65,24 @@ plotDf <- longForm %>%
     tidyr::pivot_wider(
         names_from = method,
         values_from = value
+    ) %>%
+    tidyr::pivot_longer(
+        cols = tidyselect::any_of(names(viHeightsByMethod)),
+        names_to = "Approximation",
+        values_to = "TreeFlow VI"
     )
 
-fig <- ggplot(plotDf, aes(x = `BEAST 2`, y = `TreeFlow VI`)) +
+fig <- ggplot(plotDf, aes(x = `BEAST 2`, y = `TreeFlow VI`, colour = Approximation)) +
     geom_abline(slope = 1, intercept = 0, linetype = "dotted") +
-    geom_point() +
-    geom_blank(data = limits, aes(x = value, y = value)) +
+    geom_point(alpha = 0.6) +
+    geom_blank(data = limits, aes(x = value, y = value, colour = NULL)) +
+    ylab("TreeFlow VI") +
     facet_wrap(~Statistic, scales = "free")
 
-# outputFile <- "manuscript/figures/flu-tree-plot.png"
+if (length(viHeightsByMethod) == 1) {
+    # Nothing to distinguish -- a one-entry "Approximation" legend is just noise
+    fig <- fig + ggplot2::guides(colour = "none")
+}
+
 outputFile <- snakemake@output[[1]]
-ggplot2::ggsave(outputFile, fig, width = 7, height = (4 * 11.7 / 12.5))
+ggplot2::ggsave(outputFile, fig, width = 8, height = (4 * 11.7 / 12.5))
