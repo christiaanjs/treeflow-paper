@@ -1,7 +1,7 @@
 \documentclass[oupdraft]{sysbio_sse}
 %DIF LATEXDIFF DIFFERENCE FILE
-%DIF DEL manuscript/out/treeflow-old.tex   Sun Aug  2 21:08:10 2026
-%DIF ADD manuscript/out/treeflow.tex       Sun Aug  2 21:08:15 2026
+%DIF DEL manuscript/out/treeflow-old.tex   Sun Aug  2 21:26:25 2026
+%DIF ADD manuscript/out/treeflow.tex       Sun Aug  2 21:31:28 2026
 % \usepackage[colorlinks=true, urlcolor=citecolor, linkcolor=citecolor, citecolor=citecolor]{hyperref}
 \usepackage{url}
 
@@ -155,7 +155,7 @@ Applying gradient-based inference methods to phylogenetics is a major challenge.
 \cite{ji2023scalable, fisher2023shrinkage}}\hskip0pt%DIFAUXCMD
 }\DIFdelend \DIFaddbegin \DIFadd{\mbox{%DIFAUXCMD
 \cite{fisher2023shrinkage, ji2023scalable}}\hskip0pt%DIFAUXCMD
-}\DIFaddend . Another approach has used Stan to apply automatic differentiation variational inference to phylogenetic inference with a fixed rooted tree topology \cite{fourment2019evaluating}. Finally, variational inference has been applied to phylogenetic tree inference using a clade-based distribution on unrooted tree topologies \cite{zhang2018variational}. This approach has been extended to a more expressive family of approximating distributions \cite{zhang2020improved}, and applied to rooted phylogenies \cite{zhang2022variational}. \DIFaddbegin \DIFadd{Variational inference has also been combined with combinatorial sequential Monte Carlo to approximate tree topologies and branch lengths jointly without relying on a predefined set of clade supports \mbox{%DIFAUXCMD
+}\DIFaddend . Another approach has used Stan to apply automatic differentiation variational inference to phylogenetic inference with a fixed rooted tree topology \cite{fourment2019evaluating}. \DIFdelbegin \DIFdel{Finally, variational }\DIFdelend \DIFaddbegin \DIFadd{Variational }\DIFaddend inference has been applied to phylogenetic tree inference using a clade-based distribution on unrooted tree topologies \cite{zhang2018variational}. This approach has been extended to a more expressive family of approximating distributions \cite{zhang2020improved}, and applied to rooted phylogenies \cite{zhang2022variational}. \DIFaddbegin \DIFadd{Not all variational approaches to phylogenetics are gradient-based: VaiPhy performs approximate inference in an augmented tree space using coordinate ascent update equations, together with a proposal distribution for tree topologies and a scheme for sampling branch lengths directly under the Jukes-Cantor model, so it does not require automatic differentiation and avoids the computational effort that entails \mbox{%DIFAUXCMD
 \cite{koptagel2022vaiphy}}\hskip0pt%DIFAUXCMD
 .
 }\DIFaddend 

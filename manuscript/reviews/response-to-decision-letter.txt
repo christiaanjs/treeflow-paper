@@ -119,10 +119,7 @@ Information Processing Systems 35 (December 2022): 14758-70.
 
 *** RESPONSE: *****************************************************************
 Added. We now cite Koptagel et al. (2022) where variational inference of
-phylogenies is discussed, with a sentence noting that variational inference has
-also been combined with combinatorial sequential Monte Carlo to approximate tree
-topologies and branch lengths jointly. The reference has been added to the
-bibliography.
+phylogenies is discussed, and have added the reference to the bibliography.
 ******************************************************************************
 
 --------------------------------------------------------------------------------
