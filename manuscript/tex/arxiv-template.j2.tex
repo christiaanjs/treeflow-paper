@@ -1,0 +1,48 @@
+\documentclass{article}
+\usepackage[margin=1in]{geometry}
+
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage{textcomp}
+\usepackage{cite}
+\usepackage{nameref,hyperref}
+\usepackage{array}
+\bibliographystyle{plos2015}
+
+% END MACROS SECTION
+\BLOCK{block preamble}\BLOCK{endblock}
+
+\title{\BLOCK{block title}\BLOCK{endblock}}
+\author{
+\BLOCK{block author}
+\BLOCK{endblock}
+}
+
+\date{}
+
+\begin{document}
+\maketitle
+
+\noindent {\small
+    \BLOCK{block affiliation}
+    \BLOCK{endblock}
+}
+
+\bigskip
+
+\noindent {\small\itshape \BLOCK{block correspondence}\BLOCK{endblock}}
+
+\bigskip
+
+\section*{Abstract}
+\BLOCK{block abstract}\BLOCK{endblock}
+
+\medskip
+\noindent\textbf{Keywords: }\BLOCK{block keywords}\BLOCK{endblock}
+
+\BLOCK{block body}\BLOCK{endblock}
+
+\bibliography{\VAR{bibliography}}
+
+\end{document}

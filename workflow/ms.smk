@@ -887,3 +887,173 @@ rule final_submission_zip:
 
 rule ms_submission:
     input: rules.final_submission_zip.output.zip
+
+# --- arXiv preprint bundle ---------------------------------------------------
+#
+# arXiv compiles the uploaded source itself, with neither our TEXINPUTS/
+# BSTINPUTS setup nor --shell-escape, so (unlike the journal submission above)
+# the figures stay embedded in the text and everything the main text needs to
+# compile on its own is gathered flat into one directory:
+#   * the main text, re-rendered from the same body template as treeflow.tex,
+#     so the arXiv copy matches the manuscript rather than the figure-stripped
+#     journal submission copy;
+#   * the figures it embeds directly (figure 1's architecture diagram is a
+#     separate standalone .tex, not an image -- see architecture_tex below);
+#   * the .bib database and the bibliography style, so arXiv's own build runs
+#     bibtex itself rather than trusting a checked-in .bbl (which arXiv's
+#     submission checker flags as redundant once a .bib/.bst pair is present
+#     -- see compile_arxiv_treeflow/arxiv_zip below, which still run bibtex
+#     locally to validate the bundle, just don't ship its output). The main
+#     text uses a neutral article-based template (arxiv-template.j2.tex)
+#     rather than the journal's tex_template, so no journal document class
+#     needs to be shipped either.
+#
+# The main text loads minted purely for its cachedir option -- there are no
+# \begin{minted} environments left in the manuscript (the code listings it
+# once held are now supplementary-appendix figures) -- so minted only needs
+# telling not to check for --shell-escape (its `frozencache` option) and never
+# actually touches the cache directory; no cache needs building or shipping.
+arxiv_dir = manuscript_dir / "out" / "arxiv"
+
+# Bare output filename in arxiv_dir -> source file, so everything the main
+# text references lives flat alongside it (identifier keys here, since they
+# become input/output names; the filenames themselves are the dict values).
+arxiv_assets = dict(
+    architecture_tex=("architecture.tex", manuscript_dir / "tex" / "architecture.tex"),
+    benchmark_plot=("benchmark-log-scale-plot.png", rules.benchmark_plot.output.plot),
+    carnivores_marginals_plot=("carnivores-marginals.png", manuscript_dir / "figures" / "carnivores-marginals.png"),
+    carnivores_kappa_plot=("carnivores-kappa.png", rules.carnivores_kappa_plot.output[0]),
+    carnivores_tree_plot=("carnivores-model-trees.png", rules.carnivores_tree_plot.output[0]),
+    flu_marginals_plot=(f"{config['flu_dataset']}-marginals.png", manuscript_dir / "figures" / f"{config['flu_dataset']}-marginals.png"),
+    flu_tree_plot=(f"{config['flu_dataset']}-trees.png", manuscript_dir / "figures" / f"{config['flu_dataset']}-trees.png"),
+    bib=(f"{submission_bibliography}.bib", manuscript_dir / "tex" / "main.bib"),
+    bst=("plos2015.bst", manuscript_dir / "tex" / "plos2015.bst"),
+)
+
+rule arxiv_assets:
+    input: **{key: src for key, (name, src) in arxiv_assets.items()}
+    output: **{key: arxiv_dir / name for key, (name, src) in arxiv_assets.items()}
+    run:
+        pathlib.Path(str(arxiv_dir)).mkdir(parents=True, exist_ok=True)
+        for key in input.keys():
+            shutil.copy(input[key], output[key])
+
+rule template_treeflow_arxiv_ms:
+    input:
+        # A dedicated template rather than the journal's tex_template: arXiv
+        # gets a self-contained, neutral article layout (no journal running
+        # heads or class file) instead of the systematic_biology formatting.
+        template = manuscript_dir / "tex" / "arxiv-template.j2.tex",
+        body_template = manuscript_dir / "tex" / "treeflow.j2.tex",
+        treeflow_benchmarks_config = treeflow_benchmark_data_dir / "benchmark-config.yaml",
+        architecture_tex = rules.arxiv_assets.output.architecture_tex,
+        benchmark_plot = rules.arxiv_assets.output.benchmark_plot,
+        benchmark_summary_table = rules.benchmark_summary_table.output[0],
+        carnivores_marginals_plot = rules.arxiv_assets.output.carnivores_marginals_plot,
+        carnivores_kappa_plot = rules.arxiv_assets.output.carnivores_kappa_plot,
+        carnivores_tree_plot = rules.arxiv_assets.output.carnivores_tree_plot,
+        carnivores_marginal_likelihoods = treeflow_dir / "examples" / "demo-out" / "carnivores-marginal-log-likelihoods.yaml",
+        flu_marginals_plot = rules.arxiv_assets.output.flu_marginals_plot,
+        flu_tree_plot = rules.arxiv_assets.output.flu_tree_plot,
+        flu_timing_csv = out_dir / config["flu_dataset"] / "timing-data.csv",
+        flu_tree_stats = rules.flu_tree_stats.output[0],
+        flu_model_file = out_dir / config["flu_dataset"] / "model.yaml",
+        flu_tree_file = out_dir / config["flu_dataset"] / "topology.nwk",
+        bib = rules.arxiv_assets.output.bib,
+    output:
+        arxiv_dir / "treeflow.tex"
+    params:
+        output_dir = lambda _, output: pathlib.Path(output[0]).parents[0],
+    run:
+        text_output(
+            treeflow_pipeline.manuscript.build_manuscript(
+                input.template,
+                input.body_template,
+                figures_dict={
+                    key: pathlib.Path(path).relative_to(params.output_dir)
+                    for key, path in dict(
+                        benchmark=input.benchmark_plot,
+                        carnivores_marginals=input.carnivores_marginals_plot,
+                        carnivores_kappa=input.carnivores_kappa_plot,
+                        carnivores_tree=input.carnivores_tree_plot,
+                        flu_marginals=input.flu_marginals_plot,
+                        flu_tree=input.flu_tree_plot,
+                    ).items()
+                },
+                tables_dict=dict(benchmark_summary=input.benchmark_summary_table),
+                vars=dict(
+                    treeflow_pipeline.manuscript.get_treeflow_manuscript_vars(
+                        yaml_input(input.treeflow_benchmarks_config),
+                        timing_csv_file=input.flu_timing_csv,
+                        flu_model_file=input.flu_model_file,
+                        flu_tree_file=input.flu_tree_file,
+                        carnivores_marginal_likelihoods=yaml_input(input.carnivores_marginal_likelihoods),
+                        minted_cache_dir=minted_cache_dir,
+                        bibliography_file=input.bib,
+                        frozen_minted_cache=True,
+                    ),
+                    output_dir=".",
+                ),
+                submission=False,
+            ),
+            output[0],
+        )
+
+# Compiled inside arxiv_dir, with neither TEXINPUTS/BIBINPUTS nor
+# --shell-escape set, to check the bundle is exactly what arXiv's own build
+# would compile: a flat directory with no outside dependencies.
+rule compile_arxiv_treeflow:
+    input:
+        tex = rules.template_treeflow_arxiv_ms.output[0],
+        architecture = rules.arxiv_assets.output.architecture_tex,
+        bib = rules.arxiv_assets.output.bib,
+        bst = rules.arxiv_assets.output.bst,
+        figures = [
+            rules.arxiv_assets.output[key]
+            for key in ("benchmark_plot", "carnivores_marginals_plot", "carnivores_kappa_plot",
+                        "carnivores_tree_plot", "flu_marginals_plot", "flu_tree_plot")
+        ],
+    output:
+        pdf = arxiv_dir / "treeflow.pdf",
+        bbl = arxiv_dir / "treeflow.bbl",
+    params:
+        arxiv_dir = str(arxiv_dir),
+        tex = lambda _, input: pathlib.Path(input.tex).name,
+        aux = lambda _, input: pathlib.Path(input.tex).with_suffix(".aux").name,
+    shell:
+        """
+        cd {params.arxiv_dir}
+        pdflatex {params.tex}
+        bibtex {params.aux}
+        pdflatex {params.tex}
+        pdflatex {params.tex}
+        """
+
+ruleorder: compile_arxiv_treeflow > compile_ms
+
+rule arxiv_zip:
+    input:
+        tex = rules.template_treeflow_arxiv_ms.output[0],
+        # Neither the .bbl nor the .pdf is shipped -- arXiv runs bibtex and
+        # pdflatex itself from the .bib/.bst/.tex already in the bundle, and
+        # flags a checked-in .bbl as redundant (arguably stale) alongside a
+        # .bib/.bst pair. Both are still listed as inputs here purely so the
+        # bundle isn't zipped until this self-contained compile succeeds.
+        bbl = rules.compile_arxiv_treeflow.output.bbl,
+        pdf = rules.compile_arxiv_treeflow.output.pdf,
+        assets = list(rules.arxiv_assets.output),
+    output:
+        zip = manuscript_dir / "out" / "treeflow-arxiv.zip"
+    params:
+        arxiv_dir = str(arxiv_dir),
+        excluded = "'*.aux' '*.log' '*.blg' '*.out' 'treeflow.pdf' 'treeflow.bbl'",
+        output = lambda _, output: str(pathlib.Path(output.zip).resolve()),
+    shell:
+        """
+        rm -f {params.output}
+        cd {params.arxiv_dir}
+        zip -r {params.output} . -x {params.excluded}
+        """
+
+rule ms_arxiv:
+    input: rules.arxiv_zip.output.zip

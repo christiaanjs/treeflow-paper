@@ -1,0 +1,23 @@
+Final submission files
+======================
+
+Main text
+---------
+treeflow-main-text.tex: main text, LaTeX source (figures removed, legends after the reference list, tables embedded and editable)
+treeflow-main-text.pdf: main text, compiled PDF
+
+Figures (one file per figure)
+-----------------------------
+figure-1.pdf: Figure 1: TreeFlow package architecture
+figure-2.png: Figure 2: carnivores marginal posteriors
+figure-3.pdf: Figure 3: carnivores per-branch kappa (a) and node ages (b)
+figure-4.pdf: Figure 4: influenza marginal posteriors (a) and node heights (b)
+figure-5.pdf: Figure 5: phylogenetic likelihood benchmark (vector)
+
+Supporting files
+----------------
+treeflow.bib: bibliography database (BibTeX)
+treeflow-main-text.bbl: compiled bibliography
+sysbio_sse.cls: journal document class
+CSE.bst: bibliography style
+supplementary-appendix.pdf: supplementary appendix
