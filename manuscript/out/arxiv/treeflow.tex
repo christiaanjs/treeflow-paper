@@ -1,19 +1,18 @@
-\documentclass[oupdraft]{sysbio_sse}
-% \usepackage[colorlinks=true, urlcolor=citecolor, linkcolor=citecolor, citecolor=citecolor]{hyperref}
-\usepackage{url}
+\documentclass{article}
+\usepackage[margin=1in]{geometry}
 
-\usepackage{indentfirst}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage{textcomp}
+\usepackage{cite}
+\usepackage{nameref,hyperref}
+\usepackage{array}
+\bibliographystyle{plos2015}
 
-% Add history information for the article if required
-%\history{Received Month X, 20XX;
-%revised Month X, 20XX}
-
-\bibliographystyle{CSE}
-\setcitestyle{authoryear,round,aysep={}}
-\let\cite\citep
-
+% END MACROS SECTION
 \usepackage{booktabs}
-\usepackage[cachedir=manuscript/out/minted-cache]{minted}
+\usepackage[frozencache,cachedir=minted-cache]{minted}
 \usepackage{multirow}
 \usepackage{setspace}
 \usepackage[T1]{fontenc}
@@ -34,27 +33,24 @@
 \setcounter{secnumdepth}{0}
 \setminted{baselinestretch=0.9}
 
-
-\begin{document}
-
-% Title of paper
-
-% Identify the name, address, telephone/fax numbers, and e-mail address for the author who will receive proofs and be designated the "corresponding author" in text.
-
 \title{TreeFlow: Probabilistic Modelling and Automatic Differentiation for Phylogenetics
 }
-% Each important word in the title should begin with a capital letter
-
-% List of authors, with corresponding author marked by asterisk
-\author{Christiaan Swanepoel,$^{\ast, 1, 2}$\\
+\author{
+Christiaan Swanepoel,$^{\ast, 1, 2}$\\
 Mathieu Fourment,$^{3}$\\
 Xiang Ji,$^{4}$\\
 Hassan Nasif,$^{5}$\\
 Marc A Suchard,$^{6,7,8}$\\
 Frederick A Matsen IV,$^{5,9,10}$\\
 Alexei J Drummond$^{1,11}$
-\\[4pt]
-    % Author addresses
+}
+
+\date{}
+
+\begin{document}
+\maketitle
+
+\noindent {\small
     ${^1}$Centre for Computational Evolution, The University of Auckland, Auckland, New Zealand;\\
 $^{2}$School of Computer Science, The University of Auckland, Auckland, New Zealand, 1010;\\
 $^{3}$Australian Institute for Microbiology and Infection, University of Technology Sydney, Ultimo NSW, Australia;\\
@@ -66,30 +62,21 @@ $^{8}$Department of Biostatistics, University of California, Los Angeles, USA;\\
 $^{9}$Department of Statistics, University of Washington, Seattle, USA;\\
 $^{10}$Department of Genome Sciences, University of Washington, Seattle, USA;\\
 $^{11}$School of Biological Sciences, The University of Auckland, Auckland, New Zealand, 1010;\\
- [2pt]
-    % E-mail address for correspondence
-    \textit{Correspondence to be sent to: School of Computer Science, The University of Auckland, Auckland, New Zealand, 1010;\\
-Email: cswa648@aucklanduni.ac.nz
-}}
-
-
-% Running headers of paper:
-\markboth%
-% First field is the short list of authors
-{Swanepoel et al.}
-% Second field is the short title of the paper
-{TreeFlow}
-% This should be shortened version of the title and no greater than 50 characters
-
-\maketitle
-
-\begin{abstract}
-    {Probabilistic modelling frameworks are powerful tools for statistical modelling and inference. They are not immediately generalizable to phylogenetic problems due to the particular computational properties of the phylogenetic tree object. TreeFlow is a software library for probabilistic modelling and automatic differentiation with phylogenetic trees. It embeds phylogenetic trees in the TensorFlow Probability framework, and implements inference algorithms for phylogenetic models given a fixed tree topology. We demonstrate how TreeFlow can be used to quickly implement and assess new models. We also show that it provides reasonable performance for gradient-based inference algorithms compared to specialized computational libraries for phylogenetics.
 }
-    {phylogenetics; Bayesian inference; probabilistic modelling; variational inference}
-\end{abstract}
-\newline
 
+\bigskip
+
+\noindent {\small\itshape Correspondence to be sent to: School of Computer Science, The University of Auckland, Auckland, New Zealand, 1010;\\
+Email: cswa648@aucklanduni.ac.nz
+}
+
+\bigskip
+
+\section*{Abstract}
+Probabilistic modelling frameworks are powerful tools for statistical modelling and inference. They are not immediately generalizable to phylogenetic problems due to the particular computational properties of the phylogenetic tree object. TreeFlow is a software library for probabilistic modelling and automatic differentiation with phylogenetic trees. It embeds phylogenetic trees in the TensorFlow Probability framework, and implements inference algorithms for phylogenetic models given a fixed tree topology. We demonstrate how TreeFlow can be used to quickly implement and assess new models. We also show that it provides reasonable performance for gradient-based inference algorithms compared to specialized computational libraries for phylogenetics.
+
+\medskip
+\noindent\textbf{Keywords: }phylogenetics; Bayesian inference; probabilistic modelling; variational inference
 
 \section{Introduction}
 
@@ -212,7 +199,7 @@ In the carnivores dataset, we demonstrate the flexibility of probabilistic model
 
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{manuscript/figures/carnivores-marginals}
+    \includegraphics[width=\linewidth]{carnivores-marginals}
     \caption{Posterior marginal parameter estimates for the carnivores base model (a single transition/transversion ratio, kappa, shared across the whole tree), comparing TreeFlow variational inference (TreeFlow VI, teal) with BEAST 2 MCMC (BEAST 2, red). The solid curves show the estimated marginal posteriors and the shaded bands represent the Monte Carlo error of each estimate. For BEAST 2 the band is obtained by bootstrapping the MCMC samples; for TreeFlow VI it is estimated from the variability between four independent variational runs, with the curve showing the posterior pooled across those runs. The variational runs use the root full rank approximation; the corresponding comparison of all three approximation families is given in Supplementary Appendix Figure S3.}
     \label{fig:carnivoresmarginals}
 \end{figure}
@@ -224,12 +211,12 @@ We then altered this model to estimate a separate ratio for every branch of the 
 \begin{figure}
     \centering
     \begin{subfigure}[t]{0.4\linewidth}
-        \includegraphics[width=\linewidth]{manuscript/figures/carnivores-kappa}
+        \includegraphics[width=\linewidth]{carnivores-kappa}
         \caption{Estimated per-branch kappa against the age of each branch. Each point is the posterior mean of the kappa parameter for one branch, shown on a logarithmic scale; the vertical bars show its 95\% credible interval and the horizontal bars show the 95\% credible interval of the age. Age is the height of the branch's midpoint above the present, measured in expected substitutions per site (the tree is estimated in units of substitutions and is not calibrated to time).}
         \label{fig:carnivoreskappa}
     \end{subfigure}
     \begin{subfigure}[t]{0.4\linewidth}
-        \includegraphics[width=\linewidth]{manuscript/figures/carnivores-model-trees}
+        \includegraphics[width=\linewidth]{carnivores-model-trees}
         \caption{Internal node age estimates under the two models. Each point is one internal node, with its age under the base (single-kappa) model on the horizontal axis and its age under the per-branch kappa variation model on the vertical axis; points are posterior means, bars show the 95\% posterior quantile interval, and the dotted line is the identity. Points falling below the identity for older nodes show that the kappa variation model infers younger ages for deeper nodes.}
         \label{fig:carnivorestree}
     \end{subfigure}
@@ -241,13 +228,13 @@ The estimated per-lineage kappa parameters are shown in Figure \ref{fig:carnivor
 \begin{figure}
     \centering
     \begin{subfigure}[b]{\linewidth}
-        \includegraphics[width=0.85\linewidth]{manuscript/figures/h3n2-marginals}
+        \includegraphics[width=0.85\linewidth]{h3n2-marginals}
         \caption{Marginal posterior distributions for the model parameters, comparing TreeFlow variational inference (TreeFlow VI, teal) with BEAST 2 MCMC (BEAST 2, red). Shaded bands are Monte Carlo error, obtained as in Figure \ref{fig:carnivoresmarginals} by bootstrapping for BEAST 2 and from four independent variational runs for TreeFlow VI, whose pooled posterior is the plotted curve. The variational runs use the root full rank approximation; Supplementary Appendix Figure S4 gives the corresponding comparison of all three approximation families.}
         \label{fig:flumarginals}
     \end{subfigure}
 
     \begin{subfigure}[b]{\linewidth}
-        \includegraphics[width=0.85\linewidth]{manuscript/figures/h3n2-trees}
+        \includegraphics[width=0.85\linewidth]{h3n2-trees}
         \caption{Per-node summaries of the internal node height posteriors, plotting the TreeFlow VI estimate against the BEAST 2 estimate for each node. The left panel compares the posterior means and the right panel the posterior standard deviations; the dotted line in each panel is the identity. Points above the identity in the right panel are node heights whose posterior uncertainty the variational approximation overestimates relative to BEAST 2, and points below it are ones it underestimates. The two occur together: the approximation is over-dispersed for the nodes BEAST 2 estimates most precisely, near the origin, and under-dispersed for the most uncertain ones.}
         \label{fig:flutree}
     \end{subfigure}
@@ -287,7 +274,7 @@ All reported times are the cost of a \textit{single} evaluation of the computati
 
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{manuscript/figures/benchmark-log-scale-plot}
+    \includegraphics[width=\linewidth]{benchmark-log-scale-plot}
     \caption{Times from the phylogenetic likelihood benchmark, on log-log axes. Each point is the time for a single evaluation of the computation on an alignment of 1000 sites, averaged over 10 simulated datasets. Each panel corresponds to one of the four benchmarked computations (likelihood and gradient evaluation, under the simple JC model and the more complex GTR/Weibull model), with the five implementations plotted as separate series: TreeFlow's portable TensorArray traversal (TreeFlow) and its native C++ operation (TreeFlow (native)), \texttt{bito}/BEAGLE, and the eager (JAX) and JIT-compiled (JAX (JIT)) JAX implementations. Eager JAX is only run up to 512 taxa as its runtime becomes prohibitive on larger trees.}
     \label{fig:benchmark}
 \end{figure}
@@ -365,51 +352,6 @@ Datasets, model definitions, starting values, and BEAST 2 XML files used in the 
 The authors declare that there are no conflicts of interest.
 
 
-%If you have any acknowledgements, please include them here.
-%\section{Acknowledgements}
-
-%If your paper has accompanying supplementary data, please include the below statement in your PDF.
-%\section{Supplementary Material}
-%Data available from the Dryad Digital Repository:
-% \href{http://dx.doi.org/10.5061/dryad.[NNNN]}%
-% {http://dx.doi.org/10.5061/dryad.[NNNN]}.
-%\url{http://dx.doi.org/10.5061/dryad.[NNNN]}.
-
-\bigskip\bigskip
-
-% REFERENCES
-
-% The best way to enter references is to use BibTeX.
-
-\bibliography{main}
-
-% Alternatively you could enter them by hand, like this:
-
-% 1. All authors should be listed i.e. no use of et al.
-% 2. Dashes should not be used to replace author names in repeat entries
-
-% Please include any figure captions on a separate page after the references. Figures themselves should be embedded in the text.
-
-%\begin{figure}[!p]
-%\centering\includegraphics{fig1}
-%\caption{Figure caption}
-%\label{Fig1}
-%\end{figure}
-
-
-%\begin{table}[!p]
-% 1. Table titles should be in caps and lowercase
-% 2. Footnotes can be used in Tables (a,b,c)}
-%\tblcaption{Table title
-%\label{Table1}}
-%{\tabcolsep=4.25pt
-%\begin{tabular}{@{}cccccccccc@{}}
-%\tblhead{Heading & Heading & Heading & Heading & Heading}
-%Value & Value & Value & Value & Value 
-%\lastline
-%\end{tabular}}
-%\end{table}
-
-%If you have any print appendices, please include them at the end of the document.
+\bibliography{treeflow}
 
 \end{document}
